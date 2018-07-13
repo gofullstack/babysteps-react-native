@@ -55,7 +55,10 @@ export class TourItemFour extends Component {
           <Text style={styles.body}>Powered by Univeristy of Iowa physicians and researchers use of this app will also help us to better understand factors leading to permature birth or developmental disorders such as autism.</Text>
         </View>
 
-        <ScrollView style={styles.scrollView}>
+        <ScrollView onTouchStart={(ev) => { this.props._handleScrollEvent(true) }}
+          onMomentumScrollEnd={(e) => { this.props._handleScrollEvent(false) }}
+          onScrollEndDrag={(e) => { this.props._handleScrollEvent(true) }}
+          style={styles.scrollView}>
           
           <View style={styles.nestedView}>
             <Image 

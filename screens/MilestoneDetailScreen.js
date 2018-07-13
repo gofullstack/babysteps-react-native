@@ -15,10 +15,20 @@ import {
   FETCH_MILESTONES_REJECTED
 } from '../actions/types';
 
-class MilestonesScreen extends Component {
-  static navigationOptions = {
-    title: 'Milestones',
+class MilestoneDetailScreen extends Component {
+  static navigationOptions = ({ navigation }) => {
+    const navData = navigation.getParam('item');
+    console.log('navigation data',navData);
+    return {
+      title : navData.section.key,
+    };
   };
+
+  constructor(props){
+    super(props);
+   
+
+  }
 
   componentWillMount() {
 
@@ -38,13 +48,13 @@ class MilestonesScreen extends Component {
   }
 
   renderItem = (item) => {
-    return  <TouchableOpacity onPress={()=>{this.props.navigation.navigate('MilestoneDetailScreen',{item:item})}}> 
+    return  <TouchableOpacity onPress={()=>{console.log('on press',item.item.name)}}> 
               <View style={{flexDirection:'row',padding:5,  justifyContent:'space-between', borderBottomWidth:4, borderBottomColor:'#fff'}}>
               <View style={{flexDirection:'row', justifyContent:'flex-start'}}>
                 <MaterialCommunityIcons name='checkbox-blank-outline' style={{ fontSize: 25, color: '#b9b9b9' }} />
                 <Text style={styles.text}>{item.item.name}</Text> 
               </View>
-              <View style={{marginRight:5}}>               
+              <View>               
                 <Ionicons name='md-arrow-forward' style={{ fontSize: 25, color: '#b9b9b9' }} />
               </View>
               </View>
@@ -77,12 +87,7 @@ class MilestonesScreen extends Component {
 
     return (
       <ScrollView style={styles.container}>
-        <SectionList
-          renderItem={this.renderItem}
-          renderSectionHeader={this.renderSectionHeader}
-          sections={milestones}
-          keyExtractor={(item) => item.id}
-        />
+        
       </ScrollView>
     )
   }
@@ -109,4 +114,4 @@ const styles = StyleSheet.create({
 const mapStateToProps = ({ milestones }) => ({ milestones });
 const mapDispatchToProps = { milestonesTable }
 
-export default connect( mapStateToProps, mapDispatchToProps )( MilestonesScreen );
+export default connect( mapStateToProps, mapDispatchToProps )( MilestoneDetailScreen );

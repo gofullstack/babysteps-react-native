@@ -16,6 +16,7 @@ import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
 import BabyBookScreen from '../screens/BabyBookScreen';
 import BabyBookEntryScreen from '../screens/BabyBookEntryScreen';
 import BabyBookTimelineScreen from '../screens/BabyBookTimelineScreen';
+import MilestoneDetailScreen from '../screens/MilestoneDetailScreen';
 
 import Colors from '../constants/Colors';
 import States from '../actions/states';
@@ -24,6 +25,9 @@ const RootStackNavigator = StackNavigator(
   {
     Main: {
       screen: MainTabNavigator,
+    },
+	MilestoneDetailScreen: {
+      screen: MilestoneDetailScreen,
     },
     BabyBook: {
       screen: BabyBookScreen,
