@@ -31,12 +31,17 @@ export default class TourScreen extends Component {
     super(props);
     this.state = {
       currentIndex: 0,
+      scrollEnabled: false
     };
     this.updateIndex = this.updateIndex.bind(this);
   }
 
   updateIndex() {
     this.setState({currentIndex: 3 })
+  }
+
+  _handleNestedScrollEvent = (value) => {
+    this.setState({ scrollEnabled: value });
   }
 
   render() {
@@ -48,13 +53,11 @@ export default class TourScreen extends Component {
       <ImageBackground 
         source={require('../assets/images/background.png')}
         style={styles.imageBackground}>
-        
-        <View style={styles.container}>
-        
           <SideSwipe
             data={items}
             index={this.state.currentIndex}
-            shouldCapture={() => true}
+            scrollEnabled={false}
+          shouldCapture={() =>  this.state.scrollEnabled ? false : true}
             style={[styles.carouselFill,  { width } ]}
             itemWidth={TourItem.WIDTH}
             threshold={TourItem.WIDTH / 4}
@@ -77,6 +80,7 @@ export default class TourScreen extends Component {
                     index = {itemIndex}
                     currentIndex = {currentIndex}
                     animatedValue = {animatedValue}
+                    _handleScrollEvent={this._handleNestedScrollEvent}
                   />
 
             )}
@@ -94,8 +98,6 @@ export default class TourScreen extends Component {
             indicatorSize={{width:8, height:8}}
             onPageIndicatorPress={this.onItemTap}
           />
-
-        </View>
 
         <TourButtons  
           {...this.state} 
@@ -119,11 +121,6 @@ const styles = StyleSheet.create({
   imageBackground: {
     flex: 1,
     marginTop: 20,
-  },    
-  container: {    
-    flex: 1,    
-    alignItems: 'stretch',    
-    justifyContent: 'center',
   },
   carouselFill: {
     position: 'absolute',

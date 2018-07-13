@@ -37,6 +37,21 @@
       "milestones_title ON milestones (title);"
     ]
   },
+  "milestone_calendars": {
+    "columns": {
+      "id": "INTEGER PRIMARY KEY", 
+      "subject_id": "TEXT",
+      "milestone_id": "INTEGER", 
+      "notify_at": "TEXT", 
+      "notify_count": "INTEGER", 
+      "available_start_at": "TEXT", 
+      "available_end_at": "TEXT", 
+      "completed_at": "TEXT", 
+      },
+      "indexes": [
+      "milestone_calendars_milestone_id ON milestone_calendars (milestone_id);",
+      ]
+    },
   "tasks": {
     "columns": {
       "id": "INTEGER PRIMARY KEY", 
