@@ -112,6 +112,25 @@ class OverviewScreen extends React.Component {
     );
   };
 
+  renderSlider = () => {
+    if (this.state.milestoneGroups.length > 0) {
+      return (
+          <SideSwipe
+          index={this.state.currentIndexMilestones}
+          data={this.state.milestoneGroups}
+          renderItem={item => this.renderMilestoneItem(item)}
+          itemWidth={width}
+          //threshold={mgImageWidth / 4}
+          useVelocityForIndex={false}
+          style={styles.mgSlider}
+          onIndexChange={index =>
+            this.setState({ currentIndexMilestones: index })
+          }
+        />
+      )
+    }
+  }
+
   render() {
     const navigate = this.props.navigation.navigate;
     return (
@@ -131,18 +150,7 @@ class OverviewScreen extends React.Component {
           {this.state.sliderLoading &&
             <ActivityIndicator size="large" color={Colors.tint} />
           }
-          <SideSwipe
-            index={this.state.currentIndexMilestones}
-            data={this.state.milestoneGroups}
-            renderItem={item => this.renderMilestoneItem(item)}
-            itemWidth={width}
-            //threshold={mgImageWidth / 4}
-            useVelocityForIndex={false}
-            style={styles.mgSlider}
-            onIndexChange={index =>
-              this.setState({ currentIndexMilestones: index })
-            }
-          />
+          {this.renderSlider()}
         </View>
       </View>
     );
