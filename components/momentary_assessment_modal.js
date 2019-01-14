@@ -25,11 +25,12 @@ class MomentaryAssessment extends Component {
   componentWillReceiveProps(nextProps, nextState) {
     const notifications = nextProps.notifications;
     const milestones = nextProps.milestones;
+    console.log("Notification:",notifications);
     if (notifications.show_momentary_assessment) {
       if (!notifications.momentary_assessment.fetching && !notifications.momentary_assessment.fetched) {
-        this.props.fetchMomentaryAssessment({task_id: notifications.data.task_id});
-        if (notifications.data.response_scale) {
-          this.setState({response_scale: notifications.data.response_scale});
+        this.props.fetchMomentaryAssessment({task_id: notifications.momentary_assessment.data.task_id});
+        if (notifications.momentary_assessment.data.response_scale) {
+          this.setState({response_scale: notifications.momentary_assessment.data.response_scale});
         }
       }
     }
