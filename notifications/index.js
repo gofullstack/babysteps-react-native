@@ -65,8 +65,12 @@ function getRandomInt(min, max) {
 }
 
 async function buildMomentaryAssessmentEntries(entry, studyEndDate) {
-  let cycleDate = moment(entry.notify_at);
-  if (moment().isAfter(entry.notify_at)) cycleDate = moment();
+
+  console.log("EMAs: buildMomentaryAssessmentEntries");
+
+  let cycleDate = moment().startOf('day');
+
+  if (entry.notify_at === null || moment().isAfter(entry.notify_at)) cycleDate = moment().startOf('day');
   // only construct 14 days of momentary assessments
   // in order to stay under the 64 local notifications
   // limit of IOS.
@@ -76,14 +80,14 @@ async function buildMomentaryAssessmentEntries(entry, studyEndDate) {
   const number = milestoneFrequency(entry.frequency)[1];
   while (moment(cycleDate).isBefore(endDate)) {
     for (let i = 0; i < number; i++) {
-      const scheduleTime = moment(cycleDate)
+      const scheduleTime = moment(cycleDate).startOf('day')
         .add(getRandomInt(1, term), 'days')
         .add(getRandomInt(8, 19), 'hours')
         .add(getRandomInt(0, 59), 'minutes');
       const localNotification = localNotificationMessage(entry);
       scheduleNotificaton(localNotification, scheduleTime);
-      cycleDate = scheduleTime;
     }
+    cycleDate = moment(cycleDate).add(7,'days');
   }
 }
 
