@@ -1,4 +1,5 @@
-import { SQLite } from 'expo';
+import { Constants, SQLite } from 'expo';
+import CONSTANTS from '../constants';
 
 const db = SQLite.openDatabase('babysteps.db');
 
@@ -96,4 +97,14 @@ export function createSessionRecord() {
       (_, error) => console.log('*** Error in creating session record '),
     );
   });
+}
+
+export function getApiUrl() {
+  // https://docs.expo.io/versions/latest/distribution/release-channels
+  const releaseChannel = Constants.manifest.releaseChannel; //does NOT exist in dev mode
+  if (__DEV__ || releaseChannel === undefined)
+    return CONSTANTS.BASE_DEVELOPMENT_URL;
+  if (releaseChannel.indexOf('staging') !== -1)
+    return CONSTANTS.BASE_STAGING_URL; // this will pick up staging-v1
+  return CONSTANTS.BASE_PRODUCTION_URL; // default to production - don't need a release channel
 }

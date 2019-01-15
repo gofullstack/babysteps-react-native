@@ -20,13 +20,14 @@ export default class PickerInput extends PureComponent {
     const { error, helper, touched, label, name, values, ...props } = this.props;
     const displayError = !!error && touched;
     const labelColor = displayError ? Colors.errorColor : Colors.grey;
-    const containerStyle = { marginBottom: 1, borderWidth: 1, borderColor: Colors.red };
+    const containerStyle = { marginBottom: 1 };
 
     const labelProps = {
       labelStyle: { color: labelColor, marginLeft: 20 },
     };
 
-    const selectedValue = find(this.props.values, ['value', this.props.selectedValue]).label;
+    const value = find(values, ['value', this.props.selectedValue]);
+    const selectedValueLabel = value ? value.label : '';
 
     return (
       <View style={containerStyle}>
@@ -35,7 +36,7 @@ export default class PickerInput extends PureComponent {
           <Picker
             name={name}
             containerStyle={containerStyle}
-            value={selectedValue}
+            value={selectedValueLabel}
             autoCapitalize="none"
             autoCorrect={false}
             values={values}

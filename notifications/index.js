@@ -30,6 +30,9 @@ function localNotificationMessage(entry) {
       sound: true,
     },
     android: {
+      sound: true,
+      vibrate: true,
+      priority: 'high',
       channelId: 'screeningEvents',
     },
   };

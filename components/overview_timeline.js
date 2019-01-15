@@ -78,10 +78,12 @@ class OverviewTimeline extends React.Component {
                 return true;
               }
               // only tasks for relevant period
-              if (
-                (postBirth && item.overview_timeline === 'post_birth') ||
-                item.overview_timeline === 'during_pregnancy'
-              ) {
+              // only completed pre-birth tasks
+              if (postBirth && item.overview_timeline === 'during_pregnancy' && item.uri) {
+                return false
+              }
+              // all post-birth tasks
+              if (postBirth && item.overview_timeline === 'post_birth') {
                 return false;
               }
               // otherwise remove

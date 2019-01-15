@@ -24,7 +24,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "10",
+      "buildNumber": "11",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps",
       "infoPlist": {
@@ -34,7 +34,7 @@
       }
     },
     "android": {
-      "versionCode": 10,
+      "versionCode": 11,
       "package": "com.gofullstack.babysteps",
       "permissions": [
         "AUDIO_RECORDING",

@@ -3,9 +3,7 @@ import axios from "axios";
 
 import { _ } from 'lodash';
 
-import { updateSession } from './session_actions';
-
-import CONSTANTS from '../constants';
+import { getApiUrl } from '../database/common';
 
 import {
 
@@ -161,11 +159,12 @@ export const createUser = user => {
 export const apiCreateUser = user => {
   return function(dispatch) {
     dispatch(Pending(API_CREATE_USER_PENDING));
+    const baseURL = getApiUrl();
 
     return axios({
       method: 'POST',
       responseType: 'json',
-      baseURL: CONSTANTS.BASE_URL,
+      baseURL,
       url: '/user_registration',
       data: user,
     })
@@ -366,10 +365,12 @@ export const apiSaveSignature = (session, api_id, uri) => {
       'CONTENT-TYPE': 'multipart/form-data',
     };
 
+    const baseURL = getApiUrl();
+
     axios({
       method: 'PUT',
       responseType: 'json',
-      baseURL: CONSTANTS.BASE_URL,
+      baseURL,
       url: '/respondents/' + api_id,
       headers,
       data: formData,

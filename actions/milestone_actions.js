@@ -7,7 +7,7 @@ import forEach from 'lodash/forEach';
 import omit from 'lodash/omit';
 import keys from 'lodash/keys';
 
-import { insertRows } from '../database/common';
+import { insertRows, getApiUrl } from '../database/common';
 import schema from '../database/milestones_schema.json';
 import trigger_schema from '../database/milestone_triggers_schema.json';
 
@@ -162,11 +162,13 @@ export const apiFetchMilestones = () => {
 
   return dispatch => {
     dispatch(Pending(API_FETCH_MILESTONES_PENDING));
+    const baseURL = getApiUrl();
+
     return new Promise((resolve, reject) => {
       axios({
         method: 'get',
         responseType: 'json',
-        baseURL: CONSTANTS.BASE_URL,
+        baseURL,
         url: '/milestones',
         headers: {
           "milestone_token": CONSTANTS.MILESTONE_TOKEN,
@@ -260,11 +262,13 @@ export const apiCreateMilestoneCalendar = params => {
       params.testing = 'true';
     }
 
+    const baseURL = getApiUrl();
+
     return new Promise((resolve, reject) => {
       axios({
         method: 'get',
         responseType: 'json',
-        baseURL: CONSTANTS.BASE_URL,
+        baseURL,
         url: '/milestone_calendars/new',
         params,
         headers: { milestone_token: CONSTANTS.MILESTONE_TOKEN },
@@ -288,11 +292,13 @@ export const apiFetchMilestoneCalendar = params => {
       params.testing = 'true';
     }
 
+    const baseURL = getApiUrl();
+
     return new Promise((resolve, reject) => {
       axios({
         method: 'get',
         responseType: 'json',
-        baseURL: CONSTANTS.BASE_URL,
+        baseURL,
         url: '/milestone_calendars',
         params,
         headers: { milestone_token: CONSTANTS.MILESTONE_TOKEN },
@@ -311,12 +317,13 @@ export const apiFetchMilestoneCalendar = params => {
 export const apiUpdateMilestoneCalendar = (id, data) => {
   return dispatch => {
     dispatch(Pending(API_UPDATE_MILESTONE_CALENDAR_PENDING));
+    const baseURL = getApiUrl();
 
     return new Promise((resolve, reject) => {
       axios({
         method: 'put',
         responseType: 'json',
-        baseURL: CONSTANTS.BASE_URL,
+        baseURL,
         url: `/milestone_calendars/${id}`,
         data,
         headers: { milestone_token: CONSTANTS.MILESTONE_TOKEN },

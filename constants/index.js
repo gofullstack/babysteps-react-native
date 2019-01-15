@@ -22,8 +22,11 @@ export default {
   REMOVE_ATTACHMENTS_DIRECTORY: false, // will delete all answer attachments
 
   // API
-  BASE_URL: 'https://app-8756.on-aptible.com/api',
-  //BASE_URL: 'http://10.1.10.140:3000/api',
+  BASE_PRODUCTION_URL: 'https://app-8756.on-aptible.com/api',
+  BASE_STAGING_URL: 'https://app-8756.on-aptible.com/api',
+  BASE_DEVELOPMENT_URL: 'https://app-8756.on-aptible.com/api',
+  //BASE_DEVELOPMENT_URL: 'http://10.1.10.140:3000/api',
+
   MILESTONE_TOKEN: '816fb58eb3ef6dc4dcf85a230b2049da33bac3b7a744d26f33ca3b89ae136d41',
 
   SENTRY_URL: 'https://193d4a8c3e6b4b3d974a3f4d1d6f598c@sentry.io/1204085',

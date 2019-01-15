@@ -1,12 +1,7 @@
 import axios from 'axios';
 
-import {
-  updateSession,
-  apiTokenRefresh,
-  apiTokenRefreshFailed,
-} from '../actions/session_actions';
-
-import CONSTANTS from '../constants';
+import { updateSession, apiTokenRefresh } from '../actions/session_actions';
+import { getApiUrl } from './common';
 
 import {
   API_TOKEN_REFRESH_PENDING,
@@ -69,10 +64,12 @@ export default store => next => action => {
     headers['CONTENT-TYPE'] = 'multipart/form-data';
   }
 
+  const baseURL = getApiUrl();
+
   return axios({
     method: effect.method,
     responseType: 'json',
-    baseURL: CONSTANTS.BASE_URL,
+    baseURL,
     url: effect.url,
     headers,
     data: action.payload.data,
