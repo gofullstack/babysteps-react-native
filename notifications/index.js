@@ -66,8 +66,6 @@ function getRandomInt(min, max) {
 
 async function buildMomentaryAssessmentEntries(entry, studyEndDate) {
 
-  console.log("EMAs: buildMomentaryAssessmentEntries");
-
   let cycleDate = moment().startOf('day');
 
   if (entry.notify_at === null || moment().isAfter(entry.notify_at)) cycleDate = moment().startOf('day');
