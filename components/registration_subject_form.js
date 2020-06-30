@@ -10,6 +10,8 @@ import withInputAutoFocus, {
   withNextInputAutoFocusInput,
 } from 'react-native-formik';
 
+import { _ } from 'lodash';
+
 import moment from 'moment';
 
 import { connect } from 'react-redux';
@@ -111,7 +113,7 @@ class RegistrationSubjectForm extends Component {
   componentDidUpdate(prevProps, prevState) {
     const subject = this.props.registration.subject;
     const isSubmitting = this.state.isSubmitting;
-    if (subject.fetched && !isEmpty(subject.data) && isSubmitting) {
+    if (subject.fetched && !_.isEmpty(subject.data) && isSubmitting) {
       this._saveAPISubject(subject);
     }
   }
