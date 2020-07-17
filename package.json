@@ -33,7 +33,7 @@
     "expo-web-browser": "~8.0.0",
     "formik": "^v1.4.2",
     "install": "^0.13.0",
-    "lodash": "^4.17.14",
+    "lodash": "^4.17.19",
     "moment": "^2.23.0",
     "number-to-words": "^1.2.4",
     "path": "^0.12.7",
