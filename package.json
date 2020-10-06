@@ -26,6 +26,7 @@
     "expo-image-picker": "~8.3.0",
     "expo-keep-awake": "~8.2.1",
     "expo-media-library": "~8.2.1",
+    "expo-notifications": "~0.3.3",
     "expo-permissions": "~9.0.1",
     "expo-pixi": "^1.2.0",
     "expo-react-native-adapter": "^3.0.1",

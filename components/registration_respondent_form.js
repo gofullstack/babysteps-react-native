@@ -215,6 +215,7 @@ class RegistrationRespondentForm extends Component {
   };
 
   _handleOnSubmit = values => {
+    const session = this.props.session;
     const user = this.props.registration.user;
     const tos_id = Object.keys(IRBInformation)[0];
     const irb = IRBInformation[tos_id];
@@ -227,6 +228,7 @@ class RegistrationRespondentForm extends Component {
       tos_id: tos_id,
       irb_id: irb.irb_id,
       accepted_tos_at: new Date().toISOString(),
+      push_token: session.push_token,
     };
     this.setState({ isSubmitting: true });
     this.props.createRespondent(respondent);

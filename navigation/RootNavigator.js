@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
 import { Platform, Alert } from 'react-native';
 
-import { Notifications } from 'expo';
+import * as Notifications from 'expo-notifications';
 
 import * as Permissions from 'expo-permissions';
+
+import Constants from 'expo-constants';
 
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
@@ -14,10 +16,10 @@ import moment from 'moment';
 
 import { showMessage } from 'react-native-flash-message';
 
+import * as Sentry from 'sentry-expo';
+
 import { connect } from 'react-redux';
 import { updateSession, fetchSession } from '../actions/session_actions';
-
-import * as Sentry from 'sentry-expo';
 
 import {
   showMomentaryAssessment,
@@ -128,14 +130,7 @@ class RootNavigator extends Component {
   }
 
   componentDidMount() {
-    if (Platform.OS === 'android') {
-      Notifications.createChannelAndroidAsync('screeningEvents', {
-        name: 'Screening Events',
-        priority: 'max',
-        vibrate: [0, 250, 250, 250],
-        color: Colors.notifications,
-      });
-    }
+    //this._notificationSubscription = this.registerForPushNotifications();
     this._notificationSubscription = this.registerForNotifications();
   }
 
@@ -231,6 +226,70 @@ class RootNavigator extends Component {
     }
   };
 
+  registerForPushNotificationsAsync = async () => {
+    let notifications_permission = this.props.session.notifications_permission;
+    if (Constants.isDevice) {
+      // android permissions are given on install and may already exist
+      const { status: existingStatus } = await Permissions.getAsync(
+        Permissions.NOTIFICATIONS,
+      );
+      notifications_permission = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Permissions.askAsync(
+          Permissions.NOTIFICATIONS,
+        );
+        notifications_permission = status;
+      }
+      // only ask if permissions have not already been determined, because
+      // iOS won't necessarily prompt the user a second time.
+      if (notifications_permission !== 'granted') {
+        Alert.alert(
+          'Permissions',
+          'Failed to get permissions for Push Notifications!',
+          [{ text: 'Cancel', onPress: () => {}, style: 'cancel' }],
+          { cancelable: true },
+        );
+        return;
+      }
+
+      const push_token = await Notifications.getExpoPushTokenAsync();
+
+      this.props.updateSession({ notifications_permission, push_token });
+
+      // Watch for incoming notifications
+      Notifications.addListener(this._handleNotification);
+
+      if (Platform.OS === 'ios' && notifications_permission !== 'granted') {
+        Alert.alert(
+          'Permissions',
+          "To make sure you don't miss any notifications, please enable 'Persistent' notifications for BabySteps. Click Settings below, open 'Notifications' and set 'Banner Style' to 'Persistent'.",
+          [
+            { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+            { text: 'Settings', onPress: () => openSettings('NOTIFICATIONS') },
+          ],
+          { cancelable: true },
+        );
+      }
+
+      if (Platform.OS === 'android') {
+        Notifications.setNotificationChannelAsync('screeningEvents', {
+          name: 'screeningEvents',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: Colors.notifications,
+        });
+      }
+
+    } else {
+      Alert.alert(
+        'Notifications',
+        'Must use physical device for Push Notifications',
+        [{ text: 'Cancel', onPress: () => {}, style: 'cancel' }],
+        { cancelable: true },
+      );
+    } // isDevice
+  };
+
   registerForNotifications = async () => {
     const notifications_permission = this.props.session.notifications_permission;
     // android permissions are given on install
@@ -262,6 +321,15 @@ class RootNavigator extends Component {
           ],
           { cancelable: true },
         );
+      }
+
+      if (Platform.OS === 'android') {
+        Notifications.createChannelAndroidAsync('screeningEvents', {
+          name: 'Screening Events',
+          priority: 'max',
+          vibrate: [0, 250, 250, 250],
+          color: Colors.notifications,
+        });
       }
     }
 
