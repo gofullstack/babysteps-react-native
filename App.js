@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
+import * as Notifications from 'expo-notifications';
 import FlashMessage from 'react-native-flash-message';
 import * as Sentry from 'sentry-expo';
 
@@ -34,6 +35,14 @@ Sentry.init({
   dsn: Constants.manifest.extra.sentryDSN,
   enableInExpoDevelopment: false,
   debug: true,
+});
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
 });
 
 export default class App extends Component {

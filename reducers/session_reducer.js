@@ -33,6 +33,14 @@ import {
   API_FETCH_SIGNIN_FULFILLED,
   API_FETCH_SIGNIN_REJECTED,
 
+  API_FETCH_MILESTONES_LAST_UPDATED_PENDING,
+  API_FETCH_MILESTONES_LAST_UPDATED_FULFILLED,
+  API_FETCH_MILESTONES_LAST_UPDATED_REJECTED,
+
+  API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_PENDING,
+  API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_FULFILLED,
+  API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_REJECTED,
+
 } from '../actions/types';
 
 const initialState = {
@@ -42,6 +50,10 @@ const initialState = {
   error: null,
   id: null,
   registration_state: 'none',
+  milestones_updated_at: null,
+  milestones_last_updated_at: null,
+  milestone_calendar_updated_at: null,
+  milestone_calendar_last_updated_at: null,
   notification_period: null,
   notifications_permission: null,
   notifications_updated_at: null,
@@ -272,6 +284,58 @@ const reducer = (state = initialState, action, formData = {}) => {
         fetching: false,
         error: action.payload,
         errorMessages: error,
+      };
+    }
+
+    case API_FETCH_MILESTONES_LAST_UPDATED_PENDING: {
+      return {
+        ...state,
+        fetching: true,
+        fetched: false,
+        error: null,
+      };
+    }
+    case API_FETCH_MILESTONES_LAST_UPDATED_FULFILLED: {
+      const data = action.payload.data;
+      return {
+        ...state,
+        fetching: false,
+        fetched: true,
+        milestones_updated_at: data.last_updated_at,
+      };
+    }
+    case API_FETCH_MILESTONES_LAST_UPDATED_REJECTED: {
+      return {
+        ...state,
+        fetching: false,
+        fetched: true,
+        error: action.payload,
+      };
+    }
+
+    case API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_PENDING: {
+      return {
+        ...state,
+        fetching: true,
+        fetched: false,
+        error: null,
+      };
+    }
+    case API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_FULFILLED: {
+      const data = action.payload.data;
+      return {
+        ...state,
+        fetching: false,
+        fetched: true,
+        milestone_calendar_updated_at: data.last_updated_at,
+      };
+    }
+    case API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_REJECTED: {
+      return {
+        ...state,
+        fetching: false,
+        fetched: true,
+        error: action.payload,
       };
     }
 

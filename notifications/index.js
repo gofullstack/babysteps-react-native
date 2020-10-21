@@ -1,4 +1,4 @@
-import { Notifications } from 'expo';
+import * as Notifications from 'expo-notifications';
 import * as SQLite from 'expo-sqlite';
 
 import * as Sentry from 'sentry-expo';
@@ -17,10 +17,7 @@ const notifications = [];
 
 function scheduleNotificaton(localNotification, scheduleTime) {
   const schedulingOptions = { time: scheduleTime.valueOf() };
-  Notifications.scheduleLocalNotificationAsync(
-    localNotification,
-    schedulingOptions,
-  );
+  Notifications.scheduleNotificationAsync(localNotification, schedulingOptions);
   const notify_at = scheduleTime.toISOString();
   const data = localNotification.data;
   console.log('****** Notfication Scheduled: ', notify_at, data.body);

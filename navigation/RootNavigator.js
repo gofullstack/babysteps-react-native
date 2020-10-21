@@ -19,7 +19,17 @@ import { showMessage } from 'react-native-flash-message';
 import * as Sentry from 'sentry-expo';
 
 import { connect } from 'react-redux';
-import { updateSession, fetchSession } from '../actions/session_actions';
+import {
+  updateSession,
+  fetchSession,
+  apiFetchMilestonesLastUpdated,
+  apiFetchMilestoneCalendarLastUpdated,
+} from '../actions/session_actions';
+
+import {
+  apiFetchMilestones,
+  apiFetchMilestoneCalendar
+} from '../actions/milestone_actions';
 
 import {
   showMomentaryAssessment,
@@ -39,6 +49,8 @@ import TourNoStudyConfirmScreen from '../screens/TourNoStudyConfirmScreen';
 import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
 
 import { openSettings } from '../components/permissions';
+
+import { addColumn } from '../database/common';
 
 import Colors from '../constants/Colors';
 import States from '../actions/states';
@@ -124,20 +136,50 @@ class RootNavigator extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      milestones_updated: false,
+      milestone_calendar_updated: false,
+    };
 
     this.props.fetchSession();
   }
 
   componentDidMount() {
-    //this._notificationSubscription = this.registerForPushNotifications();
-    this._notificationSubscription = this.registerForNotifications();
+    const { milestones_updated, milestone_calendar_updated } = this.state;
+    const subject = this.props.registration.subject.data;
+
+    if (CONSTANTS.USE_PUSH_NOTIFICATIONS) {
+      const notifications_updated_at = moment().subtract(8, 'days');
+      this.props.updateSession({ notifications_updated_at });
+      Notifications.cancelAllScheduledNotificationsAsync();
+      addColumn('sessions', 'push_token', 'text');
+      addColumn('sessions', 'milestones_updated_at', 'text');
+      addColumn('sessions', 'milestones_last_updated_at', 'text');
+      addColumn('sessions', 'milestone_calendar_updated_at', 'text');
+      addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
+      if (Constants.isDevice) {
+        // simulator will not generate a token
+        this._notificationSubscription = this.registerForPushNotificationsAsync();
+      }
+    } else {
+      this._notificationSubscription = this.registerForNotifications();
+    }
+    if (!milestones_updated) {
+      this.props.apiFetchMilestonesLastUpdated(CONSTANTS.STUDY_ID);
+      this.setState({ milestones_updated: true });
+    }
+    if (!milestone_calendar_updated) {
+      this.props.apiFetchMilestoneCalendarLastUpdated(subject.api_id);
+      this.setState({ milestone_calendar_updated: true });
+    }
   }
 
   shouldComponentUpdate(nextProps) {
-    const notifications = nextProps.notifications;
-    if (notifications.notifications.fetching || notifications.momentary_assessments.fetching) {
-      return false;
+    if (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
+      const notifications = nextProps.notifications;
+      if (notifications.notifications.fetching || notifications.momentary_assessments.fetching) {
+        return false;
+      }
     }
     return true;
   }
@@ -148,10 +190,35 @@ class RootNavigator extends Component {
     const calendar = this.props.milestones.calendar;
     const session = this.props.session;
     const subject = this.props.registration.subject.data;
-
     if (!isEmpty(calendar.data) && !isEmpty(subject)) {
       if (!session.fetching && session.notifications_permission === 'granted') {
-        this._handleUpdateNotifications(session, subject);
+        if (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
+          this._handleUpdateNotifications(session, subject);
+        }
+      }
+    }
+
+    if (!session.fetching && session.fetched) {
+      const {
+        milestones_updated_at,
+        milestones_last_updated_at,
+        milestone_calendar_updated_at,
+        milestone_calendar_last_updated_at,
+      } = this.props.session;
+
+      if (milestones_updated_at && milestones_updated_at !== milestones_last_updated_at) {
+        const api_milestones = this.props.milestones.api_milestones;
+        if (!api_milestones.fetching && !api_milestones.fetched) {
+          this.props.apiFetchMilestones();
+          this.props.updateSession({ milestones_last_updated_at: milestones_updated_at })
+        }
+      }
+      if (!isEmpty(milestone_calendar_updated_at) && milestone_calendar_updated_at !== milestone_calendar_last_updated_at) {
+        const api_calendar = this.props.milestones.api_calendar;
+        if (!api_calendar.fetching && !api_calendar.fetched) {
+          this.props.apiFetchMilestoneCalendar({subject_id: subject.api_id});
+          this.props.updateSession({ milestone_calendar_last_updated_at: milestone_calendar_updated_at })
+        }
       }
     }
   };
@@ -201,7 +268,7 @@ class RootNavigator extends Component {
     this.props.showMomentaryAssessment(data);
   };
 
-  _handleNotification = ({ origin, data, remote }) => {
+  _handleNotificatioResponse = ({ origin, data, remote }) => {
     // origin
     // 'received' app is open and foregrounded
     // 'received' app is open but was backgrounded (ios)
@@ -252,12 +319,13 @@ class RootNavigator extends Component {
         return;
       }
 
-      const push_token = await Notifications.getExpoPushTokenAsync();
+      const result = await Notifications.getExpoPushTokenAsync();
 
-      this.props.updateSession({ notifications_permission, push_token });
+      this.props.updateSession({ notifications_permission, push_token: result.data });
 
       // Watch for incoming notifications
-      Notifications.addListener(this._handleNotification);
+      //Notifications.addListener(this._handleNotification);
+      Notifications.addNotificationResponseReceivedListener(this._handleNotificationResponse);
 
       if (Platform.OS === 'ios' && notifications_permission !== 'granted') {
         Alert.alert(
@@ -276,7 +344,7 @@ class RootNavigator extends Component {
           name: 'screeningEvents',
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
-          lightColor: Colors.notifications,
+          color: Colors.notifications,
         });
       }
 
@@ -341,7 +409,8 @@ class RootNavigator extends Component {
       return null;
     }
     // Watch for incoming notifications
-    Notifications.addListener(this._handleNotification);
+    // Notifications.addListener(this._handleNotificatioResponse);
+    Notifications.addNotificationResponseReceivedListener(this._handleNotificationResponse);
   };
 
   render() {
@@ -384,6 +453,10 @@ const mapStateToProps = ({
 const mapDispatchToProps = {
   updateSession,
   fetchSession,
+  apiFetchMilestones,
+  apiFetchMilestonesLastUpdated,
+  apiFetchMilestoneCalendar,
+  apiFetchMilestoneCalendarLastUpdated,
   showMomentaryAssessment,
   updateNotifications,
   updateMomentaryAssessments,
