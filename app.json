@@ -28,7 +28,7 @@
     "assetBundlePatterns": [
       "./assets/**/*"
     ],
-    "version": "0.12.2",
+    "version": "0.13.0",
     "ios": {
       "buildNumber": "6",
       "supportsTablet": true,

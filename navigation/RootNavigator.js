@@ -32,6 +32,11 @@ import {
 } from '../actions/milestone_actions';
 
 import {
+  fetchRespondent,
+  apiUpdateRespondent,
+} from '../actions/registration_actions';
+
+import {
   showMomentaryAssessment,
   updateNotifications,
   updateMomentaryAssessments,
@@ -142,6 +147,7 @@ class RootNavigator extends Component {
     };
 
     this.props.fetchSession();
+    this.props.fetchRespondent();
   }
 
   componentDidMount() {
@@ -294,7 +300,8 @@ class RootNavigator extends Component {
   };
 
   registerForPushNotificationsAsync = async () => {
-    let notifications_permission = this.props.session.notifications_permission;
+    const session = this.props.session;
+    let notifications_permission = session.notifications_permission;
     if (Constants.isDevice) {
       // android permissions are given on install and may already exist
       const { status: existingStatus } = await Permissions.getAsync(
@@ -322,6 +329,9 @@ class RootNavigator extends Component {
       const result = await Notifications.getExpoPushTokenAsync();
 
       this.props.updateSession({ notifications_permission, push_token: result.data });
+      const respondent = this.props.registration.respondent.data;
+      const data = {api_id: respondent.api_id, push_token: result.data}
+      this.props.apiUpdateRespondent(session, data)
 
       // Watch for incoming notifications
       //Notifications.addListener(this._handleNotification);
@@ -453,6 +463,8 @@ const mapStateToProps = ({
 const mapDispatchToProps = {
   updateSession,
   fetchSession,
+  fetchRespondent,
+  apiUpdateRespondent,
   apiFetchMilestones,
   apiFetchMilestonesLastUpdated,
   apiFetchMilestoneCalendar,

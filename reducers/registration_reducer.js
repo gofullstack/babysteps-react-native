@@ -423,6 +423,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.apiRespondent,
           fetching: false,
           fetched: true,
+          error: null,
           data: action.payload.data,
         },
       };
