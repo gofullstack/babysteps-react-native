@@ -28,7 +28,7 @@ import {
 
 import {
   apiFetchMilestones,
-  apiFetchMilestoneCalendar
+  apiFetchMilestoneCalendar,
 } from '../actions/milestone_actions';
 
 import {
@@ -163,6 +163,7 @@ class RootNavigator extends Component {
       addColumn('sessions', 'milestones_last_updated_at', 'text');
       addColumn('sessions', 'milestone_calendar_updated_at', 'text');
       addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
+      addColumn('studies', 'duration_days', 'integer');
       if (Constants.isDevice) {
         // simulator will not generate a token
         this._notificationSubscription = this.registerForPushNotificationsAsync();

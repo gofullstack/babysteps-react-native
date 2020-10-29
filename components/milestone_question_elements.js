@@ -49,11 +49,13 @@ const formats = {
   file_audio: 'Audio',
   file_image: 'Photo',
   file_video: 'Video',
+  file_video_frustration: 'Video',
 };
 const mediaTypes = {
   file_audio: 'Audio',
   file_image: 'Images',
   file_video: 'Videos',
+  file_video_frustration: 'Videos',
 };
 
 export class RenderCheckBox extends React.PureComponent {
@@ -298,13 +300,13 @@ export class RenderFile extends Component {
     let hasCameraPermission = false;
     let hasCameraRollPermission = false;
     let hasAudioPermission = false;
-    if (['file_image', 'file_video'].includes(question.rn_input_type)) {
+    if (['file_image', 'file_video', 'file_video_frustration'].includes(question.rn_input_type)) {
       hasCameraRollPermission = await registerForPermission(Permissions.CAMERA_ROLL);
       hasCameraPermission = await registerForPermission(Permissions.CAMERA);
       if (!hasCameraRollPermission) message = renderNoPermissionsMessage('library', message);
       if (!hasCameraPermission) message = renderNoPermissionsMessage('camera', message);
     }
-    if (['file_video', 'file_audio'].includes(question.rn_input_type) ) {
+    if (['file_video', 'file_video_frustration', 'file_audio'].includes(question.rn_input_type) ) {
       hasAudioPermission = await registerForPermission(Permissions.AUDIO_RECORDING);
       if (!hasAudioPermission) message = renderNoPermissionsMessage('audio', message);
     }
@@ -385,7 +387,7 @@ export class RenderFile extends Component {
       let displayImage = false;
       let displayAudio = false;
 
-      const allowAttachFile = !['post_birth', 'during_pregnancy'].includes(
+      let allowAttachFile = !['post_birth', 'during_pregnancy'].includes(
         choice.overview_timeline,
       );
 
@@ -410,6 +412,12 @@ export class RenderFile extends Component {
         case 'file_video':
           isVideo = true;
           loadCameraModal = true;
+          if (fileType) {displayVideo = !!VideoFormats[fileType]};
+          break;
+        case 'file_video_frustration':
+          isVideo = true;
+          loadCameraModal = true;
+          allowAttachFile = false;
           if (fileType) {displayVideo = !!VideoFormats[fileType]};
           break;
         case 'file_audio':

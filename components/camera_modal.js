@@ -12,15 +12,22 @@ import {
 import { isIphoneX } from 'react-native-iphone-x-helper';
 import { Video } from 'expo-av';
 import { Camera } from 'expo-camera';
+import * as ScreenOrientation from 'expo-screen-orientation';
+
+import Constants from 'expo-constants';
 
 import * as moment from 'moment';
 import padStart from 'lodash/padStart';
 import Colors from '../constants/Colors';
+import soundLibrary from '../constants/SoundLibrary';
+
+import Player from './Player.js';
 
 // TODO fix horizontal styles
 const { width, height } = Dimensions.get('window');
 const imageWidth = width;
 const imageHeight = height;
+const ratio = '4:3';
 const imageButtonsHeight = height * 0.3;
 const cameraPositionMargin = 35;
 const cameraPositionMarginTop = 100;
@@ -31,6 +38,7 @@ const mediaTypes = {
   file_audio: 'audio',
   file_image: 'photo',
   file_video: 'video',
+  file_video_frustration: 'video',
 };
 
 class CameraModal extends Component {
@@ -47,12 +55,22 @@ class CameraModal extends Component {
   };
 
   componentDidMount() {
-    if (this.props.question) {
+    const question = this.props.question;
+    if (question) {
+
       this.setState({
         limitOption: true,
-        activeOption: mediaTypes[this.props.question.rn_input_type],
+        activeOption: mediaTypes[question.rn_input_type],
       });
-    }
+
+      if (Constants.isDevice && question.rn_input_type === 'file_video_frustration') {
+        this.setState({
+          type: Camera.Constants.Type.front,
+          isLandscape: question.rn_input_type === 'file_video_frustration',
+        });
+      }
+
+    } // if question
   }
 
   onLayout = () => {
@@ -63,7 +81,7 @@ class CameraModal extends Component {
       return;
     }
 
-    this.setState({ isLandscape: false });
+    // this.setState({ isLandscape: false });
   };
 
   onReceiveVideo = (cancelRecording, image) => {
@@ -82,6 +100,7 @@ class CameraModal extends Component {
   startVideo = async () => {
     const recordingConfig = {
       quality: String(Camera.Constants.VideoQuality['720p']),
+      mirror: true, // flip on iOS
     };
 
     this.cancelRecording = false;
@@ -185,16 +204,33 @@ class CameraModal extends Component {
 
   renderBottomBar = () => {
     const { videoTimer, limitOption, activeOption, isLandscape } = this.state;
-    const rotateX = isLandscape ? '90deg' : '0deg';
+    const question = this.props.question;
+    const rotateX = '0deg'; // isLandscape ? '90deg' : '0deg';
     let takePictureButtonColor = { backgroundColor: Colors.magenta };
     if (videoTimer) {
       const minutes = videoTimer.minutes();
       const seconds = videoTimer.seconds();
-      if (minutes >= 3) {
-        if (seconds % 2 === 0) {
+      if (question.rn_input_type === 'file_video_frustration') {
+        if (minutes >= 3) {
+          if (seconds === 1) {
+            Player.playSound('trill');
+            Vibration.vibrate();
+          }
           takePictureButtonColor = { backgroundColor: Colors.red };
-        } else {
+        }
+        if (minutes >= 4) {
+          takePictureButtonColor = { backgroundColor: Colors.green };
+        }
+        if ( minutes >= 3 && minutes < 5 && (seconds % 2 !== 0) ) {
           takePictureButtonColor = { backgroundColor: Colors.black };
+        }
+      } else {
+        if (minutes >= 3) {
+          if (seconds % 2 === 0) {
+            takePictureButtonColor = { backgroundColor: Colors.red };
+          } else {
+            takePictureButtonColor = { backgroundColor: Colors.black };
+          }
         }
       }
     }
@@ -333,41 +369,61 @@ class CameraModal extends Component {
     );
   };
 
-  renderCameraPosition = choice => {
+  renderCameraPosition = (question, choice) => {
+    const { recording, videoTimer } = this.state;
     //if (this.camera) this.camera.resumePreview();
+    let cameraPositionTemplate = '';
     if (choice !== undefined && choice) {
-      let cameraPositionTemplate = '';
       if (choice.overview_timeline === 'post_birth') {
         cameraPositionTemplate = require('../assets/images/camera_face_position.png');
       }
       if (choice.overview_timeline === 'during_pregnancy') {
         cameraPositionTemplate = require('../assets/images/camera_belly_position.png');
       }
-      if (cameraPositionTemplate) {
-        return (
-          <Image
-            source={cameraPositionTemplate}
-            style={styles.cameraPosition}
-            resizeMode="contain"
-          />
-        );
+    }
+    if (question && question.rn_input_type === 'file_video_frustration') {
+      cameraPositionTemplate = require('../assets/images/camera_frustration.gif');
+      if (recording && videoTimer) {
+        const minutes = videoTimer.minutes();
+        if (minutes < 3){
+          cameraPositionTemplate = require('../assets/images/camera_frustration_play.gif');
+        }
+        if (minutes >= 3){
+          cameraPositionTemplate = require('../assets/images/camera_frustration_frustrate.gif');
+        }
+        if (minutes >= 4){
+          cameraPositionTemplate = require('../assets/images/camera_frustration_resume.gif');
+        }
+        if (minutes >= 5){
+          cameraPositionTemplate = require('../assets/images/camera_frustration_stop.gif');
+        }
       }
+    }
+    if (cameraPositionTemplate) {
+      return (
+        <Image
+          source={cameraPositionTemplate}
+          style={styles.cameraPosition}
+          resizeMode='contain'
+        />
+      );
     }
     return null;
   };
 
   renderCamera = () => {
     const { flashMode, type } = this.state;
-    const choice = this.props.choice;
+    const { question, choice } = this.props;
     return (
       <Camera
-        ref={ref => (this.camera = ref)}
-        style={styles.camera}
+        ref={ref => {this.camera = ref}}
+        style={{ flex: 1, height: imageHeight }}
         type={type}
         flashMode={flashMode}
+        ratio={ratio}
       >
         {this.renderBottomBar()}
-        {this.renderCameraPosition(choice)}
+        {this.renderCameraPosition(question, choice)}
       </Camera>
     );
   };
@@ -444,13 +500,15 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'flex-end',
+    //flexDirection: 'column',
+    //justifyContent: 'flex-end',
   },
   imagePreview: {
     flex: 1,
-    width: imageWidth,
-    height: imageHeight,
+    //flexDirection: 'column',
+    //justifyContent: 'flex-end',
+    //width: imageWidth,
+    //height: imageHeight,
   },
   cameraPosition: {
     position: 'absolute',

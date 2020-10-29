@@ -14,7 +14,7 @@ import sectionListGetItemLayout from 'react-native-section-list-get-item-layout'
 
 import { showMessage } from 'react-native-flash-message';
 
-import isEmpty from 'lodash/isEmpty'
+import isEmpty from 'lodash/isEmpty';
 import filter from 'lodash/filter';
 import groupBy from 'lodash/groupBy';
 import reduce from 'lodash/reduce';
