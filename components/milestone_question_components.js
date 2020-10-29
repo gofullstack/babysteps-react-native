@@ -100,7 +100,8 @@ export class RenderChoices extends PureComponent {
       }
       case 'file_audio':
       case 'file_image':
-      case 'file_video': {
+      case 'file_video':
+      case 'file_video_frustration': {
         return (
           <RenderFile
             question={question}

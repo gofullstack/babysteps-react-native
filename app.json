@@ -8,6 +8,7 @@
       "ios",
       "android"
     ],
+    "orientation": "portrait",
     "extra": {
       "release": "Staging",
       "baseUrl": "https://staging-api.babystepsapp.net",
@@ -15,7 +16,6 @@
       "sentryDSN": "https://a3684c2b3e9447a3adc43a3c33cf4fe3@sentry.io/1871329",
       "analyticsID": "UA-152636953-2"
     },
-    "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -33,6 +33,7 @@
       "buildNumber": "19",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps.staging",
+      "requireFullScreen": true,
       "associatedDomains": [
         "webcredentials:babysteps-staging.icts.uiowa.edu",
         "webcredentials:babysteps.icts.uiowa.edu"
