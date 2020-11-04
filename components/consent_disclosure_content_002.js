@@ -149,28 +149,29 @@ class ConsentDisclosureContent002 extends Component {
 
           <Text style={styles.header}>What Will Happen During this Study?</Text>
           <Text style={styles.text}>
-            Researchers will determine your eligibility and will provide you with a link to access
-            the BabySteps smartphone application. After you have reviewed the
-            BabySteps app, you can press the "Agree" button on the application
-            to formally consent to the study, and can sign electronically. You
-            and your child cannot participate in this study without giving your
-            signed permission. Once the consent form is properly completed,
-            you/your child may complete other app-based tasks and in-person
-            procedures.
+            Researchers will determine your eligibility and will provide you with
+            a link to access the BabySteps smartphone application. After you have
+            reviewed the BabySteps app, you can press the "Agree" button on the
+            application to formally consent to the study, and can sign
+            electronically. You and your child cannot participate in this study
+            without giving your signed permission. Once the consent form is
+            properly completed, you/your child may complete other app-based tasks
+            and in-person procedures.
           </Text>
           <Text style={styles.text}>
             During this study, each mother-child pair may meet with researchers
             once or twice. If your child has an appointment scheduled at the CDD
             or another University of Iowa clinic, study researchers may meet
-            with you shortly before or after this appointment. A blood draw may be part
-            of these appointments, and researchers may
-            request access to a small amount of the blood that is drawn at that
-            time. If your child is not scheduled for a clinical evaluation or
-            was scheduled for evaluation but did not have blood drawn at that
-            time, researchers will contact you to explain the procedures for a
-            blood sample collection for your child. This sample can be collected
-            at the CDD or the University of Iowa by trained staff or by you in your home. At the time of the blood sample collection,
-            you will also fill out a brief questionnaire about your chid's current health status. The collected 
+            with you shortly before or after this appointment. A blood draw may
+            be part of these appointments, and researchers may request access to
+            a small amount of the blood that is drawn at that time. If your child
+            is not scheduled for a clinical evaluation or was scheduled for
+            evaluation but did not have blood drawn at that time, researchers will
+            contact you to explain the procedures for a blood sample collection
+            for your child. This sample can be collected at the CDD or the
+            University of Iowa by trained staff or by you in your home. At the
+            time of the blood sample collection, you will also fill out a brief
+            questionnaire about your chid's current health status. The collected 
             sample will be compared to a sample of blood that was taken when
             your child was born (these samples are obtained from all babies born
             in the state of Iowa). Analyzing the two samples will reveal whether
@@ -182,13 +183,13 @@ class ConsentDisclosureContent002 extends Component {
             the app, you will be able to take photos and record special
             milestones. Occasionally, you will be asked to videotape yourself
             playing with your child. In these videos, you will also be asked 
-            to briefly "frustrate" your child. This might be simply achieved, for example, 
-            by taking away your child's toy. 
+            to briefly "frustrate" your child. This might be simply achieved,
+            for example, by taking away your child's toy. 
            </Text>
           <Text style={styles.text}>            
             You will also complete screening tests or
-            questions designed to assess your child's behavior and language, motor, and
-            cognitive development. Some of these screening tests will assess for
+            questions designed to assess your child's behavior and language, motor,
+            and cognitive development. Some of these screening tests will assess for
             early signs of autism. Certain results may indicate your child is
             not eligible to continue in this study. If this occurs, you will be
             notified. You are free to continue use of the app if you so choose.
@@ -200,11 +201,13 @@ class ConsentDisclosureContent002 extends Component {
             times per week and these will usually only require a single button press.
             You should try to answer these as soon as you see them. Other
             questionnaires should take between 1 and 15 minutes to complete on each
-            occasion and may be sent to your email via a secure platform. If any of the information gathered, such
-            as information about your well-being or your child's development,
-            indicates a need for intervention, you may be contacted and referred to
-            appropriate providers. During this study, you may also be contacted by phone (call or text)
-            or email to pose or answer questions, remind you of your study deadlines, or to follow up about study progression or incomplete procedures. 
+            occasion and may be sent to your email via a secure platform. If any of
+            the information gathered, such as information about your well-being or
+            your child's development, indicates a need for intervention, you may be
+            contacted and referred to appropriate providers. During this study, you
+            may also be contacted by phone (call or text) or email to pose or answer
+            questions, remind you of your study deadlines, or to follow up about
+            study progression or incomplete procedures. 
           </Text>
           <Text style={styles.text}>
             You are free to share consent stored in the app to your social media

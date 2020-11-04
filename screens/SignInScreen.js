@@ -73,26 +73,41 @@ class SignInScreen extends Component {
   }
 
   _saveSignInSession = session => {
-    const syncMilestones = this.state.syncMilestones;
-    const syncRegistration = this.state.syncRegistration;
-    const syncCalendar = this.state.syncCalendar;
-    const syncAnswers = this.state.syncAnswers;
+    const { syncMilestones, syncRegistration, syncCalendar, syncAnswers } = this.state;
     const milestones = this.props.milestones;
     const registration = this.props.registration;
     if (session.fetched) {
-      // slow down cycles to allow API to respond
-      setTimeout(() => {}, 1000);
-      if (!syncMilestones) {
-        this.setState({ syncMilestones: true });
-        this.props.resetApiMilestones();
-        this.props.apiFetchMilestones();
-      }
+      // get respondent and subject data
       if (!syncRegistration) {
         this.setState({ syncRegistration: true });
         this.props.resetRespondent();
         this.props.resetSubject();
         this.props.apiSyncRegistration(session.api_id);
         this.props.apiSyncSignature(session.api_id);
+        // slow down to allow API to respond
+        return;
+      }
+      // wait for registration to sync
+      if (syncRegistration && registration.apiRespondent.fetching) {
+        setTimeout(() => {}, 1000);
+        return;
+      }
+      // redirect to sign up if no respondent information
+      if (
+        "message" in registration.apiRespondent.error &&
+        isEmpty(registration.respondent.data)
+      ) {
+        this.props.updateSession({
+          registration_state: States.REGISTERING_FULL_CONSENT,
+        });
+        return;
+      }
+      // slow down cycles to allow API to respond
+      setTimeout(() => {}, 1000);
+      if (!syncMilestones) {
+        this.setState({ syncMilestones: true });
+        this.props.resetApiMilestones();
+        this.props.apiFetchMilestones();
       }
       if (!syncCalendar && !isEmpty(registration.subject.data)) {
         this.setState({ syncCalendar: true });

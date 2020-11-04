@@ -5,6 +5,8 @@ import { Button, CheckBox } from 'react-native-elements';
 import * as FileSystem from 'expo-file-system';
 import ExpoPixi from 'expo-pixi';
 
+import isEmpty from 'lodash/isEmpty';
+
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 import { apiUpdateRespondent } from '../actions/registration_actions';
@@ -94,10 +96,19 @@ class ConsentSignatureForm extends Component {
             video_presentation,
           ].includes(null)
         ) {
-          this.setState({errorMessage: 'You must answer all the questions.'});
+          this.setState({
+            errorMessage: 'You must answer all the questions.',
+          });
           return;
         }
-        const registration_state = States.REGISTERING_USER;
+
+        let registration_state = States.REGISTERING_USER;
+        // check to see if already logged in 
+        const user = this.props.registration.user;
+        if (!isEmpty(user.data)) {
+          registration_state = States.REGISTERING_RESPONDENT;
+        }
+
         this.props.updateSession({
           screening_blood,
           screening_blood_other,
