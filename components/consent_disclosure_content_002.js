@@ -182,7 +182,7 @@ class ConsentDisclosureContent002 extends Component {
             BabySteps, that you will be asked to use for about 6 months. Within
             the app, you will be able to take photos and record special
             milestones. Occasionally, you will be asked to videotape yourself
-            playing with your child. In these videos, you will also be asked 
+            playing with your child. In these videos, you will also be asked
             to briefly "frustrate" your child. This might be simply achieved,
             for example, by taking away your child's toy. 
            </Text>
@@ -444,15 +444,15 @@ class ConsentDisclosureContent002 extends Component {
               }
             />
           </View>
-              </Text>
           <Text style={styles.text}>
-            However, if you believe you/your child are having symptoms that may require care prior 
-            to receiving any information from this study, you should contact your/your chid's primary 
-            care physician. The study team/study will not cover the costs of any follow-up consultations 
+            However, if you believe you/your child are having symptoms that may
+            require care prior to receiving any information from this study, you
+            should contact your/your chid's primary care physician. The study
+            team/study will not cover the costs of any follow-up consultations 
             or actions.
           </Text>
-          
-    <Text style={styles.subTitle}>Genetic Research</Text>
+
+          <Text style={styles.subTitle}>Genetic Research</Text>
           <Text style={styles.text}>
             Another purpose of this study is to look at genes (DNA) and how they
             affect health and disease. Genes are the instruction manual for the
