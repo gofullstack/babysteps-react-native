@@ -57,6 +57,7 @@ class ConsentSignatureForm extends Component {
   };
 
   handleSubmit = async () => {
+    const session = this.props.session;
     const remoteDebug = this.state.remoteDebug;
     let image = null;
     if (!remoteDebug) {
@@ -103,9 +104,8 @@ class ConsentSignatureForm extends Component {
         }
 
         let registration_state = States.REGISTERING_USER;
-        // check to see if already logged in 
-        const user = this.props.registration.user;
-        if (!isEmpty(user.data)) {
+        // check to see if already logged in
+        if (!isEmpty(session.email)) {
           registration_state = States.REGISTERING_RESPONDENT;
         }
 
