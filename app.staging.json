@@ -4,7 +4,6 @@
     "description": "Pregnancy and Baby Milestones",
     "slug": "babysteps-staging-react-native",
     "privacy": "public",
-    "sdkVersion": "36.0.0",
     "platforms": [
       "ios",
       "android"
@@ -29,11 +28,15 @@
     "assetBundlePatterns": [
       "./assets/**/*"
     ],
-    "version": "0.12.1",
+    "version": "0.12.2",
     "ios": {
-      "buildNumber": "5",
+      "buildNumber": "6",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps.staging",
+      "associatedDomains": [
+        "webcredentials:babysteps-staging.icts.uiowa.edu",
+        "webcredentials:babysteps.icts.uiowa.edu"
+      ],
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for the study or baby book.",
         "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures were taken.",
@@ -41,7 +44,7 @@
       }
     },
     "android": {
-      "versionCode": 5,
+      "versionCode": 6,
       "package": "com.gofullstack.babysteps.staging",
       "permissions": [
         "AUDIO_RECORDING",
