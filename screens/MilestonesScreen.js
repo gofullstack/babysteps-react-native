@@ -63,7 +63,6 @@ class MilestonesScreen extends Component {
     // trap section header render - don't update view
     const newSectionID = nextState.sectionID !== this.state.sectionID;
     const tasks = nextProps.milestones.tasks;
-    debugger
     return !newSectionID && tasks.fetched && !tasks.fetching;
   }
 

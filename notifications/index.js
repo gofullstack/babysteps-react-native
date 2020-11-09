@@ -103,6 +103,8 @@ async function buildMomentaryAssessmentEntries(entry, studyEndDate) {
         .add(getRandomInt(1, term), 'days')
         .add(getRandomInt(8, 19), 'hours')
         .add(getRandomInt(0, 59), 'minutes');
+      // generate immediate notification
+      // const scheduleTime = moment();
       const localNotification = localNotificationMessage(entry);
       scheduleNotificaton(localNotification, scheduleTime);
       apiCreateCalendarEntry(entry, scheduleTime);

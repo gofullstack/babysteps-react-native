@@ -4,6 +4,11 @@ import { ButtonGroup } from 'react-native-elements';
 
 import { connect } from 'react-redux';
 import {
+  fetchUser,
+  fetchRespondent,
+  fetchSubject,
+} from '../actions/registration_actions';
+import {
   createMilestoneAnswer,
   apiCreateMilestoneAnswer,
 } from '../actions/milestone_actions';
@@ -28,6 +33,9 @@ class MomentaryAssessment extends Component {
       response_scale: 'one_to_five',
       momentaryAssessmentLoaded: false,
     };
+    this.props.fetchUser();
+    this.props.fetchRespondent();
+    this.props.fetchSubject();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -207,6 +215,9 @@ const mapStateToProps = ({
   notifications,
 });
 const mapDispatchToProps = {
+  fetchUser,
+  fetchRespondent,
+  fetchSubject,
   fetchMomentaryAssessment,
   createMilestoneAnswer,
   apiCreateMilestoneAnswer,

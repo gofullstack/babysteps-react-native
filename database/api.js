@@ -8,7 +8,7 @@ import {
   updatePendingActions,
 } from '../actions/session_actions';
 import { getApiUrl } from './common';
-import { AnalyticsEvent } from '../components/analytics';
+//import { AnalyticsEvent } from '../components/analytics';
 
 import {
   API_TOKEN_REFRESH_PENDING,
@@ -59,7 +59,7 @@ export default store => next => action => {
     return next(action);
   }
   if (excludeTypes.includes(action.type)) {
-    console.log('***** milestone token api call');
+    //console.log('***** milestone token api call');
     return next(action);
   }
 
@@ -96,16 +96,16 @@ export default store => next => action => {
 
   const baseURL = getApiUrl();
 
-  AnalyticsEvent(
-    'API',
-    action.type,
-    'headers',
-    JSON.stringify({
-      access_token: session.access_token,
-      uid: session.uid,
-      event_at: Date(),
-    }),
-  );
+  //AnalyticsEvent(
+  //  'API',
+  //  action.type,
+  //  'headers',
+  //  JSON.stringify({
+  //    access_token: session.access_token,
+  //    uid: session.uid,
+  //    event_at: Date(),
+  //  }),
+  //);
 
   return axios({
     method: effect.method,
@@ -139,48 +139,48 @@ export default store => next => action => {
         };
         updateSession(data);
       }
-      AnalyticsEvent(
-        'API',
-        effect.fulfilled,
-        'headers',
-        JSON.stringify({
-          access_token: headers['access-token'],
-          uid: headers.uid,
-          user_id: headers.user_id,
-          event_at: Date(),
-        }),
-      );
+      //AnalyticsEvent(
+      //  'API',
+      //  effect.fulfilled,
+      //  'headers',
+      //  JSON.stringify({
+      //    access_token: headers['access-token'],
+      //    uid: headers.uid,
+      //    user_id: headers.user_id,
+      //    event_at: Date(),
+      //  }),
+      //);
     })
     .catch(error => {
       const { request, response } = error;
       const session = store.getState().session;
       if (!request) throw error; // There was an error creating the request
       if (!response) return false; // There was no response
-     //debugger
-      AnalyticsEvent(
-        'API',
-        effect.rejected,
-        'error',
-        JSON.stringify({
-          access_token: request._headers['access-token'],
-          uid: request._headers['uid'],
-          message: error.message,
-          event_at: Date(),
-        }),
-      );
+      //debugger
+      //AnalyticsEvent(
+      //  'API',
+      //  effect.rejected,
+      //  'error',
+      //  JSON.stringify({
+      //    access_token: request._headers['access-token'],
+      //    uid: request._headers['uid'],
+      //    message: error.message,
+      //    event_at: Date(),
+      //  }),
+      //);
       // Not signed in
       if (response.status === 401) {
         // not already getting fresh token
         if (!session.fetching_token) {
-          AnalyticsEvent(
-            'API',
-            API_TOKEN_REFRESH_PENDING,
-            'session',
-            JSON.stringify({
-              uid: session.uid,
-              event_at: Date(),
-            }),
-          );
+          //AnalyticsEvent(
+          //  'API',
+          //  API_TOKEN_REFRESH_PENDING,
+          //  'session',
+          //  JSON.stringify({
+          //    uid: session.uid,
+          //    event_at: Date(),
+          //  }),
+          //);
           apiTokenRefresh(store.dispatch, session);
           return false;
         }

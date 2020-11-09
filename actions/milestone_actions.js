@@ -649,6 +649,7 @@ export const updateMilestoneAnswers = (section, answers) => {
 
 export const apiCreateMilestoneAnswer = (session, data) => {
   const formData = new FormData();
+  debugger
   let answer = omit(data, [
     'api_id',
     'user_api_id',
