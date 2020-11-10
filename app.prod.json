@@ -1,19 +1,19 @@
 {
   "expo": {
-    "name": "BabySteps - Staging",
+    "name": "BabySteps",
     "description": "Pregnancy and Baby Milestones",
-    "slug": "babysteps-staging-react-native",
+    "slug": "babysteps-react-native",
     "privacy": "public",
     "platforms": [
       "ios",
       "android"
     ],
     "extra": {
-      "release": "Staging",
-      "baseAPIUrl": "https://staging-api.babystepsapp.net/api",
+      "release": "Production",
+      "baseAPIUrl": "https://api.babystepsapp.net/api",
       "apiToken": "816fb58eb3ef6dc4dcf85a230b2049da33bac3b7a744d26f33ca3b89ae136d41",
-      "sentryDSN": "https://a3684c2b3e9447a3adc43a3c33cf4fe3@sentry.io/1871329",
-      "analyticsID": "UA-152636953-2"
+      "sentryDSN": "https://193d4a8c3e6b4b3d974a3f4d1d6f598c@sentry.io/1204085",
+      "analyticsID": "UA-152636953-1"
     },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -28,11 +28,11 @@
     "assetBundlePatterns": [
       "./assets/**/*"
     ],
-    "version": "0.12.2",
+    "version": "1.0.5",
     "ios": {
-      "buildNumber": "6",
+      "buildNumber": "76",
       "supportsTablet": true,
-      "bundleIdentifier": "com.gofullstack.babysteps.staging",
+      "bundleIdentifier": "com.gofullstack.babysteps",
       "associatedDomains": [
         "webcredentials:babysteps-staging.icts.uiowa.edu",
         "webcredentials:babysteps.icts.uiowa.edu"
@@ -44,8 +44,8 @@
       }
     },
     "android": {
-      "versionCode": 6,
-      "package": "com.gofullstack.babysteps.staging",
+      "versionCode": 76,
+      "package": "com.gofullstack.babysteps.prod",
       "permissions": [
         "AUDIO_RECORDING",
         "RECORD_AUDIO",
@@ -64,7 +64,7 @@
           "file": "sentry-expo/upload-sourcemaps",
           "config": {
             "organization": "babysteps",
-            "project": "babysteps-staging-react-native",
+            "project": "babysteps-react-native",
             "authToken": "44bb6f65629c4f69b182f8a4d908e3c0a6d2d04cf1614976a781a8b571814280"
           }
         }
