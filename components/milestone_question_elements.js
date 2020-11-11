@@ -246,14 +246,14 @@ export class RenderTextNumeric extends React.PureComponent {
 export class RenderDate extends React.PureComponent {
   render() {
     const collection = _.map(this.props.choices, choice => {
-      let text = ''; // new Date().toISOString().slice(0, 10);
+      let value = new Date();
       const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
-      if (answer) text = answer.answer_text;
+      if (answer) value = Date.parse(answer.answer_text);
       return (
         <View key={choice.id}>
           <DateTimePicker
             label={choice.body}
-            value={text}
+            value={value}
             style={styles.dateInput}
             mode="date"
             display="spinner"
@@ -267,8 +267,11 @@ export class RenderDate extends React.PureComponent {
                 borderBottomColor: Colors.lightGrey,
               },
             }}
-            onChange={value =>
-              this.props.saveResponse(choice, { answer_text: value })
+            onChange={value => {
+                debugger
+                const answer_text = value;
+                this.props.saveResponse(choice, { answer_text });
+              }
             }
           />
         </View>
