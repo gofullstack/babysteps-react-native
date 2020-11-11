@@ -152,7 +152,7 @@ class RootNavigator extends Component {
 
   componentDidMount() {
     const { milestones_updated, milestone_calendar_updated } = this.state;
-    const subject = this.props.registration.subject.data;
+    const subject = this.props.registration.subject;
 
     if (CONSTANTS.USE_PUSH_NOTIFICATIONS) {
       const notifications_updated_at = moment().subtract(8, 'days');
@@ -175,8 +175,8 @@ class RootNavigator extends Component {
       this.props.apiFetchMilestonesLastUpdated(CONSTANTS.STUDY_ID);
       this.setState({ milestones_updated: true });
     }
-    if (!milestone_calendar_updated) {
-      this.props.apiFetchMilestoneCalendarLastUpdated(subject.api_id);
+    if (subject.fetched && !milestone_calendar_updated) {
+      this.props.apiFetchMilestoneCalendarLastUpdated(subject.data.api_id);
       this.setState({ milestone_calendar_updated: true });
     }
   }

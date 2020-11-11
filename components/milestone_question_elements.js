@@ -19,8 +19,7 @@ import * as Permissions from 'expo-permissions';
 import * as WebBrowser from 'expo-web-browser';
 import { Video } from 'expo-av';
 import * as ImagePicker from 'expo-image-picker';
-//import DatePicker from 'react-native-datepicker';;
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from 'react-native-datepicker';;
 
 import _ from 'lodash';
 
@@ -50,13 +49,11 @@ const formats = {
   file_audio: 'Audio',
   file_image: 'Photo',
   file_video: 'Video',
-  file_video_frustration: 'Video',
 };
 const mediaTypes = {
   file_audio: 'Audio',
   file_image: 'Images',
   file_video: 'Videos',
-  file_video_frustration: 'Videos',
 };
 
 export class RenderCheckBox extends React.PureComponent {
@@ -246,17 +243,17 @@ export class RenderTextNumeric extends React.PureComponent {
 export class RenderDate extends React.PureComponent {
   render() {
     const collection = _.map(this.props.choices, choice => {
-      let value = new Date();
+      let text = ''; // new Date().toISOString().slice(0, 10);
       const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
-      if (answer) value = Date.parse(answer.answer_text);
+      if (answer) text = answer.answer_text;
       return (
         <View key={choice.id}>
-          <DateTimePicker
+          <DatePicker
             label={choice.body}
-            value={value}
+            date={text}
             style={styles.dateInput}
             mode="date"
-            display="spinner"
+            androidMode="spinner"
             format="YYYY-MM-DD"
             confirmBtnText="Confirm"
             cancelBtnText="Cancel"
@@ -267,11 +264,8 @@ export class RenderDate extends React.PureComponent {
                 borderBottomColor: Colors.lightGrey,
               },
             }}
-            onChange={value => {
-                debugger
-                const answer_text = value;
-                this.props.saveResponse(choice, { answer_text });
-              }
+            onDateChange={value =>
+              this.props.saveResponse(choice, { answer_text: value })
             }
           />
         </View>
@@ -304,13 +298,13 @@ export class RenderFile extends Component {
     let hasCameraPermission = false;
     let hasCameraRollPermission = false;
     let hasAudioPermission = false;
-    if (['file_image', 'file_video', 'file_video_frustration'].includes(question.rn_input_type)) {
+    if (['file_image', 'file_video'].includes(question.rn_input_type)) {
       hasCameraRollPermission = await registerForPermission(Permissions.CAMERA_ROLL);
       hasCameraPermission = await registerForPermission(Permissions.CAMERA);
       if (!hasCameraRollPermission) message = renderNoPermissionsMessage('library', message);
       if (!hasCameraPermission) message = renderNoPermissionsMessage('camera', message);
     }
-    if (['file_video', 'file_video_frustration', 'file_audio'].includes(question.rn_input_type) ) {
+    if (['file_video', 'file_audio'].includes(question.rn_input_type) ) {
       hasAudioPermission = await registerForPermission(Permissions.AUDIO_RECORDING);
       if (!hasAudioPermission) message = renderNoPermissionsMessage('audio', message);
     }
@@ -391,7 +385,7 @@ export class RenderFile extends Component {
       let displayImage = false;
       let displayAudio = false;
 
-      let allowAttachFile = !['post_birth', 'during_pregnancy'].includes(
+      const allowAttachFile = !['post_birth', 'during_pregnancy'].includes(
         choice.overview_timeline,
       );
 
@@ -416,12 +410,6 @@ export class RenderFile extends Component {
         case 'file_video':
           isVideo = true;
           loadCameraModal = true;
-          if (fileType) {displayVideo = !!VideoFormats[fileType]};
-          break;
-        case 'file_video_frustration':
-          isVideo = true;
-          loadCameraModal = true;
-          allowAttachFile = false;
           if (fileType) {displayVideo = !!VideoFormats[fileType]};
           break;
         case 'file_audio':
