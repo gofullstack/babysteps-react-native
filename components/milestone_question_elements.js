@@ -19,7 +19,8 @@ import * as Permissions from 'expo-permissions';
 import * as WebBrowser from 'expo-web-browser';
 import { Video } from 'expo-av';
 import * as ImagePicker from 'expo-image-picker';
-import DatePicker from 'react-native-datepicker';;
+//import DatePicker from 'react-native-datepicker';;
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import _ from 'lodash';
 
@@ -250,12 +251,12 @@ export class RenderDate extends React.PureComponent {
       if (answer) text = answer.answer_text;
       return (
         <View key={choice.id}>
-          <DatePicker
+          <DateTimePicker
             label={choice.body}
-            date={text}
+            value={text}
             style={styles.dateInput}
             mode="date"
-            androidMode="spinner"
+            display="spinner"
             format="YYYY-MM-DD"
             confirmBtnText="Confirm"
             cancelBtnText="Cancel"
@@ -266,7 +267,7 @@ export class RenderDate extends React.PureComponent {
                 borderBottomColor: Colors.lightGrey,
               },
             }}
-            onDateChange={value =>
+            onChange={value =>
               this.props.saveResponse(choice, { answer_text: value })
             }
           />

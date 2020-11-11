@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import { View } from 'react-native';
 import { Appearance } from 'react-native-appearance';
-import DatePicker from 'react-native-datepicker';
+//import DatePicker from 'react-native-datepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { FormLabel } from 'react-native-elements';
 
 import InputHelper from './inputHelper';
@@ -42,20 +43,20 @@ export default class DatePickerInput extends PureComponent {
     return (
       <View {...containerProps}>
         <FormLabel style={this.props.labelStyle}>{this.props.label}</FormLabel>
-        <DatePicker
+        <DateTimePicker
           ref={input => (this.input = input)}
           name={this.props.name}
-          date={this.props.date}
+          value={this.props.date}
           style={styles}
           customStyles={customStyles}
           mode="date"
-          androidMode="spinner"
+          display="spinner"
           format="YYYY-MM-DD"
           confirmBtnText="Confirm"
           cancelBtnText="Cancel"
           showIcon={this.props.showIcon}
           placeholder={" "}
-          onDateChange={ (value) => { this.props.handleChange(value) } }
+          onChange={ (value) => { this.props.handleChange(value) } }
         />
         <InputHelper
           displayError={displayError}
