@@ -143,6 +143,14 @@ export const API_FETCH_SIGNIN_PENDING = 'api_fetch_signin_pending';
 export const API_FETCH_SIGNIN_FULFILLED = 'api_fetch_signin_fulfilled';
 export const API_FETCH_SIGNIN_REJECTED = 'api_fetch_signin_rejected';
 
+export const FETCH_CONSENT_PENDING = 'fetch_consent_pending';
+export const FETCH_CONSENT_FULFILLED = 'fetch_consent_fulfilled';
+export const FETCH_CONSENT_REJECTED = 'fetch_consent_rejected';
+
+export const API_FETCH_CONSENT_LAST_UPDATED_PENDING = 'api_fetch_consent_last_updated_pending';
+export const API_FETCH_CONSENT_LAST_UPDATED_FULFILLED = 'api_fetch_consent_last_updated_fulfilled';
+export const API_FETCH_CONSENT_LAST_UPDATED_REJECTED = 'api_fetch_consent_last_updated_rejected';
+
 // Notification actions
 
 export const UPDATE_NOTIFICATIONS_PENDING = 'set_notifications_pending';
@@ -226,6 +234,10 @@ export const API_SYNC_REGISTRATION_REJECTED = 'api_sync_registration_rejected';
 export const API_SYNC_SIGNATURE_PENDING = 'api_sync_signature_pending';
 export const API_SYNC_SIGNATURE_FULFILLED = 'api_sync_signature_fulfilled';
 export const API_SYNC_SIGNATURE_REJECTED = 'api_sync_signature_rejected';
+
+export const API_FETCH_CONSENT_PENDING = 'api_fetch_consent_pending';
+export const API_FETCH_CONSENT_FULFILLED = 'api_fetch_consent_fulfilled';
+export const API_FETCH_CONSENT_REJECTED = 'api_fetch_consent_rejected';
 
 // Babybook actions
 

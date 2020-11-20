@@ -28,5 +28,5 @@ export default {
   // API
   //BASE_DEVELOPMENT_URL: 'https://babysteps-staging.icts.uiowa.edu/api',
   //BASE_DEVELOPMENT_URL: 'https://babysteps.icts.uiowa.edu/api',
-  BASE_DEVELOPMENT_URL: 'http://10.1.10.99:3000/api',
+  BASE_DEVELOPMENT_URL: 'http://192.168.137.9:3000/api',
 };

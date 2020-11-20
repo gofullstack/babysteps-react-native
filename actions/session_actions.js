@@ -39,6 +39,10 @@ import {
   API_FETCH_SIGNIN_FULFILLED,
   API_FETCH_SIGNIN_REJECTED,
 
+  API_FETCH_CONSENT_LAST_UPDATED_PENDING,
+  API_FETCH_CONSENT_LAST_UPDATED_FULFILLED,
+  API_FETCH_CONSENT_LAST_UPDATED_REJECTED,
+
   API_FETCH_MILESTONES_LAST_UPDATED_PENDING,
   API_FETCH_MILESTONES_LAST_UPDATED_FULFILLED,
   API_FETCH_MILESTONES_LAST_UPDATED_REJECTED,
@@ -238,6 +242,34 @@ export const apiFetchSignin = (email, password) => {
         })
         .catch(error => {
           dispatch(Response(API_FETCH_SIGNIN_REJECTED, error));
+        });
+    }); // return Promise
+  }; // return dispatch
+};
+
+export const apiFetchConsentLastUpdated = study_id => {
+
+  return dispatch => {
+    dispatch(Pending(API_FETCH_CONSENT_LAST_UPDATED_PENDING));
+    const baseURL = getApiUrl();
+    const apiToken = Constants.manifest.extra.apiToken;
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        responseType: 'json',
+        baseURL,
+        url: '/consents/last_updated',
+        params: { study_id },
+        headers: {
+          "milestone_token": apiToken,
+        },
+      })
+        .then(response => {
+          dispatch(Response(API_FETCH_CONSENT_LAST_UPDATED_FULFILLED, response));
+        })
+        .catch(error => {
+          dispatch(Response(API_FETCH_CONSENT_LAST_UPDATED_REJECTED, error));
         });
     }); // return Promise
   }; // return dispatch

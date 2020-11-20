@@ -13,6 +13,7 @@ import { isIphoneX } from 'react-native-iphone-x-helper';
 import { Video } from 'expo-av';
 import { Camera } from 'expo-camera';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 
 import Constants from 'expo-constants';
 
@@ -98,6 +99,7 @@ class CameraModal extends Component {
   };
 
   startVideo = async () => {
+    activateKeepAwake();
     const recordingConfig = {
       quality: String(Camera.Constants.VideoQuality['720p']),
       mirror: true, // flip on iOS
@@ -116,11 +118,13 @@ class CameraModal extends Component {
   };
 
   stopVideo = () => {
+    deactivateKeepAwake();
     if (this.videoTimeInterval) clearInterval(this.videoTimeInterval);
     this.camera.stopRecording();
   };
 
   cancelVideo = () => {
+    deactivateKeepAwake();
     this.cancelRecording = true;
     this.setState({ videoTimer: moment.duration(0) });
     this.stopVideo();
@@ -131,6 +135,7 @@ class CameraModal extends Component {
   };
 
   handleCloseModal = () => {
+    deactivateKeepAwake();
     this.props.closeCameraModal(null);
   };
 

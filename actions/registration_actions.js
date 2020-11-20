@@ -80,6 +80,14 @@ import {
   API_SYNC_SIGNATURE_FULFILLED,
   API_SYNC_SIGNATURE_REJECTED,
 
+  FETCH_CONSENT_PENDING,
+  FETCH_CONSENT_FULFILLED,
+  FETCH_CONSENT_REJECTED,
+
+  API_FETCH_CONSENT_PENDING,
+  API_FETCH_CONSENT_FULFILLED,
+  API_FETCH_CONSENT_REJECTED,
+
 } from './types';
 
 const db = SQLite.openDatabase('babysteps.db');
@@ -139,7 +147,7 @@ export const fetchUser = () => {
 };
 
 export const createUser = user => {
-  return function (dispatch) {
+  return function(dispatch) {
     dispatch(Pending(CREATE_USER_PENDING));
 
     return db.transaction(tx => {
@@ -364,13 +372,15 @@ export const apiUpdateRespondent = (session, data) => {
   }; // return dispatch
 };
 
-export const apiSaveSignature = (session, api_id, uri) => {
+export const apiSaveSignature = (session, respondent_id, uri, version_id) => {
   return function(dispatch) {
 
     dispatch(Pending(API_SAVE_SIGNATURE_PENDING));
 
     const formData = new FormData();
-    formData.append('respondent[attachments][]', {
+    formData.append('version_id', version_id);
+    formData.append('respondent_id', respondent_id);
+    formData.append('signature', {
       uri,
       name: 'signature.png',
       type: 'image/png',
@@ -387,10 +397,10 @@ export const apiSaveSignature = (session, api_id, uri) => {
     const baseURL = getApiUrl();
 
     axios({
-      method: 'PUT',
+      method: 'POST',
       responseType: 'json',
       baseURL,
-      url: '/respondents/' + api_id,
+      url: '/respondent_consents',
       headers,
       data: formData,
     })
@@ -631,6 +641,57 @@ export const apiSyncSignature = user_id => {
         })
         .catch(error => {
           dispatch(Response(API_SYNC_SIGNATURE_REJECTED, error));
+        });
+    }); // return Promise
+  }; // return dispatch
+};
+
+export const fetchConsent = () => {
+  return function(dispatch) {
+    dispatch(Pending(FETCH_CONSENT_PENDING));
+
+    return db.transaction(tx => {
+      tx.executeSql(
+        `SELECT * FROM consents LIMIT 1;`,
+        [],
+        (_, response) => {
+          dispatch(Response(FETCH_CONSENT_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_CONSENT_REJECTED, error));
+        },
+      );
+    });
+  };
+};
+
+export const apiFetchConsent = study_id => {
+
+  return dispatch => {
+    dispatch(Pending(API_FETCH_CONSENT_PENDING));
+    const baseURL = getApiUrl();
+    const apiToken = Constants.manifest.extra.apiToken;
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        responseType: 'json',
+        baseURL,
+        url: '/consents/current',
+        params: { study_id },
+        headers: {
+          milestone_token: apiToken,
+        },
+      })
+        .then(response => {
+          const consent = [response.data];
+          // consent id becomes api id in sqlite
+          consent[0].api_id = consent[0].id;
+          insertRows('consents', schema['consents'], consent);
+          dispatch(Response(API_FETCH_CONSENT_FULFILLED, response));
+        })
+        .catch(error => {
+          dispatch(Response(API_FETCH_CONSENT_REJECTED, error));
         });
     }); // return Promise
   }; // return dispatch

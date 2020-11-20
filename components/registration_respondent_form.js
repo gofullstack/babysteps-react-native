@@ -18,6 +18,7 @@ import isEmpty from 'lodash/isEmpty';
 import { connect } from 'react-redux';
 import {
   fetchUser,
+  fetchConsent,
   resetRespondent,
   createRespondent,
   updateRespondent,
@@ -115,6 +116,7 @@ class RegistrationRespondentForm extends Component {
     };
 
     this.props.fetchUser();
+    this.props.fetchConsent();
     this.props.resetRespondent();
   }
 
@@ -145,7 +147,6 @@ class RegistrationRespondentForm extends Component {
     const apiRespondent = this.props.registration.apiRespondent;
     const session = this.props.session;
     const { respondentSubmitted, signatureSubmitted } = this.state;
-
     if (!apiRespondent.fetching) {
       if (!apiRespondent.fetched && !respondentSubmitted) {
         this.props.apiCreateRespondent(session, respondent.data);
@@ -153,7 +154,7 @@ class RegistrationRespondentForm extends Component {
       } else if (apiRespondent.data.id !== undefined) {
         // Upload signature image if we have respondent id
         const api_id = apiRespondent.data.id;
-        this.props.updateRespondent({api_id: api_id});
+        this.props.updateRespondent({api_id});
         if (!signatureSubmitted) {
           this.saveSignature(api_id);
           this.setState({ signatureSubmitted: true });
@@ -207,8 +208,10 @@ class RegistrationRespondentForm extends Component {
   saveSignature = async (api_id) => {
     const uri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
     const signatureFile = await FileSystem.getInfoAsync(uri, {size: true});
+    const consent = this.props.registration.consent.data;
     if (signatureFile.exists) {
-      this.props.apiSaveSignature(this.props.session, api_id, uri);
+      this.props.apiSaveSignature(this.props.session, api_id, uri, consent.version_id);
+      this.props.updateSession({ consent_last_version_id: consent.version_id });
     } else {
       console.log('no signature available');
     } // signatureFile exists
@@ -455,6 +458,7 @@ const mapStateToProps = ({ session, registration }) => ({
 
 const mapDispatchToProps = {
   fetchUser,
+  fetchConsent,
   resetRespondent,
   createRespondent,
   updateRespondent,

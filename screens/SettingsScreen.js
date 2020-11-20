@@ -22,7 +22,7 @@ import { connect } from 'react-redux';
 import { fetchNotifications } from '../actions/notification_actions';
 import { fetchRespondent } from '../actions/registration_actions';
 
-import ConsentDisclosureContent from '../components/consent_disclosure_content';
+import ConsentDisclosureVersion from '../components/consent_disclosure_version';
 import SettingsFAQContent from '../components/settings_faq_content';
 
 import IRBInformation from '../constants/IRB';
@@ -150,16 +150,7 @@ class SettingsScreen extends React.Component {
             >
               <Ionicons name = "md-close" size = {36} />
             </TouchableOpacity>
-            <ConsentDisclosureContent
-              formState="view"
-              tosID={respondent.tos_id}
-              screening_blood={subject.screening_blood}
-              screening_blood_other={subject.screening_blood_other}
-              screening_blood_notification={subject.screening_blood_notification}
-              video_sharing={subject.video_sharing}
-              video_presentation={subject.video_presentation}
-              setModalVisible={this.setConsentModalVisible}
-            />
+            <ConsentDisclosureVersion hideButton={true} />
           </View>
         </Modal>
       </View>

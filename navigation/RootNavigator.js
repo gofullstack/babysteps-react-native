@@ -22,6 +22,7 @@ import { connect } from 'react-redux';
 import {
   updateSession,
   fetchSession,
+  apiFetchConsentLastUpdated,
   apiFetchMilestonesLastUpdated,
   apiFetchMilestoneCalendarLastUpdated,
 } from '../actions/session_actions';
@@ -32,6 +33,7 @@ import {
 } from '../actions/milestone_actions';
 
 import {
+  apiFetchConsent,
   fetchRespondent,
   apiUpdateRespondent,
 } from '../actions/registration_actions';
@@ -49,6 +51,7 @@ import NavigationService from './NavigationService';
 import TourScreen from '../screens/TourScreen';
 import SignInScreen from '../screens/SignInScreen';
 import ConsentScreen from '../screens/ConsentScreen';
+import UpdateConsentScreen from '../screens/UpdateConsentScreen';
 import RegistrationScreen from '../screens/RegistrationScreen';
 import TourNoStudyConfirmScreen from '../screens/TourNoStudyConfirmScreen';
 import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
@@ -89,6 +92,9 @@ const RegistrationNavigator = createStackNavigator(
     },
     SignIn: {
       screen: SignInScreen,
+    },
+    UpdateConsent: {
+      screen: UpdateConsentScreen,
     },
   },
   {
@@ -142,6 +148,7 @@ class RootNavigator extends Component {
     super(props);
 
     this.state = {
+      consent_updated: false,
       milestones_updated: false,
       milestone_calendar_updated: false,
     };
@@ -151,14 +158,20 @@ class RootNavigator extends Component {
   }
 
   componentDidMount() {
-    const { milestones_updated, milestone_calendar_updated } = this.state;
+    const {
+      consent_updated,
+      milestones_updated,
+      milestone_calendar_updated,
+    } = this.state;
     const subject = this.props.registration.subject;
 
     if (CONSTANTS.USE_PUSH_NOTIFICATIONS) {
-      const notifications_updated_at = moment().subtract(8, 'days');
+      const notifications_updated_at = moment().subtract(8, 'days').toISOString();
       this.props.updateSession({ notifications_updated_at });
       Notifications.cancelAllScheduledNotificationsAsync();
       addColumn('sessions', 'push_token', 'text');
+      addColumn('sessions', 'consent_updated_at', 'text');
+      addColumn('sessions', 'consent_last_updated_at', 'text');
       addColumn('sessions', 'milestones_updated_at', 'text');
       addColumn('sessions', 'milestones_last_updated_at', 'text');
       addColumn('sessions', 'milestone_calendar_updated_at', 'text');
@@ -171,11 +184,15 @@ class RootNavigator extends Component {
     } else {
       this._notificationSubscription = this.registerForNotifications();
     }
+    if (!consent_updated) {
+      this.props.apiFetchConsentLastUpdated(CONSTANTS.STUDY_ID);
+      this.setState({ consent_updated: true });
+    }
     if (!milestones_updated) {
       this.props.apiFetchMilestonesLastUpdated(CONSTANTS.STUDY_ID);
       this.setState({ milestones_updated: true });
     }
-    if (subject.fetched && !milestone_calendar_updated) {
+    if (subject.fetched && !isEmpty(subject.data) && !milestone_calendar_updated) {
       this.props.apiFetchMilestoneCalendarLastUpdated(subject.data.api_id);
       this.setState({ milestone_calendar_updated: true });
     }
@@ -197,6 +214,7 @@ class RootNavigator extends Component {
     const calendar = this.props.milestones.calendar;
     const session = this.props.session;
     const subject = this.props.registration.subject.data;
+    const consent = this.props.registration.consent.data;
     if (!isEmpty(calendar.data) && !isEmpty(subject)) {
       if (!session.fetching && session.notifications_permission === 'granted') {
         if (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
@@ -207,12 +225,22 @@ class RootNavigator extends Component {
 
     if (!session.fetching && session.fetched) {
       const {
+        consent_updated_at,
+        consent_last_updated_at,
+        consent_last_version_id,
         milestones_updated_at,
         milestones_last_updated_at,
         milestone_calendar_updated_at,
         milestone_calendar_last_updated_at,
       } = this.props.session;
 
+      if (consent_updated_at && consent_updated_at !== consent_last_updated_at) {
+        const apiConsent = this.props.registration.apiConsent;
+        if (!apiConsent.fetching && !apiConsent.fetched) {
+          this.props.apiFetchConsent(CONSTANTS.STUDY_ID);
+          this.props.updateSession({ consent_last_updated_at: consent_updated_at })
+        }
+      }
       if (milestones_updated_at && milestones_updated_at !== milestones_last_updated_at) {
         const api_milestones = this.props.milestones.api_milestones;
         if (!api_milestones.fetching && !api_milestones.fetched) {
@@ -464,8 +492,10 @@ const mapStateToProps = ({
 const mapDispatchToProps = {
   updateSession,
   fetchSession,
+  apiFetchConsent,
   fetchRespondent,
   apiUpdateRespondent,
+  apiFetchConsentLastUpdated,
   apiFetchMilestones,
   apiFetchMilestonesLastUpdated,
   apiFetchMilestoneCalendar,

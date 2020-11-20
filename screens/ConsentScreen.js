@@ -8,6 +8,7 @@ import { updateSession } from '../actions/session_actions';
 import ConsentEligibilityForm from '../components/consent_eligibility_form';
 import ConsentSummaryForm from '../components/consent_summary_form';
 import ConsentDisclosureForm from '../components/consent_disclosure_form';
+import ConsentDisclosureVersion from '../components/consent_disclosure_version';
 import ConsentSignatureForm from '../components/consent_signature_form';
 
 import States from '../actions/states';
@@ -69,7 +70,8 @@ class ConsentScreen extends Component {
       return <ConsentSummaryForm />;
     }
     if (registration_state === States.REGISTERING_FULL_CONSENT) {
-      return <ConsentDisclosureForm />;
+      //return <ConsentDisclosureForm />;
+      return <ConsentDisclosureVersion />
     }
     if (registration_state === States.REGISTERING_SIGNATURE) {
       return <ConsentSignatureForm />;

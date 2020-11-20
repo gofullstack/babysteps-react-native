@@ -72,13 +72,12 @@ class ConsentSignatureForm extends Component {
     const resultDir = await FileSystem.getInfoAsync(signatureDir);
 
     if (resultDir.exists) {
-      const fileName = signatureDir + '/signature.png';
-      await FileSystem.deleteAsync(fileName, { idempotent: true });
-
-      if (!this.state.remoteDebug) {
-        await FileSystem.copyAsync({ from: image.uri, to: fileName });
+      const uri = signatureDir + '/signature.png';
+      if (!remoteDebug) {
+        await FileSystem.deleteAsync(uri, { idempotent: true });
+        await FileSystem.copyAsync({ from: image.uri, to: uri });
       }
-      const resultFile = await FileSystem.getInfoAsync(fileName);
+      const resultFile = await FileSystem.getInfoAsync(uri);
 
       if (remoteDebug || resultFile.exists) {
         const {

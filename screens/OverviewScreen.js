@@ -18,7 +18,7 @@ import {
   fetchOverViewTimeline,
 } from '../actions/milestone_actions';
 
-import { fetchSubject, updateSubject } from '../actions/registration_actions';
+import { fetchConsent, fetchSubject, updateSubject } from '../actions/registration_actions';
 
 import Colors from '../constants/Colors';
 
@@ -63,6 +63,17 @@ class OverviewScreen extends React.Component {
     //this.props.updateSubject({expected_date_of_birth: '2019-07-01', date_of_birth: ''})
     // only uncomment after registering when data is available
     //this.testNotification({momentary_assessment: true});
+  }
+
+  componentDidMount() {
+    const { consent_last_updated_at, consent_last_version_id } = this.props.session;
+    const consent = this.props.registration.consent.data;
+     const { navigate } = this.props.navigation;
+    if (consent_last_updated_at && consent_last_version_id !== consent.version_id) {
+      navigate('UpdateConsent');
+    } else {
+      navigate('Overview');
+    }
   }
 
   testNotification(noticeType = null) {
@@ -134,10 +145,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = ({ milestones }) => ({
+const mapStateToProps = ({ session, registration, milestones }) => ({
+  session,
+  registration,
   milestones,
 });
 const mapDispatchToProps = {
+  fetchConsent,
   fetchSubject,
   updateSubject,
   resetApiMilestoneCalendar,
