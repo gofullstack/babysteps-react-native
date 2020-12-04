@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import { Button } from 'react-native-elements';
 
+import isEmpty from 'lodash/isEmpty';
+
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 import { fetchConsent } from '../actions/registration_actions';
@@ -49,10 +51,12 @@ class ConsentSummaryContent extends Component {
   renderButton = () => {
     if (this.props.formState === 'edit') {
       const consent = this.props.registration.consent.data;
+      let tos_expires_on = '';
+      if (!isEmpty(consent)) tos_expires_on = consent.tos_expires_on;
       return (
         <View style={styles.buttonContainer}>
           <Text style={styles.expires}>
-            This Disclosure expires: {consent.tos_expires_on}.
+            This Disclosure expires: {tos_expires_on}.
           </Text>
           <Button
             title="CONTINUE"

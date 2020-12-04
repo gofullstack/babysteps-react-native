@@ -147,6 +147,7 @@ class RegistrationRespondentForm extends Component {
     const apiRespondent = this.props.registration.apiRespondent;
     const session = this.props.session;
     const { respondentSubmitted, signatureSubmitted } = this.state;
+    const consent = this.props.registration.consent.data;
     if (!apiRespondent.fetching) {
       if (!apiRespondent.fetched && !respondentSubmitted) {
         this.props.apiCreateRespondent(session, respondent.data);
@@ -163,6 +164,7 @@ class RegistrationRespondentForm extends Component {
           ? ActionStates.REGISTERING_EXPECTED_DOB
           : ActionStates.REGISTERING_SUBJECT;
         this.props.updateSession({
+          consent_last_version_id: consent.version_id,
           registration_state: registrationState,
         });
       } // apiRespondent.fetched
@@ -208,10 +210,8 @@ class RegistrationRespondentForm extends Component {
   saveSignature = async (api_id) => {
     const uri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
     const signatureFile = await FileSystem.getInfoAsync(uri, {size: true});
-    const consent = this.props.registration.consent.data;
     if (signatureFile.exists) {
       this.props.apiSaveSignature(this.props.session, api_id, uri, consent.version_id);
-      this.props.updateSession({ consent_last_version_id: consent.version_id });
     } else {
       console.log('no signature available');
     } // signatureFile exists

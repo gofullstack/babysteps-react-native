@@ -9,6 +9,8 @@ import filter from 'lodash/filter';
 
 import { connect } from 'react-redux';
 
+import { updateSession } from '../actions/session_actions';
+
 import {
   resetApiMilestoneCalendar,
   fetchMilestoneCalendar,
@@ -18,9 +20,14 @@ import {
   fetchOverViewTimeline,
 } from '../actions/milestone_actions';
 
-import { fetchConsent, fetchSubject, updateSubject } from '../actions/registration_actions';
+import {
+  fetchConsent,
+  fetchSubject,
+  updateSubject
+} from '../actions/registration_actions';
 
 import Colors from '../constants/Colors';
+import States from '../actions/states';
 
 import OverviewTimeline from '../components/overview_timeline';
 import OverviewScreeningEvents from '../components/overview_screening_events';
@@ -68,12 +75,7 @@ class OverviewScreen extends React.Component {
   componentDidMount() {
     const { consent_last_updated_at, consent_last_version_id } = this.props.session;
     const consent = this.props.registration.consent.data;
-     const { navigate } = this.props.navigation;
-    if (consent_last_updated_at && consent_last_version_id !== consent.version_id) {
-      navigate('UpdateConsent');
-    } else {
-      navigate('Overview');
-    }
+    
   }
 
   testNotification(noticeType = null) {
@@ -151,6 +153,7 @@ const mapStateToProps = ({ session, registration, milestones }) => ({
   milestones,
 });
 const mapDispatchToProps = {
+  updateSession,
   fetchConsent,
   fetchSubject,
   updateSubject,

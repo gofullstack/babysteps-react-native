@@ -76,7 +76,12 @@ const headerOptions = {
 
 const ConsentNavigator = createStackNavigator(
   {
-    screen: ConsentScreen,
+    Consent: {
+      screen: ConsentScreen,
+    },
+    UpdateConsent: {
+      screen: UpdateConsentScreen,
+    },
   },
   {
     defaultNavigationOptions: headerOptions,
@@ -85,6 +90,19 @@ const ConsentNavigator = createStackNavigator(
 
 const ConsentNavigationContainer = createAppContainer(ConsentNavigator);
 
+const UpdateConsentNavigator = createStackNavigator(
+  {
+    UpdateConsent: {
+      screen: UpdateConsentScreen,
+    },
+  },
+  {
+    defaultNavigationOptions: headerOptions,
+  },
+);
+
+const UpdateConsentNavigationContainer = createAppContainer(UpdateConsentNavigator);
+
 const RegistrationNavigator = createStackNavigator(
   {
     Registration: {
@@ -92,9 +110,6 @@ const RegistrationNavigator = createStackNavigator(
     },
     SignIn: {
       screen: SignInScreen,
-    },
-    UpdateConsent: {
-      screen: UpdateConsentScreen,
     },
   },
   {
@@ -169,6 +184,8 @@ class RootNavigator extends Component {
       const notifications_updated_at = moment().subtract(8, 'days').toISOString();
       this.props.updateSession({ notifications_updated_at });
       Notifications.cancelAllScheduledNotificationsAsync();
+
+      // temporary code for backward compatibility
       addColumn('sessions', 'push_token', 'text');
       addColumn('sessions', 'consent_updated_at', 'text');
       addColumn('sessions', 'consent_last_updated_at', 'text');
@@ -177,6 +194,7 @@ class RootNavigator extends Component {
       addColumn('sessions', 'milestone_calendar_updated_at', 'text');
       addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
       addColumn('studies', 'duration_days', 'integer');
+
       if (Constants.isDevice) {
         // simulator will not generate a token
         this._notificationSubscription = this.registerForPushNotificationsAsync();
@@ -232,16 +250,34 @@ class RootNavigator extends Component {
         milestones_last_updated_at,
         milestone_calendar_updated_at,
         milestone_calendar_last_updated_at,
+        registration_state,
       } = this.props.session;
+      const consent = this.props.registration.consent.data;
+      const apiConsent = this.props.registration.apiConsent;
 
-      if (consent_updated_at && consent_updated_at !== consent_last_updated_at) {
-        const apiConsent = this.props.registration.apiConsent;
-        if (!apiConsent.fetching && !apiConsent.fetched) {
+      if (
+        !isEmpty(consent_updated_at) &&
+        !apiConsent.fetching && 
+        apiConsent.fetched
+      ) {
+        if (consent_updated_at !== consent_last_updated_at) {
           this.props.apiFetchConsent(CONSTANTS.STUDY_ID);
           this.props.updateSession({ consent_last_updated_at: consent_updated_at })
         }
+        if (
+          registration_state === States.REGISTERED_AS_IN_STUDY && 
+          consent_last_version_id !== consent.version_id
+        ) {
+          this.props.updateSession({ registration_state: States.REGISTERED_UPDATE_CONSENT });
+        }
+        if (
+          registration_state === States.REGISTERED_UPDATE_CONSENT &&
+          consent_last_version_id === consent.version_id
+        ) {
+          this.props.updateSession({ registration_state: States.REGISTERED_AS_IN_STUDY });
+        }
       }
-      if (milestones_updated_at && milestones_updated_at !== milestones_last_updated_at) {
+      if (!isEmpty(milestones_updated_at) && milestones_updated_at !== milestones_last_updated_at) {
         const api_milestones = this.props.milestones.api_milestones;
         if (!api_milestones.fetching && !api_milestones.fetched) {
           this.props.apiFetchMilestones();
@@ -454,6 +490,15 @@ class RootNavigator extends Component {
 
   render() {
     const registration_state = this.props.session.registration_state;
+    if (States.REGISTERING_NO_STUDY.includes(registration_state)) {
+      return <TourNoStudyNavigationContainer />;
+    }
+    if (States.REGISTERING_CONSENT.includes(registration_state)) {
+      return <ConsentNavigationContainer />;
+    }
+    if (States.REGISTERING_REGISTRATION.includes(registration_state)) {
+      return <RegistrationNavigationContainer />;
+    }
     if (States.REGISTRATION_COMPLETE.includes(registration_state)) {
       return (
         <AppNavigator
@@ -463,14 +508,8 @@ class RootNavigator extends Component {
         />
       );
     }
-    if (States.REGISTERING_NO_STUDY.includes(registration_state)) {
-      return <TourNoStudyNavigationContainer />;
-    }
-    if (States.REGISTERING_CONSENT.includes(registration_state)) {
-      return <ConsentNavigationContainer />;
-    }
-    if (States.REGISTERING_REGISTRATION.includes(registration_state)) {
-      return <RegistrationNavigationContainer />;
+    if (registration_state === States.REGISTERED_UPDATE_CONSENT) {
+      return <UpdateConsentNavigationContainer />;
     }
     if ( ['none', 'undefined'].includes(registration_state) ) {
       return <TourNavigationContainer />;

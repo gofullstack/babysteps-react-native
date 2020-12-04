@@ -812,6 +812,7 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case API_FETCH_CONSENT_FULFILLED: {
+      const data = action.payload;
       return {
         ...state,
         apiConsent: {
@@ -819,6 +820,10 @@ const reducer = (state = initialState, action, formData = {}) => {
           fetching: false,
           fetched: true,
           error: null,
+        },
+        consent: {
+          ...state.consent,
+          data,
         },
       };
     }

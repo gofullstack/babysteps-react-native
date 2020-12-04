@@ -42,6 +42,7 @@
       "tos_expires_on": "TEXT",
       "created_at": "TEXT",
       "updated_at": "TEXT",
+      "summary": "TEXT",
       "content": "TEXT",
     },
     "indexes": [],

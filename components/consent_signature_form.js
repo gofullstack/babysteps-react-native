@@ -325,6 +325,11 @@ class ConsentSignatureForm extends Component {
               transparent={false}
             />
           )}
+          {remoteDebug && (
+            <Text style={styles.dummySignature}>
+              Signature pad disabled when remote debugger enabled.
+            </Text>
+          )}
         </View>
 
         {this.state.errorMessage && (
@@ -385,6 +390,12 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: Colors.white,
     borderRadius: 5,
+  },
+  dummySignature: {
+    color: Colors.grey,
+    height: 150,
+    textAlign: 'center',
+    paddingTop: 20,
   },
   signatureHeader: {
     fontSize: 14,

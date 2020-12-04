@@ -7,6 +7,8 @@ import ExpoPixi from 'expo-pixi';
 
 import { connect } from 'react-redux';
 
+import isEmpty from 'lodash/isEmpty';
+
 import { updateSession } from '../actions/session_actions';
 import {
   fetchConsent,
@@ -43,10 +45,12 @@ class ConsentDisclosureVersion extends Component {
 
   renderButton = () => {
     const consent = this.props.registration.consent.data;
+    let tos_expires_on = '';
+    if (!isEmpty(consent)) tos_expires_on = consent.tos_expires_on;
     return (
-      <View>
-        <Text style={styles.signatureHeader}>
-          This Disclosure expires: {consent.tos_expires_on}.
+      <View style={styles.footerContainer}>
+        <Text style={styles.header}>
+          This Disclosure expires: {tos_expires_on}.
         </Text>
         <View style={styles.buttonContainer}>
           <Button
@@ -55,106 +59,7 @@ class ConsentDisclosureVersion extends Component {
             color={Colors.pink}
             buttonStyle={styles.buttonNext}
             titleStyle={styles.buttonNextTitle}
-          />
-        </View>
-      </View>
-    );
-  };
-
-  handleNestedScrollEvent = scrollEnabled => {
-    this.setState({ scrollEnabled });
-  };
-
-  handleResetSignature = () => {
-    console.log('signature clear');
-    this.signature.clear();
-  };
-
-  handleSubmitSignature = async () => {
-    const session = this.props.session;
-    const consent = this.props.registration.consent.data;
-    const respondent = this.props.registration.respondent.data;
-    const remoteDebug = this.state.remoteDebug;
-    let image = null;
-    if (!remoteDebug) {
-      image = await this.signature.takeSnapshotAsync({
-        format: 'png',
-        quality: 0.8,
-        result: 'file',
-      });
-    }
-    const signatureDir =
-      FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY;
-    const resultDir = await FileSystem.getInfoAsync(signatureDir);
-
-    if (resultDir.exists) {
-      const uri = signatureDir + '/signature.png';
-      if (!remoteDebug) {
-        await FileSystem.deleteAsync(uri, { idempotent: true });
-        await FileSystem.copyAsync({ from: image.uri, to: uri });
-      }
-      const resultFile = await FileSystem.getInfoAsync(uri, {size: true});
-
-      if (remoteDebug || resultFile.exists) {
-        this.props.updateSession({ consent_last_version_id: consent.version_id });
-        this.props.apiSaveSignature(session, respondent.api_id, uri, consent.version_id);
-        const { navigate } = this.props.navigation;
-        navigate('Overview');
-      } else {
-        const errorMessage = 'Error: file not saved - ' + resultFile;
-        this.setState({ errorMessage });
-      }
-    } else {
-      const errorMessage = 'Error: no directory - ' + resultDir;
-      this.setState({ errorMessage });
-    }
-
-  };
-
-  renderSignature = () => {
-    const remoteDebug = this.state.remoteDebug;
-    return (
-      <View>
-        <Text style={styles.signatureHeader}>
-          The Consent Agreement has been updated. Your signature indicates your
-          and your child's acceptance and participation.
-        </Text>
-        <View style={styles.sketchContainer}>
-          
-          {!remoteDebug && (
-            <ExpoPixi.Signature
-              ref={ref => (this.signature = ref)}
-              style={styles.signature}
-              onTouchStart={() => this.handleNestedScrollEvent(false)}
-              onTouchEnd={() => this.handleNestedScrollEvent(true)}
-              strokeColor={Colors.black}
-              strokeWidth={8}
-              strokeAlpha={0.5}
-              transparent={false}
-            />
-          )}
-        </View>
-
-        {this.state.errorMessage && (
-          <View style={styles.textErrorContainer}>
-            <Text style={styles.textError}>{this.state.errorMessage}</Text>
-          </View>
-        )}
-
-        <View style={styles.buttonContainer}>
-          <Button
-            color={Colors.grey}
-            buttonStyle={styles.buttonOneStyle}
-            titleStyle={styles.buttonTitleStyle}
-            onPress={this.handleResetSignature}
-            title="Reset"
-          />
-          <Button
-            color={Colors.pink}
-            buttonStyle={styles.buttonTwoStyle}
-            titleStyle={styles.buttonTitleStyle}
-            onPress={this.handleSubmitSignature}
-            title="Done"
+            disabled={isEmpty(consent)}
           />
         </View>
       </View>
@@ -164,26 +69,24 @@ class ConsentDisclosureVersion extends Component {
   render() {
     const consent = this.props.registration.consent.data;
     const hideButton = this.props.hideButton || false;
-    const showSignature = this.props.showSignature || false;
     let webViewHeight = height * 0.6;
+    let content = '';
+    if (!isEmpty(consent)) content = consent.content;
     if (hideButton) webViewHeight = height * 0.8;
-    if (showSignature) webViewHeight = height * 0.5;
 
     return (
       <ScrollView
         contentContainerStyle={styles.scrollView}
-        ref={ref => (this._scrollView = ref)}
+        ref={this._scrollView}
       >
         <WebView
           originWhitelist={['*']}
-          source={{ html: consent.content }}
+          source={{ html: content }}
           style={[styles.webView, {height: webViewHeight}]}
           scalesPageToFit={false}
           useWebKit
-          scrollEnabled={false}
         />
         {!hideButton && this.renderButton()}
-        {showSignature && this.renderSignature()}
       </ScrollView>
     );
   }
@@ -194,30 +97,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'space-between',
     flexDirection: 'column',
+    paddingLeft: 10,
+    paddingRight: 10,
   },
   webView: {
     flexGrow: 1,
     marginTop: 20,
   },
-  sketchContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: Colors.grey,
-    borderWidth: 1.5,
-    borderRadius: 5,
-    marginTop: 20,
-    marginLeft: 5,
-    marginRight: 5,
-  },
-  signature: {
-    flex: 1,
-    height: 150,
-    width: '100%',
-    backgroundColor: Colors.white,
-    borderRadius: 5,
-  },
-  signatureHeader: {
+  header: {
     fontSize: 14,
     fontWeight: '900',
     color: Colors.darkGrey,
@@ -228,6 +115,10 @@ const styles = StyleSheet.create({
     marginTop: 5,
     borderTopColor: Colors.black,
     borderTopWidth: 1,
+  },
+  footerContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   buttonContainer: {
     flex: 1,
@@ -243,38 +134,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 5,
     alignSelf: 'center',
-    height: 40,
+    height: 50,
   },
   buttonNextTitle: {
     fontWeight: '900',
-  },
-  buttonOneStyle: {
-    width: twoButtonWidth,
-    backgroundColor: Colors.lightGrey,
-    borderColor: Colors.grey,
-    borderWidth: 2,
-    borderRadius: 5,
-    height: 40,
-  },
-  buttonTwoStyle: {
-    width: twoButtonWidth,
-    backgroundColor: Colors.lightPink,
-    borderColor: Colors.pink,
-    borderWidth: 2,
-    borderRadius: 5,
-    height: 40,
-  },
-  buttonTitleStyle: {
-    fontWeight: '900',
-  },
-  textErrorContainer: {
-    marginTop: 20,
-  },
-  textError: {
-    textAlign: 'center',
-    color: Colors.errorColor,
-    fontSize: 14,
-    padding: 5,
   },
 });
 

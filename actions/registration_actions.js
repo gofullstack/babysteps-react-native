@@ -688,7 +688,7 @@ export const apiFetchConsent = study_id => {
           // consent id becomes api id in sqlite
           consent[0].api_id = consent[0].id;
           insertRows('consents', schema['consents'], consent);
-          dispatch(Response(API_FETCH_CONSENT_FULFILLED, response));
+          dispatch(Response(API_FETCH_CONSENT_FULFILLED, consent));
         })
         .catch(error => {
           dispatch(Response(API_FETCH_CONSENT_REJECTED, error));

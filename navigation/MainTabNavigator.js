@@ -62,9 +62,6 @@ const OverviewStack = createStackNavigator(
     Overview: OverviewScreen,
     OverviewBirthForm: OverviewBirthFormScreen,
     MilestonesStack: MilestonesScreen,
-    UpdateConsent: UpdateConsentScreen,
-    //MilestoneQuestions: MilestoneQuestionsScreen,
-    // MilestoneQuestionConfirm: MilestoneQuestionConfirmScreen,
   },
   {
     defaultNavigationOptions: headerOptions,
