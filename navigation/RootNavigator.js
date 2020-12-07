@@ -256,16 +256,18 @@ class RootNavigator extends Component {
       const apiConsent = this.props.registration.apiConsent;
 
       if (
-        !isEmpty(consent_updated_at) &&
-        !apiConsent.fetching && 
-        apiConsent.fetched
+        !isEmpty(consent_updated_at)
+        
       ) {
-        if (consent_updated_at !== consent_last_updated_at) {
+        if (
+          !apiConsent.fetching &&
+          consent_updated_at !== consent_last_updated_at
+        ) {
           this.props.apiFetchConsent(CONSTANTS.STUDY_ID);
           this.props.updateSession({ consent_last_updated_at: consent_updated_at })
         }
         if (
-          registration_state === States.REGISTERED_AS_IN_STUDY && 
+          registration_state === States.REGISTERED_AS_IN_STUDY &&
           consent_last_version_id !== consent.version_id
         ) {
           this.props.updateSession({ registration_state: States.REGISTERED_UPDATE_CONSENT });
