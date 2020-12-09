@@ -198,7 +198,6 @@ class RegistrationSubjectForm extends Component {
       video_sharing,
     } = this.props.session;
     const dobError = this.state.dobError;
-
     return (
       <Formik
         onSubmit={values => {

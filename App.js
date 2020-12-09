@@ -7,6 +7,7 @@ import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
 import * as Notifications from 'expo-notifications';
 import FlashMessage from 'react-native-flash-message';
+
 import * as Sentry from 'sentry-expo';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +23,8 @@ import checkNotificationsSchema from './database/check_notifications_schema';
 import checkBabyBookSchema from './database/check_babybook_schema';
 import checkCustomDirectories from './components/check_custom_directories';
 //import moveDataToMainDirectory from './components/move_data_to_main_directory';
+
+import RegisterForPushNotifications from './notifications/registerForPushNotifications';
 
 import MomentaryAssessment from './components/momentary_assessment_modal';
 
@@ -65,7 +68,6 @@ export default class App extends Component {
   };
 
   _loadResourcesAsync = async () => {
-
     await Asset.loadAsync([
       require('./assets/images/baby_book_cover_background.png'),
       require('./assets/images/baby_book_inside_background.png'),
@@ -144,6 +146,7 @@ export default class App extends Component {
         <View style={styles.container}>
           {Platform.OS === 'android' && <StatusBar barStyle="default" />}
           <RootNavigator />
+          <RegisterForPushNotifications />
           <FlashMessage position="top" />
           <MomentaryAssessment />
           <ApiOfflineListener />

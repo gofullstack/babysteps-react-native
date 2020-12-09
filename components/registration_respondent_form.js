@@ -395,13 +395,16 @@ class RegistrationRespondentForm extends Component {
                   </Text>
                   <CheckBox
                     title="Yes"
+                    size={36}
                     checked={props.values.pregnant}
                     containerStyle={styles.checkboxContainer}
                     textStyle={styles.checkboxText}
                     onPress={() => props.setFieldValue('pregnant', true)}
+
                   />
                   <CheckBox
                     title="No"
+                    size={36}
                     checked={!props.values.pregnant}
                     containerStyle={styles.checkboxContainer}
                     textStyle={styles.checkboxText}
@@ -440,7 +443,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.backgroundColor,
   },
   checkboxText: {
-    fontSize: 12,
+    fontSize: 16,
   },
   errorMessage: {
     fontSize: 16,

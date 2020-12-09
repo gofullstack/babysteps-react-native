@@ -14,6 +14,7 @@ import { updateSession } from '../actions/session_actions';
 // This function resets the last updated where request fails
 
 export default store => next => action => {
+
   if (!action || !action.type) {
     return null;
   }

@@ -44,8 +44,11 @@ class ConsentSignatureForm extends Component {
   }
 
   handleReset = () => {
+    const remoteDebug = this.state.remoteDebug;
     console.log('signature clear');
-    this.signature.clear();
+    if (!remoteDebug) {
+      this.signature.clear();
+    }
   };
 
   handleConsentPermissions = (attribute, response) => {
