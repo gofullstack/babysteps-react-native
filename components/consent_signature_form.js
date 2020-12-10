@@ -21,13 +21,18 @@ const twoButtonWidth = (width / 2) - 40;
 class ConsentSignatureForm extends Component {
   constructor(props) {
     super(props);
+
     const session = this.props.session;
     const screening_blood =
-      ['null', null].includes(session.screening_blood) ? null : !!session.screening_blood;
+      ['null', null].includes(session.screening_blood) ? true : !!session.screening_blood;
     const screening_blood_other =
-      ['null', null].includes(session.screening_blood_other) ? null : !!session.screening_blood_other;
+      ['null', null].includes(session.screening_blood_other) ? true : !!session.screening_blood_other;
     const screening_blood_notification =
-      ['null', null].includes(session.screening_blood_notification) ? null : !!session.screening_blood_notification;
+      ['null', null].includes(session.screening_blood_notification) ? true : !!session.screening_blood_notification;
+    const video_presentation = 
+      ['null', null].includes(session.video_presentation) ? 'yes_study_presentations' : !!session.video_presentation;
+    const video_sharing = 
+      ['null', null].includes(session.video_sharing) ? 'yes_other_researchers' : !!session.video_sharing;
 
     const remoteDebug = (typeof DedicatedWorkerGlobalScope) !== 'undefined';
 
@@ -35,8 +40,8 @@ class ConsentSignatureForm extends Component {
       screening_blood,
       screening_blood_other,
       screening_blood_notification,
-      video_sharing: session.video_sharing,
-      video_presentation: session.video_presentation,
+      video_presentation,
+      video_sharing,
       errorMessage: null,
       remoteDebug,
       scrollEnabled: true,

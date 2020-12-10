@@ -323,7 +323,7 @@ export const apiCreateRespondent = (session, data) => {
 };
 
 export const updateRespondent = (data) => {
-  return function (dispatch) {
+  return function(dispatch) {
     dispatch(Pending(UPDATE_RESPONDENT_PENDING));
     delete data.id;
     const updateSQL = getUpdateSQL(data);

@@ -172,6 +172,7 @@ class RegistrationRespondentForm extends Component {
   };
 
   getInitialValues = () => {
+    const session = this.props.session;
     let initialValues = {};
     if (__DEV__) {
       initialValues = {
@@ -231,7 +232,6 @@ class RegistrationRespondentForm extends Component {
       tos_id: tos_id,
       irb_id: irb.irb_id,
       accepted_tos_at: new Date().toISOString(),
-      push_token: session.push_token,
     };
     this.setState({ isSubmitting: true });
     this.props.createRespondent(respondent);

@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 import {
   fetchRespondent,
+  updateRespondent,
   apiUpdateRespondent,
 } from '../actions/registration_actions';
 import { fetchMilestones } from '../actions/milestone_actions';
@@ -32,6 +33,7 @@ class RegisterForPushNotifications extends Component {
     if (!Constants.isDevice) return false;
     const respondent = nextProps.registration.respondent.data;
     if (isEmpty(respondent)) return false;
+    if (respondent.api_id === null || respondent.api_id === undefined) return false;
     const requestedPushToken = nextState.requestedPushToken;
     if (requestedPushToken) return false;
     return true;
@@ -85,18 +87,13 @@ class RegisterForPushNotifications extends Component {
       return;
     }
 
-    if (
-      !requestedPushToken &&
-      isEmpty(session.push_token) &&
-      respondent.api_id
-    ) {
-      this.setState({ requestedPushToken: true });
-      const result = await Notifications.getExpoPushTokenAsync();
-      const push_token = result.data;
-      this.props.updateSession({ push_token });
-      const data = {api_id: respondent.api_id, push_token}
-      this.props.apiUpdateRespondent(session, data);
-    }
+    this.setState({ requestedPushToken: true });
+    const result = await Notifications.getExpoPushTokenAsync();
+    const push_token = result.data;
+    this.props.updateSession({ push_token });
+    this.props.updateRespondent({ push_token });
+    const data = {api_id: respondent.api_id, push_token}
+    this.props.apiUpdateRespondent(session, data);
   }
 
   render() {
@@ -120,6 +117,7 @@ const mapDispatchToProps = {
   updateSession,
   fetchMilestones,
   fetchRespondent,
+  updateRespondent,
   apiUpdateRespondent,
   showMomentaryAssessment,
 };
