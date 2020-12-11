@@ -445,12 +445,8 @@ class CameraModal extends Component {
         onRequestClose={() => {}}
       >
         <View style={styles.camera} ref={ref => (this.container = ref)}>
-          {!confirmingImage && (
-            this.renderCamera()
-          )}
-          {confirmingImage && this.image && (
-            this.renderImagePreview()
-          )}
+          {!confirmingImage && this.renderCamera()}
+          {confirmingImage && this.image && this.renderImagePreview()}
         </View>
       </Modal>
     );

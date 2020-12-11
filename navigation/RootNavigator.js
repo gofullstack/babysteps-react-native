@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { View, Platform } from 'react-native';
 
 import * as Notifications from 'expo-notifications';
+import * as Permissions from 'expo-permissions';
+import Constants from 'expo-constants';
 
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
@@ -28,6 +30,7 @@ import {
 import {
   apiFetchConsent,
   fetchRespondent,
+  updateRespondent,
   apiUpdateRespondent,
 } from '../actions/registration_actions';
 
@@ -48,6 +51,8 @@ import UpdateConsentScreen from '../screens/UpdateConsentScreen';
 import RegistrationScreen from '../screens/RegistrationScreen';
 import TourNoStudyConfirmScreen from '../screens/TourNoStudyConfirmScreen';
 import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
+
+import { openSettings } from '../components/permissions';
 
 import { addColumn } from '../database/common';
 
@@ -195,17 +200,11 @@ class RootNavigator extends Component {
     } else {
       //RegisterForNotifications();
     }
+    this._getNotificationPermissions();
     Notifications.addNotificationResponseReceivedListener(
       this._handleNotificationResponse,
     );
-    if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('screeningEvents', {
-        name: 'screeningEvents',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        color: Colors.notifications,
-      });
-    }
+    
     if (!consent_updated) {
       this.props.apiFetchConsentLastUpdated(CONSTANTS.STUDY_ID);
       this.setState({ consent_updated: true });
@@ -300,8 +299,78 @@ class RootNavigator extends Component {
           this.props.updateSession({ milestone_calendar_last_updated_at: milestone_calendar_updated_at })
         }
       }
+      // for backward compatibility
+      this._confirmPushNotificationRegistration();
+    } // !session.fetching && session.fetched
+  }
+
+  _getNotificationPermissions = async () => {
+    const session = this.props.session;
+    let notifications_permission = session.notifications_permission;
+
+    if (Platform.OS === 'ios' && notifications_permission !== 'granted') {
+      Alert.alert(
+        'Permissions',
+        "To make sure you don't miss any notifications, please enable 'Persistent' notifications for BabySteps. Click Settings below, open 'Notifications' and set 'Banner Style' to 'Persistent'.",
+        [
+          { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+          { text: 'Settings', onPress: () => openSettings('NOTIFICATIONS') },
+        ],
+        { cancelable: true },
+      );
+    }
+
+    // android permissions are given on install and may already exist
+    const { status: existingStatus } = await Permissions.getAsync(
+      Permissions.NOTIFICATIONS,
+    );
+    notifications_permission = existingStatus;
+    // only ask if permissions have not already been determined, because
+    // iOS won't necessarily prompt the user a second time.
+    if (existingStatus !== 'granted') {
+      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+      notifications_permission = status;
+    }
+    if (notifications_permission !== session.notifications_permission) {
+      this.props.updateSession({ notifications_permission });
+    }
+    if (notifications_permission === 'granted') {
+      if (Platform.OS === 'android') {
+        Notifications.setNotificationChannelAsync('screeningEvents', {
+          name: 'screeningEvents',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          color: Colors.notifications,
+        });
+      }
+    } else {
+      Alert.alert(
+        'Permissions',
+        'Failed to get permissions for Push Notifications!',
+        [{ text: 'Cancel', onPress: () => {}, style: 'cancel' }],
+        { cancelable: true },
+      );
     }
   }
+
+  _confirmPushNotificationRegistration = async () => {
+    // simulator will not generate a token
+    if (!Constants.isDevice) return null;
+    const session = this.props.session;
+    const respondent = this.props.registration.respondent.data;
+    if (
+      session.notifications_permission === 'granted' &&
+      isEmpty(session.push_token) &&
+      !isEmpty(respondent) && ![null, undefined].includes(respondent.api_id)
+    ) {
+      const result = await Notifications.getExpoPushTokenAsync();
+      const push_token = result.data;
+      const api_id = respondent.api_id;
+      this.props.updateSession({ push_token });
+      this.props.updateRespondent({ push_token });
+      this.props.apiUpdateRespondent(session, { api_id, push_token });
+    }
+  };
 
   _handleNotificationOnPress = data => {
     const tasks = this.props.milestones.tasks.data;
@@ -383,6 +452,7 @@ const mapDispatchToProps = {
   fetchSession,
   apiFetchConsent,
   fetchRespondent,
+  updateRespondent,
   apiUpdateRespondent,
   apiFetchConsentLastUpdated,
   apiFetchMilestones,

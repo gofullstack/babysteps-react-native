@@ -24,8 +24,6 @@ import checkBabyBookSchema from './database/check_babybook_schema';
 import checkCustomDirectories from './components/check_custom_directories';
 //import moveDataToMainDirectory from './components/move_data_to_main_directory';
 
-import RegisterForPushNotifications from './notifications/registerForPushNotifications';
-
 import MomentaryAssessment from './components/momentary_assessment_modal';
 
 import ApiOfflineListener from './database/api_offline_listener';
@@ -146,7 +144,6 @@ export default class App extends Component {
         <View style={styles.container}>
           {Platform.OS === 'android' && <StatusBar barStyle="default" />}
           <RootNavigator />
-          <RegisterForPushNotifications />
           <FlashMessage position="top" />
           <MomentaryAssessment />
           <ApiOfflineListener />
