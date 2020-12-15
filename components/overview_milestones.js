@@ -22,6 +22,7 @@ import sortBy from 'lodash/sortBy';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
+import { updateSession } from '../actions/session_actions';
 import { apiFetchMilestones } from '../actions/milestone_actions';
 
 import milestoneGroupImages from '../constants/MilestoneGroupImages';
@@ -48,7 +49,7 @@ class OverviewScreen extends React.Component {
     super(props);
 
     this.state = {
-      currentIndexMilestones: 0,
+      currentGroupIndex: 0,
       sliderLoading: true,
       milestoneGroups: [],
       milestoneGroupsLoaded: false,
@@ -87,15 +88,17 @@ class OverviewScreen extends React.Component {
           group.uri = milestoneGroupImages[index];
         });
         // locate index of current milestone group
-        let currentIndexMilestones = findIndex(milestoneGroups, group => {
+        let currentGroupIndex = findIndex(milestoneGroups, group => {
           return (
             group.week_start_at <= currentWeek &&
             currentWeek <= group.week_end_at
           );
         });
 
+        this.props.updateSession({ current_group_index: currentGroupIndex });
+
         this.setState({
-          currentIndexMilestones,
+          currentGroupIndex,
           milestoneGroups,
           milestoneGroupsLoaded: true,
           sliderLoading: false,
@@ -110,7 +113,7 @@ class OverviewScreen extends React.Component {
     return (
       <View key={data.itemIndex} style={styles.mgSlideContainer}>
         <TouchableOpacity
-          onPress={() => navigate('MilestonesStack', { sectionIndex: data.currentIndex })}
+          onPress={() => navigate('MilestonesStack', {currentGroupIndex: data.itemIndex})} 
         >
           <Image source={group.uri} style={styles.mgItemImage} />
           <View style={styles.mgItemFooter}>
@@ -124,18 +127,18 @@ class OverviewScreen extends React.Component {
   renderSlider = () => {
     const milestoneGroups = this.state.milestoneGroups;
     if (milestoneGroups.length > 0) {
-      const currentIndexMilestones = this.state.currentIndexMilestones;
+      const currentGroupIndex = this.state.currentGroupIndex;
       return (
         <SideSwipe
-          index={currentIndexMilestones}
+          index={currentGroupIndex}
           data={milestoneGroups}
           renderItem={this.renderMilestoneItem}
           itemWidth={width}
           threshold={width / 6}
           //useVelocityForIndex
           style={styles.mgSlider}
-          onIndexChange={currentIndexMilestones =>
-            this.setState({ currentIndexMilestones })
+          onIndexChange={currentGroupIndex =>
+            this.setState({ currentGroupIndex })
           }
         />
       );
@@ -145,6 +148,7 @@ class OverviewScreen extends React.Component {
   render() {
     const navigate = this.props.navigation.navigate;
     const sliderLoading = this.state.sliderLoading;
+    const currentGroupIndex = this.state.currentGroupIndex;
     return (
       <View style={styles.container}>
         <View style={styles.slider_header}>
@@ -153,7 +157,8 @@ class OverviewScreen extends React.Component {
           </View>
           <TouchableOpacity
             style={styles.opacityStyle}
-            onPress={()=> navigate('Milestones')} >
+            onPress={() => navigate('Milestones')}
+          >
             <Text style={styles.slider_link_text}>View all</Text>
             <Ionicons name='md-arrow-forward' style={styles.slider_link_icon} />
           </TouchableOpacity>
@@ -239,11 +244,12 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = ({ milestones, registration }) => ({
+const mapStateToProps = ({ session, milestones, registration }) => ({
+  session,
   milestones,
   registration,
 });
 
-const mapDispatchToProps = { apiFetchMilestones };
+const mapDispatchToProps = { updateSession, apiFetchMilestones };
 
 export default connect(mapStateToProps, mapDispatchToProps)(OverviewScreen);

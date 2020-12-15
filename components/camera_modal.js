@@ -12,6 +12,7 @@ import {
 import { isIphoneX } from 'react-native-iphone-x-helper';
 import { Video } from 'expo-av';
 import { Camera } from 'expo-camera';
+import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 
 import * as moment from 'moment';
 import padStart from 'lodash/padStart';
@@ -80,6 +81,7 @@ class CameraModal extends Component {
   };
 
   startVideo = async () => {
+    activateKeepAwake();
     const recordingConfig = {
       quality: String(Camera.Constants.VideoQuality['720p']),
     };
@@ -97,11 +99,13 @@ class CameraModal extends Component {
   };
 
   stopVideo = () => {
+    deactivateKeepAwake();
     if (this.videoTimeInterval) clearInterval(this.videoTimeInterval);
     this.camera.stopRecording();
   };
 
   cancelVideo = () => {
+    deactivateKeepAwake();
     this.cancelRecording = true;
     this.setState({ videoTimer: moment.duration(0) });
     this.stopVideo();
@@ -112,6 +116,7 @@ class CameraModal extends Component {
   };
 
   handleCloseModal = () => {
+    deactivateKeepAwake();
     this.props.closeCameraModal(null);
   };
 

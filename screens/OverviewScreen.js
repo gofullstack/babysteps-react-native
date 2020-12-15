@@ -49,20 +49,11 @@ class OverviewScreen extends React.Component {
     };
 
     this.props.fetchSubject();
-    //this.props.resetApiMilestoneCalendar(); // I am commenting this out because of the following:
-    //  1. After the last registration form is finished and the subject is registered, apiNewMilestoneCalendar is called.
-    //  2. The overview screen then loads, and the above this.props.resetApiMilestoneCalendar is called, which resets
-    //     milestone.api_calendar.fetching to false
-    //  3. overview_screening_events.js checks to see if we have calendar data, and if milestone.api_calendar.fetching is true.
-    //  4. milestone.api_calendar.fetching is false because we reset it above (step 2), so a new request to apiCreateMilestoneCalendar is issued.
     this.props.fetchMilestoneCalendar();
     this.props.resetApiMilestones();
     this.props.fetchMilestoneGroups();
     this.props.fetchMilestoneTasks();
     this.props.fetchOverViewTimeline();
-    //this.props.updateSubject({expected_date_of_birth: '2019-07-01', date_of_birth: ''})
-    // only uncomment after registering when data is available
-    //this.testNotification({momentary_assessment: true});
   }
 
   testNotification(noticeType = null) {

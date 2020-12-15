@@ -56,6 +56,7 @@ const initialState = {
   pending_actions: [],
   dispatching_pending_actions: false,
   syncMessages: {},
+  current_group_index: '0',
 };
 
 const reducer = (state = initialState, action, formData = {}) => {

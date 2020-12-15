@@ -10,11 +10,9 @@ import {
 import { Text } from 'react-native-elements';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import sectionListGetItemLayout from 'react-native-section-list-get-item-layout';
-
 import { showMessage } from 'react-native-flash-message';
 
-import isEmpty from 'lodash/isEmpty'
+import isEmpty from 'lodash/isEmpty';
 import filter from 'lodash/filter';
 import groupBy from 'lodash/groupBy';
 import reduce from 'lodash/reduce';
@@ -47,10 +45,13 @@ class MilestonesScreen extends Component {
   constructor(props) {
     super(props);
 
+    const currentGroupIndex = this.props.session.current_group_index;
+
     this.state = {
       tasksForList: [],
       tasksSaved: false,
-      sectionIndex: 0,
+      initialIndex: 0,
+      sectionIndex: currentGroupIndex,
       sectionID: null,
       scrollToComplete: false,
     };
@@ -63,14 +64,19 @@ class MilestonesScreen extends Component {
     // trap section header render - don't update view
     const newSectionID = nextState.sectionID !== this.state.sectionID;
     const tasks = nextProps.milestones.tasks;
+    //const newSectionIndex = nextState.sectionIndex !== this.state.sectionIndex;
     return !newSectionID && tasks.fetched && !tasks.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
     const tasks = this.props.milestones.tasks;
-    const scrollToComplete = this.state.scrollToComplete;
-    const tasksForList = this.state.tasksForList;
-    const tasksSaved = this.state.tasksSaved;
+    const {
+      scrollToComplete,
+      tasksForList,
+      tasksSaved,
+      sectionIndex,
+    } = this.state;
+    const selectedGroupIndex = this.props.navigation.getParam('currentGroupIndex', null);
 
     if (!scrollToComplete && tasksForList.length !== 0) {
       this._handleScrollToComplete();
@@ -78,20 +84,19 @@ class MilestonesScreen extends Component {
     if (tasks.fetched && !isEmpty(tasks.data) && !tasksSaved) {
       this._saveTasksData(tasks);
     }
+    if (
+      tasksForList.length !== 0 &&
+      selectedGroupIndex !== null &&
+      sectionIndex !== selectedGroupIndex &&
+      prevProps.sectionIndex === this.props.sectionIndex
+    ) {
+      this.updateInitialIndex(selectedGroupIndex, tasksForList);
+      this.setState({ sectionIndex: selectedGroupIndex });
+    }
   }
 
-  getItemLayout = sectionListGetItemLayout({
-    // The height of the row with rowData at the given sectionIndex and rowIndex
-    getItemHeight: (rowData, sectionIndex, rowIndex) =>
-      sectionIndex === 0 ? 68 : 34,
-    // These three properties are optional
-    //getSeparatorHeight: () => 1 / PixelRatio.get(), // The height of your separators
-    getSectionHeaderHeight: () => 31.7, // The height of your section headers
-    getSectionFooterHeight: () => 10, // The height of your section footers
-  });
-
   _handleScrollToComplete = () => {
-    const sectionIndex = this.props.navigation.getParam('sectionIndex', null);
+    const sectionIndex = this.state.sectionIndex;
     if (sectionIndex && sectionIndex !== -1) {
       this.sectionList.scrollToLocation({ sectionIndex, itemIndex: 0, viewPosition: 0 });
       this.setState({ scrollToComplete: true });
@@ -101,6 +106,7 @@ class MilestonesScreen extends Component {
   _saveTasksData = tasks => {
     const groups = filter(this.props.milestones.groups.data, {visible: 1});
     const session = this.props.session;
+    const sectionIndex = this.state.sectionIndex;
     let tasksForList = [...this.state.tasksForList];
 
     tasksForList = filter(tasks.data, task => {
@@ -131,7 +137,20 @@ class MilestonesScreen extends Component {
       },
       [],
     );
+
+    this.updateInitialIndex(sectionIndex, tasksForList);
+
     this.setState({ tasksForList, tasksSaved: true });
+  };
+
+  updateInitialIndex = (sectionIndex, tasksForList) => {
+    let initialIndex = 0;
+    if (sectionIndex !== 0) {
+      Array(sectionIndex).fill().forEach( (_, current) => {
+        initialIndex += tasksForList[current].data.length + 2;
+      });
+      this.setState({ initialIndex });
+    }
   };
 
   handleOnPress = (task, calendar) => {
@@ -168,7 +187,6 @@ class MilestonesScreen extends Component {
     let checkboxSource = require('../assets/images/milestones_checkbox.png');
     let color = Colors.grey;
     const calendar = find(this.props.milestones.calendar.data, ['task_id', task.id]);
-    //debugger
     if (calendar) {
       if (calendar.questions_remaining > 0) {
         checkboxSource = require('../assets/images/milestones_checkbox_skipped.png');
@@ -230,6 +248,8 @@ class MilestonesScreen extends Component {
   };
 
   render() {
+    const { tasksForList, initialIndex } = this.state;
+    if (isEmpty(tasksForList)) return null;
     return (
       <View style={styles.container}>
         <Text style={styles.legend}>
@@ -240,13 +260,12 @@ class MilestonesScreen extends Component {
         <SectionList
           //debug={true}
           ref={ref => this.sectionList = ref}
-          initialNumToRender={this.state.tasksForList.length}
-          initialScrollIndex={this.state.sectionIndex}
+          initialNumToRender={12}
+          initialScrollIndex={initialIndex}
           onScrollToIndexFailed={info => console.log(info)}
-          getItemLayout={this.getItemLayout}
           renderSectionHeader={this.renderSectionHeader}
           renderItem={this.renderItem}
-          sections={this.state.tasksForList}
+          sections={tasksForList}
           keyExtractor={item => item.id}
         />
       </View>

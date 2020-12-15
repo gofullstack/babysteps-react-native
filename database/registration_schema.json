@@ -18,6 +18,7 @@
       "screening_blood_other": "INTEGER",
       "video_presentation": "TEXT",
       "video_sharing": "TEXT",
+      "current_group_index": "INTEGER",
     },
     "indexes": [],
   },

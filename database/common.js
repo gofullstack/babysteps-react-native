@@ -116,3 +116,14 @@ export function getApiUrl() {
   const baseAPIUrl = Constants.manifest.extra.baseAPIUrl;
   return baseAPIUrl;
 }
+
+export function addColumn(table, name, type) {
+  db.transaction(tx => {
+    tx.executeSql(
+      `ALTER TABLE ${table} ADD COLUMN ${name} ${type};`,
+      [],
+      (_, rows) => console.log('** Add Column successful'),
+      (_, error) => console.log(`column ${name} exists`),
+    );
+  });
+}

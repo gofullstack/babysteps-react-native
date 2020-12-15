@@ -38,6 +38,8 @@ import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
 
 import { openSettings } from '../components/permissions';
 
+import { addColumn } from '../database/common';
+
 import Colors from '../constants/Colors';
 import States from '../actions/states';
 import CONSTANTS from '../constants';
@@ -137,6 +139,9 @@ class RootNavigator extends Component {
       });
     }
     this._notificationSubscription = this.registerForNotifications();
+
+    // temporary code for backward compatibility
+    addColumn('sessions', 'current_group_index', 'integer');
   }
 
   shouldComponentUpdate(nextProps) {
