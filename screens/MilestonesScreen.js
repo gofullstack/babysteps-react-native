@@ -258,7 +258,7 @@ class MilestonesScreen extends Component {
           research related task.
         </Text>
         <SectionList
-          //debug={true}
+          debug={true}
           ref={ref => this.sectionList = ref}
           initialNumToRender={12}
           initialScrollIndex={initialIndex}
