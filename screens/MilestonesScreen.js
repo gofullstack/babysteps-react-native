@@ -35,7 +35,8 @@ const { width } = Dimensions.get('window');
 
 const itemWidth = width - 60;
 
-let sectionRenderCount = 0;
+const ITEM_HEIGHT = 50;
+const SECTION_HEIGHT = 50;
 
 class MilestonesScreen extends Component {
   static navigationOptions = {
@@ -71,16 +72,13 @@ class MilestonesScreen extends Component {
   componentDidUpdate(prevProps, prevState) {
     const tasks = this.props.milestones.tasks;
     const {
-      scrollToComplete,
       tasksForList,
       tasksSaved,
       sectionIndex,
     } = this.state;
     const selectedGroupIndex = this.props.navigation.getParam('currentGroupIndex', null);
 
-    if (!scrollToComplete && tasksForList.length !== 0) {
-      this._handleScrollToComplete();
-    }
+    
     if (tasks.fetched && !isEmpty(tasks.data) && !tasksSaved) {
       this._saveTasksData(tasks);
     }
@@ -94,14 +92,6 @@ class MilestonesScreen extends Component {
       this.setState({ sectionIndex: selectedGroupIndex });
     }
   }
-
-  _handleScrollToComplete = () => {
-    const sectionIndex = this.state.sectionIndex;
-    if (sectionIndex && sectionIndex !== -1) {
-      this.sectionList.scrollToLocation({ sectionIndex, itemIndex: 0, viewPosition: 0 });
-      this.setState({ scrollToComplete: true });
-    }
-  };
 
   _saveTasksData = tasks => {
     const groups = filter(this.props.milestones.groups.data, {visible: 1});
@@ -234,22 +224,33 @@ class MilestonesScreen extends Component {
     );
   };
 
-  handleComponentUpdate = () => {
-    sectionRenderCount += 1;
-    this.setState({ sectionID: sectionRenderCount });
-  };
-
   renderSectionHeader = headerItem => {
     return (
-      <View onLayout={this.handleComponentUpdate}>
+      <View style={styles.sectionContainer}>
         <Text style={styles.section}>{headerItem.section.title}</Text>
       </View>
     );
   };
 
+  getItemLayout = (data, index) => {
+    if (index < 0) {
+      return {
+        length: SECTION_HEIGHT,
+        offset: 0,
+        index,
+      };
+    }
+    return {
+      length: ITEM_HEIGHT,
+      offset: (ITEM_HEIGHT - 7.3) * index,
+      index,
+    };
+  };
+
   render() {
     const { tasksForList, initialIndex } = this.state;
     if (isEmpty(tasksForList)) return null;
+    console.log({initialIndex})
     return (
       <View style={styles.container}>
         <Text style={styles.legend}>
@@ -258,10 +259,10 @@ class MilestonesScreen extends Component {
           research related task.
         </Text>
         <SectionList
-          debug={true}
-          ref={ref => this.sectionList = ref}
+          //debug={true}
           initialNumToRender={12}
           initialScrollIndex={initialIndex}
+          getItemLayout={this.getItemLayout}
           onScrollToIndexFailed={info => console.log(info)}
           renderSectionHeader={this.renderSectionHeader}
           renderItem={this.renderItem}
@@ -284,15 +285,20 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingLeft: 20,
   },
-  section: {
-    fontSize: 16,
-    padding: 10,
+  sectionContainer: {
+    flexDirection: 'row',
+    height: SECTION_HEIGHT,
+    paddingTop: 12,
     paddingLeft: 10,
     color: Colors.tint,
     backgroundColor: Colors.lightGrey,
   },
+  section: {
+    fontSize: 16,
+  },
   itemContainer: {
     flexDirection: 'row',
+    height: ITEM_HEIGHT,
     padding: 10,
     justifyContent: 'space-between',
     borderBottomWidth: 1,
@@ -316,7 +322,6 @@ const styles = StyleSheet.create({
   },
   item: {
     fontSize: 14,
-    paddingVertical: 2,
     paddingLeft: 10,
     color: Colors.tint,
   },

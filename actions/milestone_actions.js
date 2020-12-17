@@ -578,7 +578,7 @@ const attachmentFields = [
   'url',
 ];
 
-parseFields = (object, fields) => {
+const parseFields = (object, fields) => {
   delete object.id;
   let row = [];
   map(fields, field => {
@@ -606,9 +606,9 @@ parseFields = (object, fields) => {
 export const createMilestoneAnswer = answer => {
   return dispatch => {
     dispatch(Pending(CREATE_MILESTONE_ANSWER_PENDING));
-    const values = this.parseFields(answer, answerFields);
+    const values = parseFields(answer, answerFields);
     const sql =`INSERT INTO answers ( ${answerFields.join(', ')} ) VALUES (${values});`;
-    
+
     return db.transaction(tx => {
       tx.executeSql(
         sql, [],
@@ -626,7 +626,7 @@ export const updateMilestoneAnswers = (section, answers) => {
     const values = [];
     let row = '';
     map(answers, answer => {
-      row = this.parseFields(answer, answerFields);
+      row = parseFields(answer, answerFields);
       values.push(`( ${row} )`);
     });
 
@@ -649,7 +649,6 @@ export const updateMilestoneAnswers = (section, answers) => {
 
 export const apiCreateMilestoneAnswer = (session, data) => {
   const formData = new FormData();
-  debugger
   let answer = omit(data, [
     'api_id',
     'user_api_id',
@@ -790,7 +789,7 @@ export const apiSyncMilestoneAnswers = api_user_id => {
             attachment.uri = `${fileUri}/${attachment.filename}`;
             FileSystem.downloadAsync(attachment.url, attachment.uri)
               .then(response => {
-                const values = this.parseFields(attachment, attachmentFields);
+                const values = parseFields(attachment, attachmentFields);
                 const sql =`INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
                 db.transaction(tx => {
                   tx.executeSql(
@@ -838,7 +837,7 @@ export const createMilestoneAttachment = attachment => {
   return dispatch => {
     dispatch(Pending(CREATE_MILESTONE_ATTACHMENT_PENDING));
 
-    const values = this.parseFields(attachment, attachmentFields);
+    const values = parseFields(attachment, attachmentFields);
     const sql =`INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
 
     return db.transaction(tx => {
@@ -856,7 +855,7 @@ export const updateMilestoneAttachment = attachment => {
     dispatch(Pending(UPDATE_MILESTONE_ATTACHMENT_PENDING));
 
     const choice_id = attachment.choice_id;
-    const values = this.parseFields(attachment, attachmentFields);
+    const values = parseFields(attachment, attachmentFields);
     const sql = `INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
 
     return db.transaction(tx => {
