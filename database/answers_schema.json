@@ -18,8 +18,8 @@
       "answer_numeric": "INTEGER",
       "answer_boolean": "INTEGER",
       "answer_text": "TEXT",
-      "notified_at": "TEXT",
       "answer_datetime": "TEXT",
+      "notified_at": "TEXT",
       "score": "INTEGER",
     },
     "indexes": [

@@ -394,7 +394,13 @@ export class RenderFile extends Component {
       let fileType = null;
       // will not support pregnancy history if attachment is added to questionaire
       const answer = _.find(answers, ['choice_id', choice.id]);
-      const attachment = _.find(attachments, ['choice_id', choice.id]);
+      let attachment = null;
+      if (answer && answer.id) {
+        attachment = _.find(attachments, ['answer_id', answer.id]);
+      }
+      if (!attachment) {
+        attachment = _.find(attachments, ['choice_id', choice.id]);
+      }
       if (attachment && attachment.uri) {
         uri = attachment.uri;
         uriParts = uri.split('.');

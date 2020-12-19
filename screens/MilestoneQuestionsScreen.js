@@ -114,10 +114,8 @@ class MilestoneQuestionsScreen extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     const task = this.props.navigation.state.params.task;
-    const sections = this.props.milestones.sections;
-    const questions = this.props.milestones.questions;
-    const answers = this.props.milestones.answers;
-    const attachments = this.props.milestones.attachments;
+    const { sections, questions, answers, attachments } = this.props.milestones;
+    const { answersFetched, attachmentsFetched } = this.state;
 
     // capture notification links with incorrect task
     if (typeof(task) !== 'object' || task === null) {
@@ -132,13 +130,13 @@ class MilestoneQuestionsScreen extends Component {
     if (sections.fetched) {
       this._saveSectionsData(sections);
     }
-    if (questions.fetched) {
+    if (questions.fetched ) {
       this._saveQuestionsData(questions);
     }
-    if (answers.fetched) {
+    if (answers.fetched && !answersFetched) {
       this._saveAnswersData(answers);
     }
-    if (attachments.fetched) {
+    if (attachments.fetched && !attachmentsFetched) {
       this._saveAttachmentsData(attachments);
     }
   }
@@ -205,20 +203,18 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   _saveAnswersData = answers => {
-    const answersFetched = this.state.answersFetched;
-    if (_.isEmpty(answers) || !answersFetched) {
+    if (!_.isEmpty(answers) && !_.isEmpty(answers.data)) {
       this.setState({
-        answers: answers.data,
+        answers: _.orderBy(answers.data, ['choice_id', 'id'], ['asc', 'desc']),
         answersFetched: true,
       });
     }
   };
 
   _saveAttachmentsData = attachments => {
-    const attachmentsFetched = this.state.attachmentsFetched;
-    if (_.isEmpty(attachments.data) && !attachmentsFetched) {
+    if (!_.isEmpty(attachments) && !_.isEmpty(attachments.data)) {
       this.setState({
-        attachments: attachments.data,
+        attachments: _.orderBy(attachments.data, ['choice_id', 'id'], ['asc', 'desc']),
         attachmentsFetched: true,
       });
     }
@@ -255,23 +251,25 @@ class MilestoneQuestionsScreen extends Component {
 
   saveResponse = async (choice, response, options = {}) => {
     let answer = {};
-    const answers = [...this.state.answers];
+    const answers = [...this.state.answers]
     const format = options.format;
-    const preserve = options.preserve;
 
-    if (format === 'single') {
+    // deprecated for preserving answer if exists
+    //const preserve = options.preserve;
+
+    //if (format === 'single') {
       // delete all previous answers for this question if only one response allowed.
-      _.remove(answers, ans => {
-        if (preserve) {
-          // preserve answer if adding attribute
-          return (
-            ans.question_id === choice.question_id &&
-            ans.choice_id !== choice.id
-          );
-        }
-        return ans.question_id === choice.question_id;
-      });
-    }
+    //  _.remove(answers, ans => {
+    //    if (preserve) {
+    //      // preserve answer if adding attribute
+    //      return (
+    //        ans.question_id === choice.question_id &&
+    //        ans.choice_id !== choice.id
+    //      );
+    //    }
+    //    return ans.question_id === choice.question_id;
+    //  });
+    //}
 
     const user = this.props.registration.user;
     const subject = this.props.registration.subject;
@@ -312,26 +310,38 @@ class MilestoneQuestionsScreen extends Component {
 
     if (response.attachments) {
       answer.answer_boolean = true;
-      answer.attachments = await this.mapAttachmentsAsync(choice, response);
+      answer.attachments = await this.mapAttachmentsAsync(answer, choice, response);
     } // response.attachments
 
     answers.push(answer);
+
     this.updateAnswersState(answers);
   };
 
   updateAnswersState = answers => {
-    console.log('Answers', answers);
     this.setState({ answers });
   };
 
-  mapAttachmentsAsync = async (choice, response) => {
-    const new_attachments = [...this.state.attachments];
-    _.remove(new_attachments, ['choice_id', choice.id]);
-    const attachmentDir = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY;
+  mapAttachmentsAsync = async (answer, choice, response) => {
+    let new_attachments = [...this.state.attachments];
+    //_.remove(new_attachments, ['choice_id', choice.id]);
+    let attachment = _.find(new_attachments, {answer_id: answer.id})
+    if (!attachment) {
+      attachment = _.find(new_attachments, {choice_id: choice.id})
+    }
+    if (!attachment) {
+      attachment = {};
+    } else {
+      // remove from collecton
+      new_attachments = _.reject(new_attachments, {id: attachment.id})
+      // delete old file
+      await FileSystem.deleteAsync(attachment.uri, { idempotent: true });
+    }
+
     await _.map(response.attachments, async att => {
-      const attachment = {};
-      if (response.id) {
-        attachment.answer_id = response.id;
+
+      if (answer.id) {
+        attachment.answer_id = answer.id;
       }
 
       attachment.filename = att.uri.substring(
@@ -339,6 +349,7 @@ class MilestoneQuestionsScreen extends Component {
         att.uri.length,
       );
 
+      const attachmentDir = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY;
       attachment.uri = attachmentDir + '/' + attachment.filename;
 
       const fileType = att.uri.substring(
@@ -359,15 +370,20 @@ class MilestoneQuestionsScreen extends Component {
         default:
           attachment.content_type = '';
       }
-
-      await FileSystem.deleteAsync(attachment.uri, { idempotent: true });
-      await FileSystem.copyAsync({ from: att.uri, to: attachment.uri });
-
-      const resultFile = await FileSystem.getInfoAsync(attachment.uri);
+      // confirm physical file
+      const resultFile = await FileSystem.getInfoAsync(att.uri);
 
       if (!resultFile.exists) {
         console.log('Error: attachment not saved: ', choice.id, attachment.filename);
         this.setState({errorMessage: 'Error: Attachment Not Saved'});
+      } else {
+        // move file from camera cache to app cache
+        await FileSystem.copyAsync({ from: att.uri, to: attachment.uri });
+        const resultFile = await FileSystem.getInfoAsync(attachment.uri);
+        if (!resultFile.exists) {
+          console.log('Error: attachment not copied: ', attachment.filename);
+          this.setState({errorMessage: 'Error: Attachment Not Saved'});
+        }
       }
 
       _.assign(attachment, {
@@ -384,7 +400,6 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   updateAttachmentState = attachments => {
-    console.log('Attachments', attachments);
     this.setState({ attachments });
   };
 

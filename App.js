@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Platform, StatusBar, StyleSheet, View, AppState } from 'react-native';
-import NetInfo from '@react-native-community/netinfo';
 import { Provider } from 'react-redux';
 import { AppLoading } from 'expo';
 import * as Font from 'expo-font';

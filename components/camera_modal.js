@@ -5,6 +5,7 @@ import {
   Modal,
   Vibration,
   Dimensions,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -82,10 +83,14 @@ class CameraModal extends Component {
 
   startVideo = async () => {
     activateKeepAwake();
-    const recordingConfig = {
+    let recordingConfig = {
       quality: String(Camera.Constants.VideoQuality['720p']),
     };
-
+    if (Platform === 'android') {
+      recordingConfig = {
+        quality: String(Camera.Constants.VideoQuality['480p']),
+      };
+    }
     this.cancelRecording = false;
     this.setState({ recording: true, videoTimer: moment.duration(0) });
     if (this.videoTimeInterval) clearInterval(setInterval);

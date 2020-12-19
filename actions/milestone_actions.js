@@ -8,6 +8,7 @@ import forEach from 'lodash/forEach';
 import omit from 'lodash/omit';
 import keys from 'lodash/keys';
 import isInteger from 'lodash/isInteger';
+import isEmpty from 'lodash/isEmpty';
 
 import { insertRows, getApiUrl } from '../database/common';
 
@@ -578,7 +579,7 @@ const attachmentFields = [
   'url',
 ];
 
-const parseFields = (object, fields) => {
+const parseInsertFields = (object, fields) => {
   delete object.id;
   let row = [];
   map(fields, field => {
@@ -603,10 +604,34 @@ const parseFields = (object, fields) => {
   return row.join(', ');
 };
 
+const parseUpdateFields = (object, fields) => {
+  let row = [];
+  map(fields, field => {
+    if (object[field] === undefined || object[field] === null) {
+      row.push(`${field} = null`);
+    } else if (field === 'answer_text') {
+      row.push(`${field} = '${object[field]}'`);
+    } else if (field === 'answer_numeric') {
+      row.push(`${field} = ${object[field]}`);
+    } else if (field === 'answer_boolean') {
+      if (object[field] === true) {
+        row.push(`${field} = 1`);
+      } else {
+        row.push(`${field} = 0`);
+      }
+    } else if (typeof object[field] === 'string') {
+      row.push(`${field} ='${object[field]}'`);
+    } else {
+      row.push(`${field} = ${object[field]}`);
+    }
+  });
+  return row.join(', ');
+};
+
 export const createMilestoneAnswer = answer => {
   return dispatch => {
     dispatch(Pending(CREATE_MILESTONE_ANSWER_PENDING));
-    const values = parseFields(answer, answerFields);
+    const values = parseInsertFields(answer, answerFields);
     const sql =`INSERT INTO answers ( ${answerFields.join(', ')} ) VALUES (${values});`;
 
     return db.transaction(tx => {
@@ -623,26 +648,44 @@ export const updateMilestoneAnswers = (section, answers) => {
   return dispatch => {
     dispatch(Pending(UPDATE_MILESTONE_ANSWERS_PENDING));
 
-    const values = [];
+    const choice_ids = [];
+    let insertSQL = '';
+    let updateSQL = '';
+    const insertValues = [];
     let row = '';
+
     map(answers, answer => {
-      row = parseFields(answer, answerFields);
-      values.push(`( ${row} )`);
+      if (answer.id !== undefined) {
+        updateSQL += `UPDATE answers SET ${parseUpdateFields(answer, answerFields)} WHERE id = ${answer.id}; `;
+      } else {
+        choice_ids.push(answer.choice_id);
+        row = parseInsertFields(answer, answerFields);
+        insertValues.push(`( ${row} )`);
+      }
     });
 
-    const sql = `INSERT INTO answers ( ${answerFields.join(', ')} ) VALUES ${values.join(', ')};`;
+    if (!isEmpty(insertValues)) {
+      //insertSQL = `DELETE FROM answers WHERE choice_id = ${choice_ids.join(', ')}; `
+      insertSQL = `INSERT INTO answers ( ${answerFields.join(', ')} ) VALUES ${insertValues.join(', ')};`;
+    }
 
     return db.transaction(tx => {
-      tx.executeSql( 'DELETE FROM answers WHERE section_id = ?', [section.id], 
-        (_, rows) => console.log('** Clear answers table for section ' + section.title ), 
-        (_, error) => console.log('*** Error in clearing answers table for section ' + section.title )
-      );
-      tx.executeSql(
-        sql,
-        [],
-        (_, response) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, response, answers)),
-        (_, error) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_REJECTED, error))
-      );
+      if (!isEmpty(insertSQL)) {
+        tx.executeSql(
+          insertSQL,
+          [],
+          (_, response) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, response, answers)),
+          (_, error) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_REJECTED, error))
+        );
+      }
+      if (!isEmpty(updateSQL)) {
+        tx.executeSql(
+          updateSQL,
+          [],
+          (_, response) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, response, answers)),
+          (_, error) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_REJECTED, error))
+        );
+      }
     });
   };
 };
@@ -789,7 +832,7 @@ export const apiSyncMilestoneAnswers = api_user_id => {
             attachment.uri = `${fileUri}/${attachment.filename}`;
             FileSystem.downloadAsync(attachment.url, attachment.uri)
               .then(response => {
-                const values = parseFields(attachment, attachmentFields);
+                const values = parseInsertFields(attachment, attachmentFields);
                 const sql =`INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
                 db.transaction(tx => {
                   tx.executeSql(
@@ -837,7 +880,7 @@ export const createMilestoneAttachment = attachment => {
   return dispatch => {
     dispatch(Pending(CREATE_MILESTONE_ATTACHMENT_PENDING));
 
-    const values = parseFields(attachment, attachmentFields);
+    const values = parseInsertFields(attachment, attachmentFields);
     const sql =`INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
 
     return db.transaction(tx => {
@@ -854,20 +897,35 @@ export const updateMilestoneAttachment = attachment => {
   return dispatch => {
     dispatch(Pending(UPDATE_MILESTONE_ATTACHMENT_PENDING));
 
-    const choice_id = attachment.choice_id;
-    const values = parseFields(attachment, attachmentFields);
-    const sql = `INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
+    let insertSQL = '';
+    let updateSQL = '';
 
+    if (attachment.id !== undefined) {
+      updateSQL = `UPDATE attachments SET ${parseUpdateFields(attachment, attachmentFields)} WHERE id = ${attachment.id}; `;
+    } else {
+      const values = parseInsertFields(attachment, attachmentFields);
+      //insertSQL = `DELETE FROM attachments WHERE choice_id = ${attachment.choice_id}; `;
+      insertSQL = `INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
+    }
     return db.transaction(tx => {
-      tx.executeSql( 'DELETE FROM attachments WHERE choice_id = ?', [choice_id],
-        (_, response) => console.log('** Clear attachments table for choice ' + choice_id),
-        (_, error) => console.log('*** Error in clearing attachments table for choice ' + choice_id)
-      );
-      tx.executeSql(
-        sql, [],
-        (_, response) => dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_FULFILLED, response)),
-        (_, error) => dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_REJECTED, error))
-      );
+      if (!isEmpty(updateSQL)) {
+        tx.executeSql(
+          updateSQL, [],
+          (_, response) => {
+            dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_FULFILLED, response));
+          },
+          (_, error) => dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_REJECTED, error))
+        );
+      }
+      if (!isEmpty(insertSQL)) {
+        tx.executeSql(
+          insertSQL, [],
+          (_, response) => {
+            dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_FULFILLED, response));
+          },
+          (_, error) => dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_REJECTED, error))
+        );
+      }
     }) // transaction
   }; // dispatch
 };

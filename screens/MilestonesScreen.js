@@ -135,7 +135,7 @@ class MilestonesScreen extends Component {
 
   updateInitialIndex = (sectionIndex, tasksForList) => {
     let initialIndex = 0;
-    if (sectionIndex !== 0) {
+    if (sectionIndex > 0) {
       Array(sectionIndex).fill().forEach( (_, current) => {
         initialIndex += tasksForList[current].data.length + 2;
       });
@@ -250,7 +250,6 @@ class MilestonesScreen extends Component {
   render() {
     const { tasksForList, initialIndex } = this.state;
     if (isEmpty(tasksForList)) return null;
-    console.log({initialIndex})
     return (
       <View style={styles.container}>
         <Text style={styles.legend}>

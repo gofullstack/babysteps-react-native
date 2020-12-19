@@ -3,6 +3,8 @@ import { View, Text, Image, Dimensions, StyleSheet } from 'react-native';
 import { Button } from 'react-native-elements';
 import { StackActions } from 'react-navigation';
 
+import { connect } from 'react-redux';
+
 import Colors from '../constants/Colors';
 
 const { width, height } = Dimensions.get('window');
@@ -15,8 +17,9 @@ class MilestoneQuestionConfirmScreen extends Component {
   };
 
   handleReturnToOverview = () => {
+    const currentGroupIndex = this.props.session.currentGroupIndex;
     this.props.navigation.dispatch(StackActions.popToTop());
-    this.props.navigation.navigate('Overview');
+    this.props.navigation.navigate('Overview', { currentGroupIndex });
   };
 
   render() {
@@ -95,4 +98,6 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MilestoneQuestionConfirmScreen;
+const mapStateToProps = ({ session }) => ({ session });
+
+export default connect(mapStateToProps)(MilestoneQuestionConfirmScreen);
