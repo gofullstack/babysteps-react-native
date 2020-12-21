@@ -1,5 +1,12 @@
 import React, { Component } from 'react';
-import { StyleSheet, ImageBackground, Dimensions } from 'react-native';
+import {
+  Text,
+  View,
+  Pressable,
+  StyleSheet,
+  ImageBackground,
+  Dimensions,
+} from 'react-native';
 
 import SideSwipe from 'react-native-sideswipe';
 
@@ -27,42 +34,47 @@ export default class TourScreen extends Component {
       currentIndex: 0,
       scrollEnabled: true,
     };
-    this.updateIndex = this.updateIndex.bind(this);
   }
 
-  handleNestedScrollEvent(value) {
-    this.setState({ scrollEnabled: value });
-  }
+  handleNestedScrollEvent(scrollEnabled) {
+    this.setState({ scrollEnabled });
+  };
 
-  updateIndex() {
-    this.setState({ currentIndex: 3 });
+  handleSignInOnPress = () => {
+    const { navigate } = this.props.navigation;
+    navigate('SignIn');
+  };
+
+  updateIndex(currentIndex) {
+    this.setState({ currentIndex });
   }
 
   renderItem(page) {
-    if (page.item.key !== '4') {
+    if (page.item.key === '4') {
       return (
-        <TourItem
+        <TourItemFour
           item={page.item}
           index={page.itemIndex}
           currentIndex={page.currentIndex}
           animatedValue={page.animatedValue}
-          navigation={this.props.navigation}
+          handleNestedScrollEvent={value => this.handleNestedScrollEvent(value)}
         />
       );
     }
     return (
-      <TourItemFour
+      <TourItem
         item={page.item}
         index={page.itemIndex}
         currentIndex={page.currentIndex}
         animatedValue={page.animatedValue}
-        handleNestedScrollEvent={value => this.handleNestedScrollEvent(value)}
+        navigation={this.props.navigation}
       />
     );
-  }
+  };
 
   render() {
     const offset = (width - TourItem.WIDTH) / 6;
+    const { currentIndex, scrollEnabled } = this.state;
     return (
       <ImageBackground
         source={require('../assets/images/background.png')}
@@ -70,24 +82,35 @@ export default class TourScreen extends Component {
       >
         <SideSwipe
           data={items}
-          index={this.state.currentIndex}
-          shouldCapture={() => this.state.scrollEnabled}
+          index={currentIndex}
+          shouldCapture={() => scrollEnabled}
           style={styles.sideSwipe}
           itemWidth={TourItem.WIDTH}
           //threshold={TourItem.WIDTH * 2}
           useVelocityForIndex={false}
           extractKey={item => item.key}
           contentOffset={offset}
-          onIndexChange={index =>
-            this.setState(() => ({ currentIndex: index }))
-          }
+          onIndexChange={index => this.updateIndex(index)}
           renderItem={page => this.renderItem(page)}
         />
+
+        {currentIndex === 0 && (
+          <View style={styles.signInContainer}>
+            <Pressable
+              onPress={() => this.handleSignInOnPress()}
+              style={styles.signInButton}
+            >
+              <Text style={styles.signInText}>
+                Already Created an Account? Sign In
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         <PageControl
           style={styles.pageControl}
           numberOfPages={items.length}
-          currentPage={this.state.currentIndex}
+          currentPage={currentIndex}
           hidesForSinglePage
           pageIndicatorTintColor={Colors.lightGrey}
           currentPageIndicatorTintColor={Colors.grey}
@@ -99,7 +122,7 @@ export default class TourScreen extends Component {
 
         <TourButtons
           {...this.state}
-          updateIndex={this.updateIndex}
+          updateIndex={() => this.updateIndex(3)}
           navigation={this.props.navigation}
         />
       </ImageBackground>
@@ -126,5 +149,30 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  signInContainer: {
+    position: 'absolute',
+    bottom: 110,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  signInButton: {
+    height: 50,
+    paddingLeft: 20,
+    paddingRight: 20,
+    backgroundColor: Colors.lightGreen,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    borderColor: Colors.lightGrey,
+    borderWidth: 1,
+    borderRadius: 5,
+  },
+  signInText: {
+    alignSelf: 'center',
+    fontWeight: "400",
+    fontSize: 18,
+    color: Colors.red,
   },
 });

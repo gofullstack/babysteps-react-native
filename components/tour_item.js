@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
-import { View, Text, Animated, Dimensions, StyleSheet } from 'react-native';
-import { Button } from 'react-native-elements';
+import {
+  View,
+  Text,
+  Button,
+  Pressable,
+  Animated,
+  Dimensions,
+  StyleSheet,
+} from 'react-native';
 
 import tour_images from './tour_images';
 import tour_text from './tour_text';
@@ -14,11 +21,6 @@ const imageHeight = height * 0.25;
 // eslint-disable-next-line import/prefer-default-export
 export class TourItem extends Component {
   static WIDTH = width;
-
-  handleSignInOnPress = () => {
-    const { navigate } = this.props.navigation;
-    navigate('SignIn');
-  };
 
   render = () => {
     const { animatedValue, index, currentIndex } = this.props;
@@ -51,17 +53,6 @@ export class TourItem extends Component {
         <View style={styles.textBlock}>
           <Text style={styles.title}>{tour_text[index].title}</Text>
           <Text style={styles.body}>{tour_text[index].body}</Text>
-          {currentIndex === 0 && (
-            <View style={styles.signInContainer}>
-              <Button
-                title="Already Created an Account? Sign In"
-                onPress={() => this.handleSignInOnPress()}
-                buttonStyle={styles.signInButton}
-                titleStyle={{ fontWeight: 900 }}
-                color={Colors.red}
-              />
-            </View>
-          )}
         </View>
       </Animated.View>
     );
@@ -98,16 +89,5 @@ const styles = StyleSheet.create({
   body: {
     textAlign: 'center',
     fontSize: 14,
-  },
-  signInContainer: {
-    flex: 1,
-    marginTop: 10,
-  },
-  signInButton: {
-    //flex: 1,
-    backgroundColor: Colors.lightGreen,
-    //borderColor: Colors.grey,
-    //borderWidth: 1,
-    //borderRadius: 5,
   },
 });
