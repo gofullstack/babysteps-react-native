@@ -111,10 +111,9 @@ export function createSessionRecord() {
 export function getApiUrl() {
   // https://docs.expo.io/versions/latest/distribution/release-channels
   if (__DEV__ || Constants.manifest === undefined) {
-    return CONSTANTS.BASE_DEVELOPMENT_URL;
+    return `${CONSTANTS.BASE_DEVELOPMENT_URL}/api`;
   }
-  const baseAPIUrl = Constants.manifest.extra.baseAPIUrl;
-  return baseAPIUrl;
+  return `${Constants.manifest.extra.baseUrl}/api`;
 }
 
 export function addColumn(table, name, type) {

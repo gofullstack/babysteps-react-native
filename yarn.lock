@@ -2985,6 +2985,13 @@
     eventemitter3 "^3.1.0"
     url "^0.11.0"
 
+"@rails/activestorage@^6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@rails/activestorage/-/activestorage-6.1.0.tgz#e8d42c4e275f6b0cef2a888728b47300a87a1047"
+  integrity sha512-47VbzNQ/45cjpcckP1eUkzh/V26kb+Qc6U8pEGbAhmNjF2/yfTzSefdHfubkz4NUSaapELqael0J3jhG8BWHsA==
+  dependencies:
+    spark-md5 "^3.0.0"
+
 "@react-native-community/cli-debugger-ui@^4.9.0":
   version "4.9.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/cli-debugger-ui/-/cli-debugger-ui-4.9.0.tgz#4177764ba69243c97aa26829d59d9501acb2bd71"
@@ -6059,6 +6066,13 @@ expo-av@~8.2.1:
     nullthrows "^1.1.0"
     prop-types "15.7.2"
 
+expo-background-fetch@~8.3.0:
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/expo-background-fetch/-/expo-background-fetch-8.3.0.tgz#9a848452ad1f39c4322f934b9950c461822376ed"
+  integrity sha512-chKvSyKER8tehssqmMRdyPBd9p3m98n2JLFj1GmHu+MLeqYrzCgYiJImC3H0sKzXCN0pDomUViVD/QLl5jOK2A==
+  dependencies:
+    expo-task-manager "~8.3.0"
+
 expo-camera@~8.3.1:
   version "8.3.1"
   resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-8.3.1.tgz#e17c080c4aafd71f66495c2b6dfc53dcd31b0368"
@@ -6212,6 +6226,13 @@ expo-sqlite@~8.2.1:
   dependencies:
     "@expo/websql" "^1.0.1"
     lodash "^4.17.15"
+
+expo-task-manager@~8.3.0:
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-8.3.0.tgz#e8a9dba98087de5c2c851177149411e85e1d1a7f"
+  integrity sha512-hE7DJ/DrCmMQk43erM537UjzAcuLZkwMKMMkuhmnu6gpdjkkGERGUX5Jx8AWmrspVOsK/CO1BZp74+3LJj4sMg==
+  dependencies:
+    unimodules-app-loader "~1.2.0"
 
 expo-web-browser@~8.3.1:
   version "8.3.1"
@@ -11829,6 +11850,11 @@ source-map@^0.7.3:
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.7.3.tgz#5302f8169031735226544092e64981f751750383"
   integrity sha512-CkCj6giN3S+n9qrYiBTX5gystlENnRW5jZeNLHpe6aue+SrHcG5VYwujhW9s4dY31mEGsxBDrHR6oI69fTXsaQ==
+
+spark-md5@^3.0.0:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/spark-md5/-/spark-md5-3.0.1.tgz#83a0e255734f2ab4e5c466e5a2cfc9ba2aa2124d"
+  integrity sha512-0tF3AGSD1ppQeuffsLDIOWlKUd3lS92tFxcsrh5Pe3ZphhnoK+oXIBTzOAThZCiuINZLvpiLH/1VS1/ANEJVig==
 
 spdx-correct@^3.0.0:
   version "3.1.0"

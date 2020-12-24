@@ -35,4 +35,4 @@ const fetchMilestones = () => {
   });
 };
 
-export default fetchMilestones; 
+export default fetchMilestones;

@@ -10,7 +10,7 @@
     ],
     "extra": {
       "release": "Staging",
-      "baseAPIUrl": "https://staging-api.babystepsapp.net/api",
+      "baseUrl": "https://staging-api.babystepsapp.net",
       "apiToken": "816fb58eb3ef6dc4dcf85a230b2049da33bac3b7a744d26f33ca3b89ae136d41",
       "sentryDSN": "https://a3684c2b3e9447a3adc43a3c33cf4fe3@sentry.io/1871329",
       "analyticsID": "UA-152636953-2"
@@ -38,6 +38,7 @@
         "webcredentials:babysteps.icts.uiowa.edu"
       ],
       "infoPlist": {
+        "UIBackgroundModes": ["location", "fetch"],
         "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for the study or baby book.",
         "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures were taken.",
         "NSPhotoLibraryUsage": "This app uses your photo library for selecting images of your baby for the study or baby book."

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import {
   Text,
   View,
-  Pressable,
+  TouchableOpacity,
   StyleSheet,
   ImageBackground,
   Dimensions,
@@ -36,7 +36,7 @@ export default class TourScreen extends Component {
     };
   }
 
-  handleNestedScrollEvent(scrollEnabled) {
+  handleNestedScrollEvent = scrollEnabled => {
     this.setState({ scrollEnabled });
   };
 
@@ -45,7 +45,7 @@ export default class TourScreen extends Component {
     navigate('SignIn');
   };
 
-  updateIndex(currentIndex) {
+  updateIndex = currentIndex => {
     this.setState({ currentIndex });
   }
 
@@ -96,14 +96,14 @@ export default class TourScreen extends Component {
 
         {currentIndex === 0 && (
           <View style={styles.signInContainer}>
-            <Pressable
-              onPress={() => this.handleSignInOnPress()}
+            <TouchableOpacity
+              onPress={this.handleSignInOnPress}
               style={styles.signInButton}
             >
               <Text style={styles.signInText}>
                 Already Created an Account? Sign In
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           </View>
         )}
 

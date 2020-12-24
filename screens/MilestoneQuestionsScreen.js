@@ -12,6 +12,9 @@ import * as FileSystem from 'expo-file-system';
 import { Text, Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
+
 import { StackActions } from 'react-navigation';
 
 import _ from 'lodash';
@@ -254,23 +257,6 @@ class MilestoneQuestionsScreen extends Component {
     const answers = [...this.state.answers]
     const format = options.format;
 
-    // deprecated for preserving answer if exists
-    //const preserve = options.preserve;
-
-    //if (format === 'single') {
-      // delete all previous answers for this question if only one response allowed.
-    //  _.remove(answers, ans => {
-    //    if (preserve) {
-    //      // preserve answer if adding attribute
-    //      return (
-    //        ans.question_id === choice.question_id &&
-    //        ans.choice_id !== choice.id
-    //      );
-    //    }
-    //    return ans.question_id === choice.question_id;
-    //  });
-    //}
-
     const user = this.props.registration.user;
     const subject = this.props.registration.subject;
     const respondent = this.props.registration.respondent;
@@ -310,7 +296,8 @@ class MilestoneQuestionsScreen extends Component {
 
     if (response.attachments) {
       answer.answer_boolean = true;
-      answer.attachments = await this.mapAttachmentsAsync(answer, choice, response);
+      // answer.attachments = await 
+      this.mapAttachmentsAsync(answer, choice, response);
     } // response.attachments
 
     answers.push(answer);
@@ -371,32 +358,38 @@ class MilestoneQuestionsScreen extends Component {
           attachment.content_type = '';
       }
       // confirm physical file
-      const resultFile = await FileSystem.getInfoAsync(att.uri);
+      let resultFile = await FileSystem.getInfoAsync(att.uri);
 
       if (!resultFile.exists) {
         console.log('Error: attachment not saved: ', choice.id, attachment.filename);
         this.setState({errorMessage: 'Error: Attachment Not Saved'});
-      } else {
-        // move file from camera cache to app cache
-        await FileSystem.copyAsync({ from: att.uri, to: attachment.uri });
-        const resultFile = await FileSystem.getInfoAsync(attachment.uri);
-        if (!resultFile.exists) {
-          console.log('Error: attachment not copied: ', attachment.filename);
-          this.setState({errorMessage: 'Error: Attachment Not Saved'});
-        }
+        return;
+      } 
+      // move file from camera cache to app cache
+      await FileSystem.copyAsync({ from: att.uri, to: attachment.uri });
+      resultFile = await FileSystem.getInfoAsync(attachment.uri, {
+        size: true,
+        md5: true,
+      });
+      if (!resultFile.exists) {
+        console.log('Error: attachment not copied: ', attachment.filename);
+        this.setState({errorMessage: 'Error: Attachment Not Saved'});
+        return;
       }
-
       _.assign(attachment, {
         title: att.title,
         section_id: this.state.section.id,
         choice_id: choice.id,
         width: att.width,
         height: att.height,
+        size: resultFile.size,
+        uploaded: 0,
+        checksum: resultFile.md5,
       });
       new_attachments.push(attachment);
       this.updateAttachmentState(new_attachments);
     }); // map attachments
-    return new_attachments;
+    //return new_attachments;
   };
 
   updateAttachmentState = attachments => {
@@ -404,10 +397,11 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   handleConfirm = () => {
-    const { section, answers } = this.state;
+    const { section, answers, attachments } = this.state;
     const session = this.props.session;
     const questions = this.props.milestones.questions.data;
     const choices = this.props.milestones.choices.data;
+    const calendars = this.props.milestones.calendar.data;
     const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
 
     // TODO validation
@@ -419,10 +413,22 @@ class MilestoneQuestionsScreen extends Component {
     const completed_at = new Date().toISOString();
     this.props.updateMilestoneCalendar(section.task_id, { completed_at });
 
+    if (inStudy) {
+      this.props.apiUpdateMilestoneAnswers(session, section.id, answers);
+    
+      // mark calendar entry as complete on api
+    
+      const calendar = _.find(calendars, ['task_id', section.task_id]);
+      if (calendar && calendar.id) {
+        const date = new Date().toISOString();
+        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: {completed_at: date}});
+      }
+    }
+
     // save attachments
-    if (_.find(answers, a => {return !!a.attachments })) {
-      _.map(answers, answer => {
-        const choice = _.find(choices, ['id', answer.choice_id]);
+    if (!_.isEmpty(attachments)) {
+      _.map(attachments, attachment => {
+        const choice = _.find(choices, ['id', attachment.choice_id]);
 
         // cover of babybook will only be baby's face from overview timeline
         let cover = 0;
@@ -430,35 +436,18 @@ class MilestoneQuestionsScreen extends Component {
           cover = true;
         }
 
-        _.map(answer.attachments, attachment => {
-          if (
-            attachment.content_type &&
-            (attachment.content_type.includes('video') ||
-              attachment.content_type.includes('image'))
-          ) {
-            const data = {title: null, detail: null, cover};
-            this.props.createBabyBookEntry(data, attachment);
-            this.props.apiCreateBabyBookEntry(session, data, attachment);
-          }
-          delete attachment.title;
-          this.props.updateMilestoneAttachment(attachment);
-          this.props.fetchOverViewTimeline();
-        });
-        // cannot bulk update answers with attachments
-        if (inStudy) {
-          this.props.apiCreateMilestoneAnswer(session, answer);
+        if (
+          attachment.content_type &&
+          (attachment.content_type.includes('video') ||
+            attachment.content_type.includes('image'))
+        ) {
+          const data = {title: null, detail: null, cover};
+          this.props.createBabyBookEntry(data, attachment);
+          this.props.apiCreateBabyBookEntry(session, data, attachment);
         }
+        delete attachment.title;
+        this.props.updateMilestoneAttachment(attachment);
       });
-    } else if (inStudy) {
-      this.props.apiUpdateMilestoneAnswers(session, section.id, answers);
-    }
-    // mark calendar entry as complete on api
-    if (inStudy) {
-      const calendar = _.find(this.props.milestones.calendar.data, ['task_id', section.task_id]);
-      if (calendar && calendar.id) {
-        const date = new Date().toISOString();
-        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: {completed_at: date}});
-      }
     }
 
     let message = '';
@@ -484,6 +473,7 @@ class MilestoneQuestionsScreen extends Component {
 
     this.props.fetchMilestoneCalendar();
     this.props.fetchBabyBookEntries();
+    this.props.fetchOverViewTimeline();
 
     this.props.navigation.navigate('MilestoneQuestionConfirm', { message });
   };

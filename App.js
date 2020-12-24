@@ -21,6 +21,8 @@ import checkBabyBookSchema from './database/check_babybook_schema';
 import checkCustomDirectories from './components/check_custom_directories';
 //import moveDataToMainDirectory from './components/move_data_to_main_directory';
 
+import RegisterTasks from './tasks/register_tasks';
+
 import MomentaryAssessment from './components/momentary_assessment_modal';
 
 import ApiOfflineListener from './database/api_offline_listener';
@@ -39,6 +41,10 @@ export default class App extends Component {
   state = {
     isLoadingComplete: false,
   };
+
+  componentDidMount() {
+    RegisterTasks();
+  }
 
   componentWillUnmount() {
     AppState.removeEventListener('change', () => {});
