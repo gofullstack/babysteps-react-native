@@ -55,6 +55,8 @@ import {
 
 import { RenderChoices } from '../components/milestone_question_components';
 
+import RegisterUploadMilestoneAttachment from '../tasks/upload_milestone_attachment';
+
 import Colors from '../constants/Colors';
 import States from '../actions/states';
 import CONSTANTS from '../constants';
@@ -447,6 +449,7 @@ class MilestoneQuestionsScreen extends Component {
         }
         delete attachment.title;
         this.props.updateMilestoneAttachment(attachment);
+        RegisterUploadMilestoneAttachment(attachment);
       });
     }
 

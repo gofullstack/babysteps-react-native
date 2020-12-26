@@ -159,8 +159,8 @@ export const fetchMilestones = () => {
       db.transaction(tx => {
         tx.executeSql(
           'SELECT * FROM milestones;', [],
-          (_, response) => { dispatch( Response(FETCH_MILESTONES_FULFILLED, response))},
-          (_, error) => {dispatch( Response(FETCH_MILESTONES_REJECTED, error))}
+          (_, response) => { dispatch( Response(FETCH_MILESTONES_FULFILLED, response)) },
+          (_, error) => { dispatch( Response(FETCH_MILESTONES_REJECTED, error)) }
         );
       })
     );

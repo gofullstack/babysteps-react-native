@@ -1,8 +1,9 @@
 import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
-import * as FileSystem from 'expo-file-system';
-//import { FileChecksum } from "@rails/activestorage/src/file_checksum";
 
+import {
+  getFileMetaData,
+} from './common';
 
 import TASKS from './constants';
 
@@ -25,35 +26,6 @@ RegisterTasks = async () => {
       }
     },
   );
-};
-
-export const getFileMetaData = async attachment => {
-  if (!attachment.size || !attachment.checksum) {
-    attachment = await calculateChecksum(attachment);
-  }
-  return {
-    blob: {
-      checksum: attachment.checksum,
-      filename: attachment.filename,
-      content_type: attachment.content_type,
-      byte_size: attachment.size,
-    },
-  };
-};
-
-const calculateChecksum = async attachment => {
-  const resultFile = await FileSystem.getInfoAsync(attachment.uri, {
-    size: true,
-    md5: true,
-  });
-  return { ...attachment, size: resultFile.size, checksum: resultFile.md5 };
-};
-
-export const getBlob = async uri => {
-  let file = await fetch(uri);
-  console.log(file);
-  //console.log(await file.blob());
-  return file;
 };
 
 export default RegisterTasks;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import { Notifications } from 'expo';
+import * as Notifications from 'expo-notifications';
 
 import find from 'lodash/find';
 

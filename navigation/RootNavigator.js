@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, Alert } from 'react-native';
 
-import { Notifications } from 'expo';
+import * as Notifications from 'expo-notifications';
 
 import * as Permissions from 'expo-permissions';
 
@@ -140,7 +140,7 @@ class RootNavigator extends Component {
 
   componentDidMount() {
     if (Platform.OS === 'android') {
-      Notifications.createChannelAndroidAsync('screeningEvents', {
+      Notifications.setNotificationChannelAsync('screeningEvents', {
         name: 'Screening Events',
         priority: 'max',
         vibrate: [0, 250, 250, 250],
@@ -190,7 +190,7 @@ class RootNavigator extends Component {
     // upload directly to AWS any attachments not yet uploaded
     if (!isEmpty(uploadAttachments) && session.connectionType === 'wifi') {
       uploadAttachments.map(attachment => {
-        if (attachment.id === 1) RegisterUploadMilestoneAttachment(attachment);
+        RegisterUploadMilestoneAttachment(attachment);
       });
       this.setState({ uploadAttachmentsSubmitted: true, uploadAttachments: [] });
     }
@@ -241,7 +241,7 @@ class RootNavigator extends Component {
     this.props.showMomentaryAssessment(data);
   };
 
-  _handleNotification = ({ origin, data, remote }) => {
+  _handleNotification = async ({ origin, data, remote }) => {
     // origin
     // 'received' app is open and foregrounded
     // 'received' app is open but was backgrounded (ios)
@@ -308,7 +308,7 @@ class RootNavigator extends Component {
       return null;
     }
     // Watch for incoming notifications
-    Notifications.addListener(this._handleNotification);
+    Notifications.setNotificationHandler(this._handleNotification);
   };
 
   render() {

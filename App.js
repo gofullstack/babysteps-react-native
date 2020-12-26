@@ -42,10 +42,6 @@ export default class App extends Component {
     isLoadingComplete: false,
   };
 
-  componentDidMount() {
-    RegisterTasks();
-  }
-
   componentWillUnmount() {
     AppState.removeEventListener('change', () => {});
   }
@@ -139,6 +135,8 @@ export default class App extends Component {
     );
   }
 }
+
+RegisterTasks();
 
 const styles = StyleSheet.create({
   container: {

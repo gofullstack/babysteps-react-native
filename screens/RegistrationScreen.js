@@ -19,7 +19,7 @@ class RegistrationScreen extends Component {
     title: 'Registration',
   };
 
-  selectForm = () => {
+  selectRegistrationForm = () => {
     const registration_state = this.props.session.registration_state;
     const navigation = this.props.navigation;
     switch (registration_state) {
@@ -40,15 +40,17 @@ class RegistrationScreen extends Component {
   };
 
   render() {
+    const registrationForm = this.selectRegistrationForm();
     return (
       <KeyboardAwareScrollView
         enableResetScrollToCoords={false}
         enableAutomaticScroll
         enableOnAndroid
-        extraScrollHeight={50}
-        innerRef={ref => {this.scroll = ref}}
+        extraScrollHeight={70}
+        style={{ flexGrow: 1 }}
+        innerRef={ref => { this.scroll = ref }}
       >
-        <View style={styles.container}>{this.selectForm()}</View>
+        <View style={styles.container}>{registrationForm}</View>
       </KeyboardAwareScrollView>
     );
   }
@@ -56,7 +58,7 @@ class RegistrationScreen extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: 1000,
     backgroundColor: Colors.backgroundColor,
   },
 });
