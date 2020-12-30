@@ -11,21 +11,26 @@ export const getFileMetaData = async attachment => {
   if (!attachment.size || !attachment.checksum) {
     attachment = await calculateChecksum(attachment);
   }
+
+  let blob = await getBlob(attachment.uri);
+  console.log("Blob", blob.size)
   return {
     blob: {
-      checksum: attachment.checksum,
+      checksum: 'uzZTJeOCpiEcBDYa81YqXA==',
       filename: attachment.filename,
       content_type: attachment.content_type,
-      byte_size: attachment.size,
+      byte_size: blob.size,
     },
   };
 };
 
 const calculateChecksum = async attachment => {
   const resultInfo = await FileSystem.getInfoAsync(attachment.uri, {
-    size: true,
     md5: true,
   });
+
+  console.log('MD5',resultInfo.md5, Buffer.from(resultInfo.md5, "hex"), Buffer.from(resultInfo.md5, "hex").toString("base64"))
+
   const checksum = Buffer.from(resultInfo.md5, "hex").toString("base64");
   return { ...attachment, size: resultInfo.size, checksum };
 };

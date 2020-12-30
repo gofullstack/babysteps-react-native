@@ -16,18 +16,18 @@ const baseURL = TASKS.BASE_URL;
 const RegisterUploadMilestoneAttachment = async attachment => {
   if (!attachment.answer_id) {
     console.log('***** Error: answer ID not associated with attachment: ', attachment.id);
-    return;
+    //return;
   }
 
   const answer = await getAnswer(attachment.answer_id);
 
   if (!answer) {
     console.log('***** Error: answer does exist: ', attachment.answer_id);
-    return;
+    //return;
   }
   if (!answer.api_id) {
     console.log('***** Error: answer does not have an api_ID: ', answer.id);
-    return;
+    //return;
   }
 
   // move all remainder to register_tasks when background task is running properly
@@ -42,6 +42,8 @@ const RegisterUploadMilestoneAttachment = async attachment => {
 
   let url = TASKS.ACTIVE_STORAGE_URL;
 
+  console.log("Uploading Attachment", baseURL, url, headers, data)
+
   const apiDUResponse = await axios({
     method: 'POST',
     responseType: 'json',
@@ -50,6 +52,22 @@ const RegisterUploadMilestoneAttachment = async attachment => {
     headers,
     data,
   });
+
+  const formData = new FormData();
+  formData.append(`upload`, {
+    uri: attachment.uri,
+    name: attachment.filename,
+    type: attachment.content_type,
+  });
+
+  const testresult = await axios({
+    method: 'POST',
+    baseURL,
+    url: 'test',
+    headers,
+    data: formData
+  });
+
 
   console.log({ apiDUResponse });
 
@@ -66,11 +84,10 @@ const RegisterUploadMilestoneAttachment = async attachment => {
   console.log({headers});
   console.log({url});
 
-  const awsResponse = await axios({
+  const awsResponse = await fetch(url, {
     method: 'PUT',
-    url,
     headers,
-    data,
+    body: data,
   }).catch(error => {
     console.log({ error });
   });
