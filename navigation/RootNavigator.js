@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, Alert } from 'react-native';
 
-import * as Notifications from 'expo-notifications';
+import { Notifications } from 'expo';
 
 import * as Permissions from 'expo-permissions';
 
@@ -10,7 +10,6 @@ import { createStackNavigator } from 'react-navigation-stack';
 
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
-import map from 'lodash/map';
 import moment from 'moment';
 
 import { showMessage } from 'react-native-flash-message';
@@ -27,8 +26,6 @@ import {
   deleteAllNotifications,
 } from '../actions/notification_actions';
 
-import { fetchMilestoneAttachments } from '../actions/milestone_actions';
-
 import AppNavigator from './AppNavigator';
 import NavigationService from './NavigationService';
 
@@ -38,8 +35,6 @@ import ConsentScreen from '../screens/ConsentScreen';
 import RegistrationScreen from '../screens/RegistrationScreen';
 import TourNoStudyConfirmScreen from '../screens/TourNoStudyConfirmScreen';
 import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
-
-import RegisterUploadMilestoneAttachment from '../tasks/upload_milestone_attachment';
 
 import { openSettings } from '../components/permissions';
 
@@ -129,18 +124,14 @@ class RootNavigator extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      uploadAttachments: [],
-      uploadAttachmentsSubmitted: false,
-    };
+    this.state = {};
 
     this.props.fetchSession();
-    this.props.fetchMilestoneAttachments({upload: true});
   }
 
   componentDidMount() {
     if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('screeningEvents', {
+      Notifications.createChannelAndroidAsync('screeningEvents', {
         name: 'Screening Events',
         priority: 'max',
         vibrate: [0, 250, 250, 250],
@@ -151,9 +142,6 @@ class RootNavigator extends Component {
 
     // temporary code for backward compatibility
     addColumn('sessions', 'current_group_index', 'integer');
-    addColumn('attachments', 'size', 'integer');
-    addColumn('attachments', 'uploaded', 'integer');
-    addColumn('attachments', 'checksum', 'string');
   }
 
   shouldComponentUpdate(nextProps) {
@@ -165,36 +153,18 @@ class RootNavigator extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    // update local notifications every 7 days to stay under the
+    // IOS limit of 64 notifications
     const calendar = this.props.milestones.calendar;
     const session = this.props.session;
     const subject = this.props.registration.subject.data;
-    const attachments = this.props.milestones.attachments;
-    const { uploadAttachments, uploadAttachmentsSubmitted } = this.state;
 
-    // update local notifications every 7 days to stay under the
-    // IOS limit of 64 notifications
     if (!isEmpty(calendar.data) && !isEmpty(subject)) {
       if (!session.fetching && session.notifications_permission === 'granted') {
         this._handleUpdateNotifications(session, subject);
       }
     }
-
-    if (
-      !attachments.fetching &&
-      attachments.fetched &&
-      !isEmpty(attachments.data) &&
-      !uploadAttachmentsSubmitted
-    ) {
-      this.setState({ uploadAttachments: attachments.data });
-    }
-    // upload directly to AWS any attachments not yet uploaded
-    if (!isEmpty(uploadAttachments) && session.connectionType === 'wifi') {
-      uploadAttachments.map(attachment => {
-        RegisterUploadMilestoneAttachment(attachment);
-      });
-      this.setState({ uploadAttachmentsSubmitted: true, uploadAttachments: [] });
-    }
-  }
+  };
 
   _handleUpdateNotifications = (session, subject) => {
     const today = moment();
@@ -241,7 +211,7 @@ class RootNavigator extends Component {
     this.props.showMomentaryAssessment(data);
   };
 
-  _handleNotification = async ({ origin, data, remote }) => {
+  _handleNotification = ({ origin, data, remote }) => {
     // origin
     // 'received' app is open and foregrounded
     // 'received' app is open but was backgrounded (ios)
@@ -308,7 +278,7 @@ class RootNavigator extends Component {
       return null;
     }
     // Watch for incoming notifications
-    Notifications.setNotificationHandler(this._handleNotification);
+    Notifications.addListener(this._handleNotification);
   };
 
   render() {
@@ -355,7 +325,6 @@ const mapDispatchToProps = {
   updateNotifications,
   updateMomentaryAssessments,
   deleteAllNotifications,
-  fetchMilestoneAttachments,
 };
 
 export default connect(

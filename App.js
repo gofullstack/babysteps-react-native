@@ -26,6 +26,7 @@ import RegisterTasks from './tasks/register_tasks';
 import MomentaryAssessment from './components/momentary_assessment_modal';
 
 import ApiOfflineListener from './database/api_offline_listener';
+import AttachmentUploader from './database/attachment_uploader';
 
 import store from './store';
 
@@ -44,6 +45,10 @@ export default class App extends Component {
 
   componentWillUnmount() {
     AppState.removeEventListener('change', () => {});
+  }
+
+  componentDidUpadate(){
+    console.log("App Updated")
   }
 
   _handleFinishLoading = () => {
@@ -130,7 +135,8 @@ export default class App extends Component {
           <FlashMessage position="top" />
           <MomentaryAssessment />
           <ApiOfflineListener />
-        </View>
+          <AttachmentUploader />
+      </View>
       </Provider>
     );
   }
