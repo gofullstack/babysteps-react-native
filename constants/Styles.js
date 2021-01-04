@@ -60,7 +60,9 @@ export default StyleSheet.create({
 
   registrationButtonContainer: {
     justifyContent: 'center',
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: '100%',
     flexDirection: 'row',
     width: '100%',
     marginBottom: 40,
