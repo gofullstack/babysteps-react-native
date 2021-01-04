@@ -270,7 +270,6 @@ class RegistrationSubjectForm extends Component {
 
               <DatePickerInput
                 label="Date of Birth"
-                labelStyle={AppStyles.registrationLabel}
                 name="date_of_birth"
                 containerStyle={AppStyles.registrationDateContainer}
                 date={props.values.date_of_birth}

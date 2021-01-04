@@ -75,11 +75,6 @@ export default StyleSheet.create({
   },
 
   registrationDateContainer: {
-    borderBottomWidth: 0.25,
-    borderBottomColor: Colors.grey,
-    marginLeft: 20,
-    marginTop: 20,
-    marginRight: 20,
     marginBottom: 1,
   },
 
@@ -89,6 +84,11 @@ export default StyleSheet.create({
     justifyContent: 'center',
     height: 36,
     width: '100%',
+    marginLeft: 20,
+    marginRight: 20,
+    borderBottomColor: Colors.grey,
+    borderBottomWidth: 0.25,
+    marginBottom: 1,
   },
 
   buttonSubmit: {
