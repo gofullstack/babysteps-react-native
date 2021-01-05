@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import { View } from 'react-native';
 import { Appearance } from 'react-native-appearance';
-import DatePicker from 'react-native-datepicker';
 import DatePickerModal from './datePickerModal';
 import { FormLabel } from 'react-native-elements';
 

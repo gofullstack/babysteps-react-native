@@ -16,10 +16,13 @@ import {
   Platform,
   Animated,
   Keyboard,
-  StyleSheet
+  StyleSheet,
 } from 'react-native';
+import { Appearance, AppearanceProvider, useColorScheme } from 'react-native-appearance';
 import Moment from 'moment';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
+import Colors from '../constants/Colors'
 
 const FORMATS = {
   'date': 'YYYY-MM-DD',
@@ -197,8 +200,6 @@ class DatePickerModal extends Component {
     //    The user still needs to close the modal to "set" the date
     // on Android, the modal closes, and we update set the date right away.
 
-
-    console.log('onDateChange', arguments);
     if(date === undefined){
       this.onPressCancel();
     } else {
@@ -270,6 +271,10 @@ class DatePickerModal extends Component {
       disabled && customStyles.disabled
     ];
 
+    let colorScheme = Appearance.getColorScheme();
+
+    let pickerFontColor = (colorScheme === 'dark') ? Colors.white : Colors.black;
+
     return (
       <TouchableComponent
         style={[Style.dateTouch, style]}
@@ -335,6 +340,7 @@ class DatePickerModal extends Component {
                         timeZoneOffsetInMinutes={timeZoneOffsetInMinutes ? timeZoneOffsetInMinutes : null}
                         style={[Style.datePicker, customStyles.datePicker]}
                         locale={locale}
+                        textColor={pickerFontColor}
                         display="spinner"
                       />
                     </View>
