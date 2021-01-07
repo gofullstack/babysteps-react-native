@@ -12,6 +12,7 @@
     "@expo/browser-polyfill": "^0.1.0",
     "@expo/vector-icons": "^10.0.0",
     "@expo/videoplayer": "^0.4.0",
+    "@react-native-community/datetimepicker": "^3.0.9",
     "@react-native-community/netinfo": "5.9.6",
     "axios": "^0.21.1",
     "buffer": "^6.0.3",

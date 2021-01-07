@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { View } from 'react-native';
 import { Appearance } from 'react-native-appearance';
-import DatePicker from 'react-native-datepicker';
+import DatePickerModal from './datePickerModal';
 import { FormLabel } from 'react-native-elements';
 
 import InputHelper from './inputHelper';
@@ -18,6 +18,10 @@ export default class DatePickerInput extends PureComponent {
     const styles = {...this.props.style};
 
     const labelColor = displayError ? Colors.errorColor : Colors.grey;
+
+    const labelStyle = {
+      color: labelColor,
+    };
 
     const containerProps = {
       style: this.props.containerStyle,
@@ -41,8 +45,8 @@ export default class DatePickerInput extends PureComponent {
 
     return (
       <View {...containerProps}>
-        <FormLabel style={this.props.labelStyle}>{this.props.label}</FormLabel>
-        <DatePicker
+        <FormLabel labelStyle={labelStyle}>{this.props.label}</FormLabel>
+        <DatePickerModal
           ref={input => (this.input = input)}
           name={this.props.name}
           date={this.props.date}
@@ -53,9 +57,8 @@ export default class DatePickerInput extends PureComponent {
           format="YYYY-MM-DD"
           confirmBtnText="Confirm"
           cancelBtnText="Cancel"
-          showIcon={this.props.showIcon}
           placeholder={" "}
-          onDateChange={ (value) => { this.props.handleChange(value) } }
+          onChange={ (value) => { this.props.handleChange(value) } }
         />
         <InputHelper
           displayError={displayError}

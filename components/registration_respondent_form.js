@@ -304,6 +304,7 @@ class RegistrationRespondentForm extends Component {
                   returnKeyType="done"
                   type="tel"
                 />
+
                 <TextField
                   inputStyle={AppStyles.registrationTextInput}
                   inputContainerStyle={AppStyles.registrationTextInputContainer}
@@ -313,9 +314,9 @@ class RegistrationRespondentForm extends Component {
                   returnKeyType="done"
                   type="tel"
                 />
+
                 <DatePickerInput
                   label="Date of Birth"
-                  labelStyle={AppStyles.registrationLabel}
                   name="date_of_birth"
                   containerStyle={AppStyles.registrationDateContainer}
                   date={props.values.date_of_birth}
