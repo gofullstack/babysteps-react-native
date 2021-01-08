@@ -1,6 +1,6 @@
-//const BASE_DEVELOPMENT_URL = 'https://staging-api.babystepsapp.net';
+const BASE_DEVELOPMENT_URL = 'https://staging-api.babystepsapp.net';
 //const BASE_DEVELOPMENT_URL = 'https://api.babystepsapp.net';
-const BASE_DEVELOPMENT_URL = 'http://192.168.139.2:3000';
+//const BASE_DEVELOPMENT_URL = 'http://192.168.137.74:3000';
 
 export default {
   RESET_STATE: false,

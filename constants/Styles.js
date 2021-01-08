@@ -65,12 +65,12 @@ export default StyleSheet.create({
     flexBasis: '100%',
     flexDirection: 'row',
     width: '100%',
-    marginBottom: 40,
-    marginTop: 20,
+    marginBottom: 60,
+    //marginTop: 20,
   },
 
   registrationCheckBoxes: {
-    marginBottom: 20,
+    //marginBottom: 20,
     marginLeft: 20,
   },
 

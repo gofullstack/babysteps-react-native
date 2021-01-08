@@ -126,3 +126,41 @@ export function addColumn(table, name, type) {
     );
   });
 }
+
+export const getAnswer = async (id, method = 'answer') => {
+  let answer = {};
+  let sql = `SELECT * FROM answers WHERE id = ${id}`;
+  if (method === 'choice') {
+    sql = `SELECT * FROM answers WHERE choice_id = ${id}`;
+  }
+  await new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, result) => resolve(result.rows._array),
+        (_, error) => {
+          console.log({error});
+        },
+      );
+    });
+  }).then(result => {
+    answer = result[0];
+  });
+  return answer;
+};
+
+export const setAttachmentToUploaded = attachment => {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `UPDATE attachments SET uploaded = 1 WHERE id = ${attachment.id}`,
+        [],
+        (_, result) => resolve(result),
+        (_, error) => {
+          console.log({error});
+        },
+      );
+    });
+  });
+};

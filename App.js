@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StatusBar, StyleSheet, View, AppState } from 'react-native';
+import { Platform, StatusBar, StyleSheet, View, AppState, LogBox } from 'react-native';
 import { Provider } from 'react-redux';
 import { AppLoading } from 'expo';
 import * as Font from 'expo-font';
@@ -21,8 +21,6 @@ import checkBabyBookSchema from './database/check_babybook_schema';
 import checkCustomDirectories from './components/check_custom_directories';
 //import moveDataToMainDirectory from './components/move_data_to_main_directory';
 
-import RegisterTasks from './tasks/register_tasks';
-
 import MomentaryAssessment from './components/momentary_assessment_modal';
 
 import ApiOfflineListener from './database/api_offline_listener';
@@ -36,6 +34,8 @@ Sentry.init({
   enableInExpoDevelopment: false,
   debug: true,
 });
+
+LogBox.ignoreAllLogs();
 
 export default class App extends Component {
   state = {
@@ -135,8 +135,6 @@ export default class App extends Component {
     );
   }
 }
-
-RegisterTasks();
 
 const styles = StyleSheet.create({
   container: {

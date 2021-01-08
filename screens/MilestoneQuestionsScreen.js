@@ -12,9 +12,6 @@ import * as FileSystem from 'expo-file-system';
 import { Text, Button } from 'react-native-elements';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-import * as BackgroundFetch from 'expo-background-fetch';
-import * as TaskManager from 'expo-task-manager';
-
 import { StackActions } from 'react-navigation';
 
 import _ from 'lodash';
@@ -55,7 +52,7 @@ import {
 
 import { RenderChoices } from '../components/milestone_question_components';
 
-import RegisterUploadMilestoneAttachment from '../tasks/upload_milestone_attachment';
+import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
 
 import Colors from '../constants/Colors';
 import States from '../actions/states';
@@ -71,7 +68,7 @@ const twoButtonWidth = (width / 2) - 30;
 
 class MilestoneQuestionsScreen extends Component {
   static navigationOptions = ({ navigation }) => {
-    const section = navigation.getParam('section', {title: ''});
+    const section = navigation.getParam('section', { title: '' });
     return { title: 'Screening Event' };
   };
 
@@ -449,7 +446,7 @@ class MilestoneQuestionsScreen extends Component {
         }
         delete attachment.title;
         this.props.updateMilestoneAttachment(attachment);
-        RegisterUploadMilestoneAttachment(attachment);
+        UploadMilestoneAttachment(session, attachment);
       });
     }
 

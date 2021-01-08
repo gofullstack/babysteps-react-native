@@ -10,7 +10,6 @@ import { createStackNavigator } from 'react-navigation-stack';
 
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
-import map from 'lodash/map';
 import moment from 'moment';
 
 import { showMessage } from 'react-native-flash-message';
@@ -39,7 +38,7 @@ import RegistrationScreen from '../screens/RegistrationScreen';
 import TourNoStudyConfirmScreen from '../screens/TourNoStudyConfirmScreen';
 import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
 
-import RegisterUploadMilestoneAttachment from '../tasks/upload_milestone_attachment';
+import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
 
 import { openSettings } from '../components/permissions';
 
@@ -135,7 +134,7 @@ class RootNavigator extends Component {
     };
 
     this.props.fetchSession();
-    this.props.fetchMilestoneAttachments({upload: true});
+    this.props.fetchMilestoneAttachments({ upload: true });
   }
 
   componentDidMount() {
@@ -158,7 +157,10 @@ class RootNavigator extends Component {
 
   shouldComponentUpdate(nextProps) {
     const notifications = nextProps.notifications;
-    if (notifications.notifications.fetching || notifications.momentary_assessments.fetching) {
+    if (
+      notifications.notifications.fetching ||
+      notifications.momentary_assessments.fetching
+    ) {
       return false;
     }
     return true;
@@ -189,8 +191,8 @@ class RootNavigator extends Component {
     }
     // upload directly to AWS any attachments not yet uploaded
     if (!isEmpty(uploadAttachments) && session.connectionType === 'wifi') {
-      uploadAttachments.map(attachment => {
-        RegisterUploadMilestoneAttachment(attachment);
+      uploadAttachments.forEach(attachment => {
+        UploadMilestoneAttachment(session, attachment);
       });
       this.setState({ uploadAttachmentsSubmitted: true, uploadAttachments: [] });
     }

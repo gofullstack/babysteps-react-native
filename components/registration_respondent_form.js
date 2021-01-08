@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { Text, Button, CheckBox } from 'react-native-elements';
 import * as FileSystem from 'expo-file-system';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { compose } from 'recompose';
 import { Formik } from 'formik';
@@ -119,7 +120,7 @@ class RegistrationRespondentForm extends Component {
   }
 
   componentDidMount() {
-    this.scrollView.scrollTo({ y: 0 });
+    //this.scrollView.scrollTo({ y: 0 });
     if (['none', 'unknown'].includes(this.props.session.connectionType)) {
       this.setState({apiErrorMessage: 'The internet is not currently available'});
     }
@@ -169,10 +170,21 @@ class RegistrationRespondentForm extends Component {
   };
 
   getInitialValues = () => {
-    let initialValues = {};
+    let initialValues = {
+      respondent_type: 'mother',
+      address_1: '',
+      city: '',
+      state: 'IA',
+      zip_code: '',
+      home_phone: '',
+      date_of_birth: '',
+      drivers_license_number: '',
+      marital_status: 'married',
+      pregnant: true,
+    };
     if (__DEV__) {
       initialValues = {
-        respondent_type: 'mother',
+        ...initialValues,
         address_1: '555 Test Address',
         city: 'Test City',
         state: 'IA',
@@ -180,25 +192,6 @@ class RegistrationRespondentForm extends Component {
         home_phone: '555-555-5555',
         date_of_birth: '1981-04-01',
         drivers_license_number: '5555-5555-5555',
-        marital_status: 'married',
-        weight: '200',
-        height: '72',
-        pregnant: true,
-      };
-    } else {
-      initialValues = {
-        respondent_type: 'mother',
-        address_1: '',
-        city: '',
-        state: 'IA',
-        zip_code: '',
-        home_phone: '',
-        date_of_birth: '',
-        drivers_license_number: '',
-        marital_status: 'married',
-        weight: '',
-        height: '',
-        pregnant: true,
       };
     }
     return initialValues;
@@ -234,18 +227,17 @@ class RegistrationRespondentForm extends Component {
 
   render() {
     return (
-      <ScrollView
-        ref={ref => this.scrollView = ref}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView style={{flexGrow: 1}}>
         <Formik
-          onSubmit={this._handleOnSubmit}
+          onSubmit={() => this._handleOnSubmit()}
           validationSchema={validationSchema}
           initialValues={this.getInitialValues()}
           render={props => {
             return (
               <Form>
-                <Text style={AppStyles.registrationHeader}>Step 2: Update Your Profile</Text>
+                <Text style={AppStyles.registrationHeader}>
+                  Step 2: Update Your Profile
+                </Text>
 
                 <PickerInput
                   label="Relationship"
@@ -354,31 +346,6 @@ class RegistrationRespondentForm extends Component {
                   values={maritalStatuses}
                   selectedValue={props.values.marital_status}
                 />
-
-                { false && (
-                  <TextField
-                    inputStyle={AppStyles.registrationTextInput}
-                    inputContainerStyle={AppStyles.registrationTextInputContainer}
-                    label="Weight"
-                    name="weight"
-                    type="text"
-                    returnKeyType="done"
-                    keyboardType="numeric"
-                    helper="In pounds"
-                  />
-                )}
-                { false && (
-                  <TextField
-                    inputStyle={AppStyles.registrationTextInput}
-                    inputContainerStyle={AppStyles.registrationTextInputContainer}
-                    label="Height"
-                    name="height"
-                    type="text"
-                    returnKeyType="done"
-                    keyboardType="numeric"
-                    helper="In inches"
-                  />
-                )}
 
                 <View style={AppStyles.registrationCheckBoxes}>
                   <Text
