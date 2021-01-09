@@ -1,40 +1,23 @@
 import * as FileSystem from 'expo-file-system';
+import Constants from 'expo-constants';
 
-import { getApiUrl, getAnswer, setAttachmentToUploaded } from './common';
+import {
+  delay,
+  getApiUrl,
+  getAnswer,
+  getAttachment,
+  setAttachmentToUploaded,
+} from './common';
 
-const UploadMilestoneAttachment = async (session, attachment) => {
-  let method = 'answer';
-  let id = null;
-  if (attachment.answer_id) id = attachment.answer_id;
-  if (id === null && attachment.choice_id) {
-    method = 'choice';
-    id = attachment.choice_id;
-  }
-  if (!id) {
-    console.log('***** Error: answer ID not available: ', attachment.id);
-    return;
-  }
+const apiToken = Constants.manifest.extra.apiToken;
 
-  const answer = await getAnswer(id, method);
-
-  if (!answer) {
-    console.log('***** Error: answer does not exist: ', attachment.id);
-    return;
-  }
-  if (!answer.api_id) {
-    console.log('***** Error: answer does not have an api_ID: ', answer.id);
-    return;
-  }
-
+const executeApiCall = async (answer, attachment) => {
   const attachmentUrl = `${getApiUrl()}/answers/${answer.api_id}/attachments`;
 
   const headers = {
     'Content-Type': attachment.content_type,
     'Content-File-Name': attachment.filename,
-    'ACCESS-TOKEN': session.access_token,
-    'TOKEN-TYPE': 'Bearer',
-    CLIENT: session.client,
-    UID: session.uid,
+    milestone_token: apiToken,
   };
 
   const response = await FileSystem.uploadAsync(attachmentUrl, attachment.uri, {
@@ -47,12 +30,57 @@ const UploadMilestoneAttachment = async (session, attachment) => {
     console.log({ error });
   });
 
-  if (response.status === 202) {
-    await setAttachmentToUploaded(attachment);
-  } else {
-    console.log({ response });
+  return response;
+};
+
+const UploadMilestoneAttachment = async (session, attachment) => {
+  let method = 'answer';
+  let id = null;
+  if (attachment.answer_id) id = attachment.answer_id;
+  if (id === null && attachment.choice_id) {
+    method = 'choice';
+    id = attachment.choice_id;
+  }
+  if (!id) {
+    console.log('***** Error: answer ID not available. Attachment ID: ', attachment.id);
+    return;
   }
 
+  let answer = await getAnswer(id, method);
+
+  if (!answer) {
+    console.log('***** Error: answer does not exist. Attachment ID: ', attachment.id);
+    return;
+  }
+
+  let loop = 0;
+  const delayMessage = '***** Waiting for Answer API ID...'
+  while (loop < 10 && !answer.api_id) {
+    await delay(3000, delayMessage);
+    answer = await getAnswer(id, method);
+    loop++;
+  }
+
+  if (!answer.api_id) {
+    console.log('***** Error: answer does not have an API ID. Answer ID: ', answer.id);
+    // may need to mark the attachment as undelivered so as to stop retrying
+    //setAttachmentToUploaded(attachment);
+  } else {
+    const response = await executeApiCall(answer, attachment);
+    if (response.status === 202) {
+      console.log('***** Attachment uploaded successfully');
+      if (!attachment.id) {
+        if (attachment.answer_id) {
+          attachment = await getAttachment(attachment.answer_id, 'answer');
+        } else {
+          attachment = await getAttachment(attachment.choice_id, 'choice');
+        }
+      }
+      setAttachmentToUploaded(attachment);
+    } else {
+      console.log({ response });
+    }
+  }
 };
 
 export default UploadMilestoneAttachment;

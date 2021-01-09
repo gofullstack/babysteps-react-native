@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, StatusBar, StyleSheet, View, AppState, LogBox } from 'react-native';
 import { Provider } from 'react-redux';
-import { AppLoading } from 'expo';
+import AppLoading from 'expo-app-loading';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
 import FlashMessage from 'react-native-flash-message';

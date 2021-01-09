@@ -130,8 +130,8 @@ export function addColumn(table, name, type) {
 export const getAnswer = async (id, method = 'answer') => {
   let answer = {};
   let sql = `SELECT * FROM answers WHERE id = ${id}`;
-  if (method === 'choice') {
-    sql = `SELECT * FROM answers WHERE choice_id = ${id}`;
+  if (method !== 'answer') {
+    sql = `SELECT * FROM answers WHERE ${method}_id = ${id}`;
   }
   await new Promise((resolve, reject) => {
     db.transaction(tx => {
@@ -150,6 +150,29 @@ export const getAnswer = async (id, method = 'answer') => {
   return answer;
 };
 
+export const getAttachment = async (id, method = 'attachment') => {
+  let attachment = {};
+  let sql = `SELECT * FROM attachments WHERE id = ${id}`;
+  if (method !== 'attachment') {
+    sql = `SELECT * FROM attachments WHERE ${method}_id = ${id}`;
+  }
+  await new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, result) => resolve(result.rows._array),
+        (_, error) => {
+          console.log({error});
+        },
+      );
+    });
+  }).then(result => {
+    attachment = result[0];
+  });
+  return attachment;
+};
+
 export const setAttachmentToUploaded = attachment => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
@@ -163,4 +186,9 @@ export const setAttachmentToUploaded = attachment => {
       );
     });
   });
+};
+
+export const delay = (ms, message = null) => {
+  if (message) console.log(message);
+  return new Promise(response => setTimeout(response, ms));
 };

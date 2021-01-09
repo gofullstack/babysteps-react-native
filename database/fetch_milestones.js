@@ -5,7 +5,7 @@ const db = SQLite.openDatabase('babysteps.db');
 const fetchMilestones = () => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
-      tx.executeSql( 
+      tx.executeSql(
         `SELECT DISTINCT 
             t.id,
             t.milestone_id,
@@ -27,7 +27,8 @@ const fetchMilestones = () => {
             ON mg.id = m.milestone_group_id
           INNER JOIN tasks AS t 
             ON m.id = t.milestone_id
-          ORDER BY mg.position, m.position, t.position;`, [],
+          ORDER BY mg.position, m.position, t.position;`,
+        [],
         (_, response) =>resolve( response.rows ),
         (_, err) => reject( err )
       );

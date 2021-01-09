@@ -35,7 +35,6 @@ class RegistrationScreen extends Component {
   };
 
   _scrollToInput = reactNode => {
-    // Add a 'scroll' ref to your ScrollView
     this.scroll.scrollToFocusedInput(reactNode);
   };
 
@@ -58,7 +57,6 @@ class RegistrationScreen extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    height: 1000,
     backgroundColor: Colors.backgroundColor,
   },
 });

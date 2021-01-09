@@ -227,7 +227,7 @@ class RegistrationRespondentForm extends Component {
 
   render() {
     return (
-      <ScrollView style={{flexGrow: 1}}>
+      <ScrollView>
         <Formik
           onSubmit={() => this._handleOnSubmit()}
           validationSchema={validationSchema}

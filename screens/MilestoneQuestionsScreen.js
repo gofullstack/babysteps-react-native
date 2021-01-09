@@ -442,11 +442,13 @@ class MilestoneQuestionsScreen extends Component {
         ) {
           const data = {title: null, detail: null, cover};
           this.props.createBabyBookEntry(data, attachment);
-          this.props.apiCreateBabyBookEntry(session, data, attachment);
+          //this.props.apiCreateBabyBookEntry(session, data, attachment);
         }
         delete attachment.title;
         this.props.updateMilestoneAttachment(attachment);
-        UploadMilestoneAttachment(session, attachment);
+        if (inStudy) {
+          UploadMilestoneAttachment(session, attachment);
+        }
       });
     }
 
