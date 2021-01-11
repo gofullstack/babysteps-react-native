@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Platform, Alert } from 'react-native';
 
+import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
-
 import * as Permissions from 'expo-permissions';
 
 import { createAppContainer } from 'react-navigation';
@@ -138,15 +138,9 @@ class RootNavigator extends Component {
   }
 
   componentDidMount() {
-    if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('screeningEvents', {
-        name: 'Screening Events',
-        priority: 'max',
-        vibrate: [0, 250, 250, 250],
-        color: Colors.notifications,
-      });
+    if (Constants.isDevice) {
+      this._notificationSubscription = this.registerForNotifications();
     }
-    this._notificationSubscription = this.registerForNotifications();
 
     // temporary code for backward compatibility
     addColumn('sessions', 'current_group_index', 'integer');
@@ -304,11 +298,19 @@ class RootNavigator extends Component {
 
     this.props.updateSession({ notifications_permission: finalStatus });
 
-    // Stop here if the user did not grant permissions
     if (finalStatus !== 'granted') {
       console.log('Notifications Permission Denied');
-      return null;
     }
+
+    if (finalStatus === 'granted' && Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'screeningEvents',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+
     // Watch for incoming notifications
     Notifications.setNotificationHandler(this._handleNotification);
   };

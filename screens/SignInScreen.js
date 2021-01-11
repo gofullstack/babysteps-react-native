@@ -94,7 +94,8 @@ class SignInScreen extends Component {
       }
       // redirect to sign up if no respondent information
       if (
-        "message" in registration.apiRespondent.error &&
+        registration.apiRespondent.error &&
+        registration.apiRespondent.error.includes("message") &&
         isEmpty(registration.respondent.data)
       ) {
         this.props.updateSession({

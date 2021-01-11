@@ -4,7 +4,7 @@ import {
   Text,
   View,
   FlatList,
-  ScrollView,
+  SafeAreaView,
   StyleSheet,
   Platform,
   TouchableOpacity,
@@ -58,6 +58,7 @@ class SettingsScreen extends React.Component {
             scrollEnabled
             data={notifications}
             renderItem={this.renderItem}
+            keyExtractor={item => item.id.toString()}
           />
         </View>
       );
@@ -70,7 +71,6 @@ class SettingsScreen extends React.Component {
     const notify_at = moment(notification.notify_at).format('YYYY-MM-DD h:mm a Z');
     return (
       <ListItem
-        key={notification.id.toString()}
         title={notify_at}
         subtitle={notification.body}
       />
@@ -245,7 +245,7 @@ class SettingsScreen extends React.Component {
     const subject = this.props.registration.subject.data;
 
     return (
-      <ScrollView>
+      <SafeAreaView>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>BabySteps App Information:</Text>
           <Text>
@@ -288,7 +288,7 @@ class SettingsScreen extends React.Component {
 
         {this.renderFAQModal()}
         {this.renderConsentModal()}
-      </ScrollView>
+      </SafeAreaView>
     );
   }
 }

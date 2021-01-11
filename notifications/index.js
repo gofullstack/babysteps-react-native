@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import * as SQLite from 'expo-sqlite';
 
 import * as Sentry from 'sentry-expo';
@@ -13,24 +14,23 @@ import { apiCreateMilestoneCalendar } from '../actions/milestone_actions';
 
 const db = SQLite.openDatabase('babysteps.db');
 
-const notifications = [];
-
-function scheduleNotificaton(localNotification, scheduleTime) {
-  const schedulingOptions = { time: scheduleTime.valueOf() };
-  Notifications.scheduleNotificationAsync(
-    localNotification,
-    schedulingOptions,
-  );
+function scheduleNotificaton(content, scheduleTime) {
+  const trigger = { timestamp: scheduleTime.valueOf() };
+  if (Constants.isDevice) {
+    Notifications.scheduleNotificationAsync({ content, trigger });
+  }
   const notify_at = scheduleTime.toISOString();
-  const data = localNotification.data;
-  console.log('****** Notfication Scheduled: ', notify_at, data.body);
-  createNotifications([{ ...data, notify_at, channel_id: 'screeningEvents' }]);
+  console.log('****** Notfication Scheduled: ', notify_at, content.body);
+  createNotifications([
+    { ...content.data, notify_at, channel_id: content.channelId },
+  ]);
 }
 
 function localNotificationMessage(entry) {
   return {
     title: entry.message,
     body: entry.name,
+    channelId: 'screeningEvents',
     data: {
       task_id: entry.task_id,
       momentary_assessment: entry.momentary_assessment,
@@ -39,15 +39,15 @@ function localNotificationMessage(entry) {
       body: entry.name,
       type: 'info',
     },
-    ios: {
-      sound: true,
-    },
-    android: {
-      sound: true,
-      vibrate: true,
-      priority: 'high',
-      channelId: 'screeningEvents',
-    },
+    //ios: {
+    //  sound: true,
+    //},
+    //android: {
+    //  sound: true,
+    //  vibrate: true,
+    //  priority: 'high',
+    //  channelId: 'screeningEvents',
+    //},
   };
 }
 

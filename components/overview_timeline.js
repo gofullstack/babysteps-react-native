@@ -70,10 +70,10 @@ class OverviewTimeline extends React.Component {
     let baseDate = '';
     let postBirth = false;
     if (subject.data.date_of_birth) {
-      baseDate = subject.data.date_of_birth;
+      baseDate = moment(subject.data.date_of_birth, 'YYYY-MM-DD');
       postBirth = true;
     } else {
-      baseDate = subject.data.expected_date_of_birth;
+      baseDate = moment(subject.data.expected_date_of_birth, 'YYYY-MM-DD');
     }
 
     const calendar = this.props.milestones.calendar;
@@ -110,6 +110,7 @@ class OverviewTimeline extends React.Component {
 
           // calculate weeks
           forEach(overviewTimelines, item => {
+            const notify_at = moment(item.notify_at, moment.ISO_8601);
             if (item.overview_timeline === 'during_pregnancy') {
               item.weeks = 40 - moment(baseDate).diff(item.notify_at, 'weeks');
             }
@@ -118,7 +119,7 @@ class OverviewTimeline extends React.Component {
             }
             if (item.overview_timeline === 'post_birth') {
               item.weeks = Math.abs(
-                moment(baseDate).diff(item.notify_at, 'weeks'),
+                moment(baseDate).diff(notify_at, 'weeks'),
               );
             }
           });
@@ -195,7 +196,11 @@ class OverviewTimeline extends React.Component {
   renderContent = item => {
     const currentTimeline = this.state.currentTimeline.choice_id === item.choice_id;
     const currentStyle = currentTimeline ? styles.timelineCurrentItem : {};
-    const available = moment().isAfter(item.available_start_at) && moment().isBefore(item.available_end_at);
+    const available_start_at = moment(item.available_start_at, moment.ISO_8601);
+    const available_end_at = moment(item.available_end_at, moment.ISO_8601);
+    const available = 
+      moment().isAfter(available_start_at) && 
+      moment().isBefore(available_end_at);
     const task = find(this.props.milestones.tasks.data, ['id', item.task_id]);
     if (item.uri) {
       return (
@@ -349,6 +354,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: tlPhotoSize / 2,
     backgroundColor: Colors.lightGrey,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   timelineCurrentItem: {
     borderWidth: 2,
@@ -366,6 +373,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderWidth: 2,
     borderColor: Colors.pink,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   timelineCameraIconImage: {
     width: tlPhotoSize * 0.6,

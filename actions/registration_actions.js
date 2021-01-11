@@ -531,7 +531,6 @@ export const updateSubject = data => {
 };
 
 export const apiUpdateSubject = (session, data) => {
-
   const id = data.api_id;
   delete data.id;
   delete data.api_id;

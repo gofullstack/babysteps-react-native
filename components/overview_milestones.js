@@ -67,9 +67,9 @@ class OverviewScreen extends React.Component {
   _fetchMilestones = subject => {
     let baseDate = '';
     if (subject.data.date_of_birth) {
-      baseDate = subject.data.date_of_birth;
+      baseDate = moment(subject.data.date_of_birth, 'YYYY-MM-DD');
     } else {
-      baseDate = subject.data.expected_date_of_birth;
+      baseDate = moment(subject.data.expected_date_of_birth, 'YYYY-MM-DD');
     }
 
     const currentWeek = moment().diff(baseDate, 'weeks');
