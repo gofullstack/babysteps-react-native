@@ -28,9 +28,9 @@
     "assetBundlePatterns": [
       "./assets/**/*"
     ],
-    "version": "1.0.8",
+    "version": "1.0.10",
     "ios": {
-      "buildNumber": "79",
+      "buildNumber": "81",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps",
       "associatedDomains": [
@@ -38,14 +38,13 @@
         "webcredentials:babysteps.icts.uiowa.edu"
       ],
       "infoPlist": {
-        "UIBackgroundModes": ["location", "fetch"],
-        "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for the study or baby book.",
-        "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures were taken.",
-        "NSPhotoLibraryUsage": "This app uses your photo library for selecting images of your baby for the study or baby book."
+        "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for this study and the baby book feature.  For example, the study requires that you frequently take video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you register on the app.  You can elect to limit the use of this images within that Consent Agreement.",
+        "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures or videos were taken.",
+        "NSPhotoLibraryUsage": "This app uses your photo library for selecting images of your baby for this study and baby book. For example, the study requires that you frequently provide video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you register on the app.  You can elect to limit the use of this images within that Consent Agreement."
       }
     },
     "android": {
-      "versionCode": 79,
+      "versionCode": 81,
       "package": "com.gofullstack.babysteps.prod",
       "permissions": [
         "AUDIO_RECORDING",
