@@ -28,9 +28,9 @@
     "assetBundlePatterns": [
       "./assets/**/*"
     ],
-    "version": "0.14.9",
+    "version": "0.14.10",
     "ios": {
-      "buildNumber": "19",
+      "buildNumber": "20",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps.staging",
       "associatedDomains": [
@@ -38,13 +38,13 @@
         "webcredentials:babysteps.icts.uiowa.edu"
       ],
       "infoPlist": {
-        "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for this study and the baby book feature.  For example, the study requires that you frequently take video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you registered on the app.",
-        "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures or videos were taken.",
-        "NSPhotoLibraryUsageDescription": "This app uses your photo library for selecting images of your baby for this study and baby book. For example, the study requires that you frequently provide video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you registered on the app."
+        "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for this study and the baby book feature.  For example, the study requires that you frequently take video of playing with your baby. The use of such images is defined in the Consent Agreement provided when you registered on the app.",
+        "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures or videos were taken. The use of such images is defined in the Consent Agreement provided when you registered on the app.",
+        "NSPhotoLibraryUsageDescription": "This app uses your photo library for selecting images of your baby for this study and baby book. For example, the study requires that you frequently provide video of playing with your baby. The use of such images is defined in the Consent Agreement provided when you registered on the app."
       }
     },
     "android": {
-      "versionCode": 19,
+      "versionCode": 20,
       "package": "com.gofullstack.babysteps.staging",
       "permissions": [
         "AUDIO_RECORDING",
