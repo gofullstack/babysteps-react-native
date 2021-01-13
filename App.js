@@ -27,10 +27,10 @@ import ApiOfflineListener from './database/api_offline_listener';
 
 import store from './store';
 
+import Player from './components/Player.js';
+
 import Colors from './constants/Colors';
 import soundLibrary from './constants/SoundLibrary';
-
-import Player from './components/Player.js';
 
 Sentry.init({
   dsn: Constants.manifest.extra.sentryDSN,
@@ -60,8 +60,8 @@ export default class App extends Component {
   };
 
   _loadResourcesAsync = async () => {
-    
-    const sounds = Player.load(soundLibrary);
+
+    Player.load(soundLibrary);
 
     await Asset.loadAsync([
       require('./assets/images/baby_book_cover_background.png'),
@@ -102,8 +102,8 @@ export default class App extends Component {
       require('./assets/images/tour_slide_two.png'),
       require('./assets/images/uofi_logo.png'),
       require('./assets/images/exclamation.png'),
-      ...sounds,
     ]);
+
     await Font.loadAsync({
       // This is the font that we are using for our tab bar
       ...Ionicons.font,

@@ -8,12 +8,9 @@ class Player {
 
     for (const name in library) {
       const sound = library[name];
-
       soundObjects[name] = new Audio.Sound();
-
       promisedSoundObjects.push(soundObjects[name].loadAsync(sound));
     }
-
     return promisedSoundObjects;
   }
 
@@ -28,4 +25,4 @@ class Player {
   }
 }
 
-export default Player
+export default Player;
