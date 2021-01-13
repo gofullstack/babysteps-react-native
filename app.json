@@ -38,9 +38,9 @@
         "webcredentials:babysteps.icts.uiowa.edu"
       ],
       "infoPlist": {
-        "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for this study and the baby book feature.  For example, the study requires that you frequently take video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you register on the app.  You can elect to limit the use of this images within that Consent Agreement.",
+        "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for this study and the baby book feature.  For example, the study requires that you frequently take video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you registered on the app.",
         "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures or videos were taken.",
-        "NSPhotoLibraryUsage": "This app uses your photo library for selecting images of your baby for this study and baby book. For example, the study requires that you frequently provide video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you register on the app.  You can elect to limit the use of this images within that Consent Agreement."
+        "NSPhotoLibraryUsageDescription": "This app uses your photo library for selecting images of your baby for this study and baby book. For example, the study requires that you frequently provide video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you registered on the app."
       }
     },
     "android": {

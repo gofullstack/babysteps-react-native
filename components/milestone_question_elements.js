@@ -281,7 +281,7 @@ export class RenderFile extends Component {
     this.state = {
       choice: null,
       hasCameraPermission: false,
-      hasCameraRollPermission: false,
+      hasMediaLibraryPermission: false,
       hasAudioPermission: false,
       permissionMessage: '',
       imageError: '',
@@ -296,12 +296,12 @@ export class RenderFile extends Component {
     this._isMounted = true;
     let message = [];
     let hasCameraPermission = false;
-    let hasCameraRollPermission = false;
+    let hasMediaLibraryPermission = false;
     let hasAudioPermission = false;
     if (['file_image', 'file_video'].includes(question.rn_input_type)) {
-      hasCameraRollPermission = await registerForPermission(Permissions.CAMERA_ROLL);
+      hasMediaLibraryPermission = await registerForPermission(Permissions.MEDIA_LIBRARY);
+      if (!hasMediaLibraryPermission) message = renderNoPermissionsMessage('library', message);
       hasCameraPermission = await registerForPermission(Permissions.CAMERA);
-      if (!hasCameraRollPermission) message = renderNoPermissionsMessage('library', message);
       if (!hasCameraPermission) message = renderNoPermissionsMessage('camera', message);
     }
     if (['file_video', 'file_audio'].includes(question.rn_input_type) ) {
@@ -312,7 +312,7 @@ export class RenderFile extends Component {
     // disable setState to avoid memory leaks if closing before async finished
     if (this._isMounted) {
       this.setState({
-        hasCameraRollPermission,
+        hasMediaLibraryPermission,
         hasCameraPermission,
         hasAudioPermission,
         permissionMessage: message.join(', '),
@@ -329,9 +329,9 @@ export class RenderFile extends Component {
 
   pickImage = async (choice, source = null) => {
     let image = {};
-    const hasCameraRollPermission = this.state.hasCameraRollPermission;
+    const hasMediaLibraryPermission = this.state.hasMediaLibraryPermission;
     this.setState({ choice });
-    if (source === 'library' && hasCameraRollPermission) {
+    if (source === 'library' && hasMediaLibraryPermission) {
       const mediaType = mediaTypes[this.props.question.rn_input_type];
       image = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: mediaType,
@@ -371,7 +371,7 @@ export class RenderFile extends Component {
     let loadCameraModal = false;
     let loadAudioModal = false;
 
-    const hasCameraRollPermission = this.state.hasCameraRollPermission;
+    const hasMediaLibraryPermission = this.state.hasMediaLibraryPermission;
     const hasCameraPermission = this.state.hasCameraPermission;
     const hasAudioPermission = this.state.hasAudioPermission;
     const permissionMessage = this.state.permissionMessage;
@@ -437,7 +437,7 @@ export class RenderFile extends Component {
                   titleStyle={styles.buttonTitleStyle}
                   color={Colors.green}
                   onPress={() => this.pickImage(choice, 'library')}
-                  disabled={!hasCameraRollPermission}
+                  disabled={!hasMediaLibraryPermission}
                 />
               )}
               <Button
