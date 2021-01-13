@@ -1,6 +1,11 @@
+import { Platform, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as SQLite from 'expo-sqlite';
+import * as Permissions from 'expo-permissions';
+import { showMessage } from 'react-native-flash-message';
+
+import NavigationService from '../navigation/NavigationService';
 
 import * as Sentry from 'sentry-expo';
 
@@ -10,7 +15,12 @@ import isObject from 'lodash/isObject';
 import map from 'lodash/map';
 
 import store from '../store';
+import { updateSession } from '../actions/session_actions';
 import { apiCreateMilestoneCalendar } from '../actions/milestone_actions';
+import { showMomentaryAssessment } from '../actions/notification_actions';
+
+import Colors from '../constants/Colors';
+import CONSTANTS from '../constants';
 
 const db = SQLite.openDatabase('babysteps.db');
 
@@ -80,9 +90,6 @@ function getRandomInt(min, max) {
 }
 
 async function buildMomentaryAssessmentEntries(entry, studyEndDate) {
-  //if (!isObject(entry)) {
-    //Sentry.setExtraContext({ ema_entry_non_object: JSON.stringify(entry) });
-  //}
 
   // notifications require title and body
   if (!entry.message || !entry.name || !entry.frequency) return null;
@@ -189,4 +196,130 @@ export const createNotifications = entries => {
       },
     );
   });
+};
+
+const HandleNotificationOnPress = (tasks, data) => {
+  const task = find(tasks, ['id', data.task_id]);
+  NavigationService.navigate('MilestoneQuestions', { task });
+};
+
+const HandleMomentaryAssessment = data => {
+  store.dispatch(showMomentaryAssessment(data));
+};
+
+const HandleNotificatioResponse = ({ tasks, origin, data, remote }) => {
+  // origin
+  // 'received' app is open and foregrounded
+  // 'received' app is open but was backgrounded (ios)
+  // 'selected' app is open but was backgrounded (Andriod)
+  // 'selected' app was not open and opened by selecting notification
+  // 'selected' app was not open but opened by app icon (ios only)
+  if (data.momentary_assessment) {
+    HandleMomentaryAssessment(data);
+  } else if (origin === 'selected') {
+    HandleNotificationOnPress(tasks, data);
+  } else {
+    showMessage({
+      type: data.type,
+      message: data.title,
+      description: data.body,
+      color: Colors.flashMessage,
+      backgroundColor: Colors.flashMessageBackground,
+      autoHide: false,
+      icon: data.type,
+      onPress: () => HandleNotificationOnPress(tasks, data),
+    });
+  }
+};
+
+// local notifications - deprecated
+export const RegisterForNotifications = async () => {
+  const notifications_permission = this.props.session.notifications_permission;
+  // android permissions are given on install
+  const { status: existingStatus } = await Permissions.getAsync(
+    Permissions.NOTIFICATIONS,
+  );
+  let finalStatus = existingStatus;
+
+  // console.log("Notifications Permissions:", existingStatus)
+
+  // only ask if permissions have not already been determined, because
+  // iOS won't necessarily prompt the user a second time.
+  if (existingStatus !== 'granted') {
+    // Android remote notification permissions are granted during the app
+    // install, so this will only ask on iOS
+    const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+    finalStatus = status;
+    if (
+      Platform.OS === 'ios' &&
+      finalStatus === 'granted' &&
+      notifications_permission !== 'granted'
+    ) {
+      Alert.alert(
+        'Permissions',
+        "To make sure you don't miss any notifications, please enable 'Persistent' notifications for BabySteps. Click Settings below, open 'Notifications' and set 'Banner Style' to 'Persistent'.",
+        [
+          { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+          { text: 'Settings', onPress: () => openSettings('NOTIFICATIONS') },
+        ],
+        { cancelable: true },
+      );
+    }
+
+    if (Platform.OS === 'android') {
+      Notifications.createChannelAndroidAsync('screeningEvents', {
+        name: 'Screening Events',
+        priority: 'max',
+        vibrate: [0, 250, 250, 250],
+        color: Colors.notifications,
+      });
+    }
+  }
+
+  store.dispatch(updateSession({ notifications_permission: finalStatus }));
+
+  // Stop here if the user did not grant permissions
+  if (finalStatus !== 'granted') {
+    console.log('Notifications Permission Denied');
+    return null;
+  }
+  // Watch for incoming notifications
+  // Notifications.addListener(this._handleNotificatioResponse);
+  Notifications.addNotificationResponseReceivedListener(this._handleNotificationResponse);
+};
+
+// local notifications - deprecated
+export const HandleUpdateNotifications = (session, subject) => {
+  const today = moment();
+  let notifications_updated_at = moment(session.notifications_updated_at);
+  // default next to update notifications
+  let next_notification_update_at = moment().subtract(1, 'days');
+  if (notifications_updated_at.isValid()) {
+    // change this to 30 seconds to get more frequent updates
+    //next_notification_update_at = notifications_updated_at.add(30, 'seconds');
+    next_notification_update_at = notifications_updated_at.add(7, 'days');
+  }
+
+  if (today.isAfter(next_notification_update_at)) {
+    let studyEndDate = '';
+    if (subject.date_of_birth) {
+      studyEndDate = moment(subject.date_of_birth).add(CONSTANTS.POST_BIRTH_END_OF_STUDY, 'days')
+    } else {
+      studyEndDate = moment(subject.expected_date_of_birth).add(CONSTANTS.POST_BIRTH_END_OF_STUDY, 'days')
+    }
+    notifications_updated_at = today.toISOString();
+    store.dispatch(updateSession({ notifications_updated_at }));
+    store.dispatch(deleteAllNotifications());
+    store.dispatch(updateNotifications());
+    store.dispatch(updateMomentaryAssessments(studyEndDate));
+
+    Sentry.configureScope(scope => {
+      scope.setExtra(
+        'notifications_updated_at',
+        JSON.stringify(notifications_updated_at),
+      );
+    });
+  } else {
+    // console.log('****** Next Notfication Update Scheduled: ', next_notification_update_at.toISOString());
+  } // notifications_updated_at
 };

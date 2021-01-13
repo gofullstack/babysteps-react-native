@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import { View, ScrollView, StyleSheet, Platform } from 'react-native';
 import { Text, Button, CheckBox } from 'react-native-elements';
 import * as FileSystem from 'expo-file-system';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { compose } from 'recompose';
@@ -112,6 +115,7 @@ class RegistrationRespondentForm extends Component {
       isSubmitting: false,
       signatureSubmitted: false,
       respondentSubmitted: false,
+      requestedPushToken: false,
       apiErrorMessage: '',
     };
 
@@ -125,7 +129,6 @@ class RegistrationRespondentForm extends Component {
       this.setState({apiErrorMessage: 'The internet is not currently available'});
     }
   }
-
 
   shouldComponentUpdate(nextProps) {
     const user = nextProps.registration.user;
@@ -145,7 +148,11 @@ class RegistrationRespondentForm extends Component {
   _saveAPIRespondent = respondent => {
     const apiRespondent = this.props.registration.apiRespondent;
     const session = this.props.session;
-    const { respondentSubmitted, signatureSubmitted } = this.state;
+    const {
+      respondentSubmitted,
+      signatureSubmitted,
+      requestedPushToken,
+    } = this.state;
 
     if (!apiRespondent.fetching) {
       if (!apiRespondent.fetched && !respondentSubmitted) {
@@ -159,6 +166,10 @@ class RegistrationRespondentForm extends Component {
           this.saveSignature(api_id);
           this.setState({ signatureSubmitted: true });
         }
+        if (!requestedPushToken) {
+          this._registerForPushNotifications(api_id);
+          this.setState({ requestedPushToken: true });
+        }
         const registrationState = respondent.data.pregnant
           ? ActionStates.REGISTERING_EXPECTED_DOB
           : ActionStates.REGISTERING_SUBJECT;
@@ -167,6 +178,20 @@ class RegistrationRespondentForm extends Component {
         });
       } // apiRespondent.fetched
     } // apiRespondent.fetching
+  };
+
+  _registerForPushNotifications = async api_id => {
+    // simulator will not generate a token
+    if (!Constants.isDevice) return null;
+    const session = this.props.session;
+    if (session.notifications_permission === 'granted') {
+      const result = await Notifications.getExpoPushTokenAsync();
+      const push_token = result.data;
+      console.log('********** Push Token: ' + push_token);
+      this.props.updateSession({ push_token });
+      this.props.updateRespondent({ push_token });
+      this.props.apiUpdateRespondent(session, { api_id, push_token });
+    }
   };
 
   getInitialValues = () => {
@@ -197,7 +222,7 @@ class RegistrationRespondentForm extends Component {
     return initialValues;
   };
 
-  saveSignature = async (api_id) => {
+  saveSignature = async api_id => {
     const uri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
     const signatureFile = await FileSystem.getInfoAsync(uri, {size: true});
     if (signatureFile.exists) {
@@ -358,6 +383,7 @@ class RegistrationRespondentForm extends Component {
                   </Text>
                   <CheckBox
                     title="Yes"
+                    size={36}
                     checked={props.values.pregnant}
                     containerStyle={styles.checkboxContainer}
                     textStyle={styles.checkboxText}
@@ -365,6 +391,7 @@ class RegistrationRespondentForm extends Component {
                   />
                   <CheckBox
                     title="No"
+                    size={36}
                     checked={!props.values.pregnant}
                     containerStyle={styles.checkboxContainer}
                     textStyle={styles.checkboxText}
@@ -403,7 +430,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.backgroundColor,
   },
   checkboxText: {
-    fontSize: 12,
+    fontSize: 16,
   },
   errorMessage: {
     fontSize: 16,

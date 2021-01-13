@@ -1,19 +1,17 @@
 import React, { Component } from 'react';
-import { Platform, Alert } from 'react-native';
-
+import { View, Platform } from 'react-native';
 
 import * as Notifications from 'expo-notifications';
 import * as Permissions from 'expo-permissions';
+import Constants from 'expo-constants';
 
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
+import { showMessage } from 'react-native-flash-message';
 
-import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
 
 import moment from 'moment';
-
-import { showMessage } from 'react-native-flash-message';
 
 import * as Sentry from 'sentry-expo';
 
@@ -129,12 +127,14 @@ class RootNavigator extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const notifications = nextProps.notifications;
-    if (
-      notifications.notifications.fetching ||
-      notifications.momentary_assessments.fetching
-    ) {
-      return false;
+    cif (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
+      const notifications = nextProps.notifications;
+      if (
+        notifications.notifications.fetching || 
+        notifications.momentary_assessments.fetching
+      ) {
+        return false;
+      }
     }
     return true;
   }
@@ -147,49 +147,16 @@ class RootNavigator extends Component {
     // IOS limit of 64 notifications
     if (!isEmpty(calendar.data) && !isEmpty(subject)) {
       if (!session.fetching && session.notifications_permission === 'granted') {
-        this._handleUpdateNotifications(session, subject);
+        if (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
+          HandleUpdateNotifications(session, subject);
+        }
       }
     }
   }
 
-  _handleUpdateNotifications = (session, subject) => {
-    const today = moment();
-    let notifications_updated_at = moment(session.notifications_updated_at);
-    // default next to update notifications
-    let next_notification_update_at = moment().subtract(1, 'days');
-    if (notifications_updated_at.isValid()) {
-      // change this to 30 seconds to get more frequent updates
-      //next_notification_update_at = notifications_updated_at.add(30, 'seconds');
-      next_notification_update_at = notifications_updated_at.add(7, 'days');
-    }
-
-    if (today.isAfter(next_notification_update_at)) {
-      let studyEndDate = '';
-      if (subject.date_of_birth) {
-        studyEndDate = moment(subject.date_of_birth).add(CONSTANTS.POST_BIRTH_END_OF_STUDY, 'days')
-      } else {
-        studyEndDate = moment(subject.expected_date_of_birth).add(CONSTANTS.POST_BIRTH_END_OF_STUDY, 'days')
-      }
-      notifications_updated_at = today.toISOString();
-      this.props.updateSession({ notifications_updated_at });
-      this.props.deleteAllNotifications();
-      this.props.updateNotifications();
-      this.props.updateMomentaryAssessments(studyEndDate);
-
-      Sentry.configureScope(scope => {
-        scope.setExtra(
-          'notifications_updated_at',
-          JSON.stringify(notifications_updated_at),
-        );
-      });
-
-    } else {
-      // console.log('****** Next Notfication Update Scheduled: ', next_notification_update_at.toISOString());
-    } // notifications_updated_at
-  };
-
   _handleNotificationOnPress = data => {
-    const task = find(this.props.milestones.tasks.data, ['id', data.task_id]);
+    const tasks = this.props.milestones.tasks.data;
+    const task = find(tasks, ['id', data.task_id]);
     NavigationService.navigate('MilestoneQuestions', { task });
   };
 
@@ -197,7 +164,7 @@ class RootNavigator extends Component {
     this.props.showMomentaryAssessment(data);
   };
 
-  _handleNotification = async ({ origin, data, remote }) => {
+  _handleNotificationResponse = async ({ origin, data, remote }) => {
     // origin
     // 'received' app is open and foregrounded
     // 'received' app is open but was backgrounded (ios)
@@ -222,57 +189,72 @@ class RootNavigator extends Component {
     }
   };
 
-  registerForNotifications = async () => {
-    const notifications_permission = this.props.session.notifications_permission;
-    // android permissions are given on install
+  _getNotificationPermissions = async () => {
+    const session = this.props.session;
+    let notifications_permission = session.notifications_permission;
+
+    if (Platform.OS === 'ios' && notifications_permission !== 'granted') {
+      Alert.alert(
+        'Permissions',
+        "To make sure you don't miss any notifications, please enable 'Persistent' notifications for BabySteps. Click Settings below, open 'Notifications' and set 'Banner Style' to 'Persistent'.",
+        [
+          { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+          { text: 'Settings', onPress: () => openSettings('NOTIFICATIONS') },
+        ],
+        { cancelable: true },
+      );
+    }
+
+    // android permissions are given on install and may already exist
     const { status: existingStatus } = await Permissions.getAsync(
       Permissions.NOTIFICATIONS,
     );
-    let finalStatus = existingStatus;
-
-    // console.log("Notifications Permissions:", existingStatus)
-
+    notifications_permission = existingStatus;
     // only ask if permissions have not already been determined, because
     // iOS won't necessarily prompt the user a second time.
     if (existingStatus !== 'granted') {
-      // Android remote notification permissions are granted during the app
-      // install, so this will only ask on iOS
       const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-      finalStatus = status;
-      if (
-        Platform.OS === 'ios' &&
-        finalStatus === 'granted' &&
-        notifications_permission !== 'granted'
-      ) {
-        Alert.alert(
-          'Permissions',
-          "To make sure you don't miss any notifications, please enable 'Persistent' notifications for BabySteps. Click Settings below, open 'Notifications' and set 'Banner Style' to 'Persistent'.",
-          [
-            { text: 'Cancel', onPress: () => {}, style: 'cancel' },
-            { text: 'Settings', onPress: () => openSettings('NOTIFICATIONS') },
-          ],
-          { cancelable: true },
-        );
+      notifications_permission = status;
+    }
+    if (notifications_permission !== session.notifications_permission) {
+      this.props.updateSession({ notifications_permission });
+    }
+    if (notifications_permission === 'granted') {
+      if (Platform.OS === 'android') {
+        Notifications.setNotificationChannelAsync('screeningEvents', {
+          name: 'screeningEvents',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          color: Colors.notifications,
+        });
       }
+    } else {
+      Alert.alert(
+        'Permissions',
+        'Failed to get permissions for Push Notifications!',
+        [{ text: 'Cancel', onPress: () => {}, style: 'cancel' }],
+        { cancelable: true },
+      );
     }
+  }
 
-    this.props.updateSession({ notifications_permission: finalStatus });
-
-    if (finalStatus !== 'granted') {
-      console.log('Notifications Permission Denied');
+  _confirmPushNotificationRegistration = async () => {
+    // simulator will not generate a token
+    if (!Constants.isDevice) return null;
+    const session = this.props.session;
+    const respondent = this.props.registration.respondent.data;
+    if (
+      session.notifications_permission === 'granted' &&
+      isEmpty(session.push_token) &&
+      !isEmpty(respondent) && ![null, undefined].includes(respondent.api_id)
+    ) {
+      const result = await Notifications.getExpoPushTokenAsync();
+      const push_token = result.data;
+      const api_id = respondent.api_id;
+      this.props.updateSession({ push_token });
+      this.props.updateRespondent({ push_token });
+      this.props.apiUpdateRespondent(session, { api_id, push_token });
     }
-
-    if (finalStatus === 'granted' && Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('default', {
-        name: 'screeningEvents',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
-
-    // Watch for incoming notifications
-    Notifications.setNotificationHandler(this._handleNotification);
   };
 
   render() {

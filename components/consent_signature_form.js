@@ -22,12 +22,17 @@ class ConsentSignatureForm extends Component {
   constructor(props) {
     super(props);
     const session = this.props.session;
+    const yet_undefined = ['null', null, undefined];
     const screening_blood =
-      ['null', null].includes(session.screening_blood) ? null : !!session.screening_blood;
+      yet_undefined.includes(session.screening_blood) ? true : !!session.screening_blood;
     const screening_blood_other =
-      ['null', null].includes(session.screening_blood_other) ? null : !!session.screening_blood_other;
+      yet_undefined.includes(session.screening_blood_other) ? true : !!session.screening_blood_other;
     const screening_blood_notification =
-      ['null', null].includes(session.screening_blood_notification) ? null : !!session.screening_blood_notification;
+      yet_undefined.includes(session.screening_blood_notification) ? true : !!session.screening_blood_notification;
+    const video_presentation = 
+      yet_undefined.includes(session.video_presentation) ? 'yes_study_presentations' : !!session.video_presentation;
+    const video_sharing = 
+      yet_undefined.includes(session.video_sharing) ? 'yes_other_researchers' : !!session.video_sharing;
 
     const remoteDebug = (typeof DedicatedWorkerGlobalScope) !== 'undefined';
 
@@ -35,8 +40,8 @@ class ConsentSignatureForm extends Component {
       screening_blood,
       screening_blood_other,
       screening_blood_notification,
-      video_sharing: session.video_sharing,
-      video_presentation: session.video_presentation,
+      video_presentation,
+      video_sharing,
       errorMessage: null,
       remoteDebug,
       scrollEnabled: true,
@@ -44,8 +49,11 @@ class ConsentSignatureForm extends Component {
   }
 
   handleReset = () => {
+    const remoteDebug = this.state.remoteDebug;
     console.log('signature clear');
-    this.signature.clear();
+    if (!remoteDebug) {
+      this.signature.clear();
+    }
   };
 
   handleConsentPermissions = (attribute, response) => {
