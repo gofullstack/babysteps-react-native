@@ -14,7 +14,6 @@ import { isIphoneX } from 'react-native-iphone-x-helper';
 import { Video } from 'expo-av';
 import { Camera } from 'expo-camera';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
-import * as ScreenOrientation from 'expo-screen-orientation';
 import Constants from 'expo-constants';
 
 import * as moment from 'moment';
@@ -230,16 +229,14 @@ class CameraModal extends Component {
         if (minutes >= 4) {
           takePictureButtonColor = { backgroundColor: Colors.green };
         }
-        if ( minutes >= 3 && minutes < 5 && (seconds % 2 !== 0) ) {
+        if (minutes >= 3 && minutes < 5 && (seconds % 2 !== 0)) {
           takePictureButtonColor = { backgroundColor: Colors.black };
         }
-      } else {
-        if (minutes >= 3) {
-          if (seconds % 2 === 0) {
-            takePictureButtonColor = { backgroundColor: Colors.red };
-          } else {
-            takePictureButtonColor = { backgroundColor: Colors.black };
-          }
+      } else if (minutes >= 3) {
+        if (seconds % 2 === 0) {
+          takePictureButtonColor = { backgroundColor: Colors.red };
+        } else {
+          takePictureButtonColor = { backgroundColor: Colors.black };
         }
       }
     }
