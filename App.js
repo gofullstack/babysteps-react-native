@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import AppLoading from 'expo-app-loading';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
+import * as Notifications from 'expo-notifications';
 import FlashMessage from 'react-native-flash-message';
 import * as Sentry from 'sentry-expo';
 
@@ -20,6 +21,8 @@ import checkNotificationsSchema from './database/check_notifications_schema';
 import checkBabyBookSchema from './database/check_babybook_schema';
 import checkCustomDirectories from './components/check_custom_directories';
 //import moveDataToMainDirectory from './components/move_data_to_main_directory';
+
+import RegisterForPushNotifications from './notifications/registerForPushNotifications';
 
 import MomentaryAssessment from './components/momentary_assessment_modal';
 
@@ -39,6 +42,14 @@ Sentry.init({
 });
 
 LogBox.ignoreAllLogs();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export default class App extends Component {
   state = {
@@ -140,6 +151,7 @@ export default class App extends Component {
           {Platform.OS === 'android' && <StatusBar barStyle="default" />}
           <RootNavigator />
           <FlashMessage position="top" />
+          <RegisterForPushNotifications />
           <MomentaryAssessment />
           <ApiOfflineListener />
         </View>

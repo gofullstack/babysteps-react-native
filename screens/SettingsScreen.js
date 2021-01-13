@@ -93,7 +93,8 @@ class SettingsScreen extends React.Component {
     const release = this.getRelease();
 
     const version = `${Constants.manifest.version}:${build}`;
-    const body = `\n\n\n________________________\n\nPlatform: ${Platform.OS}\nVersion: ${version}\nRelease: ${release}\nNotifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\nNotification Permissions: ${this.state.notificationPermissions}\n\n________________________\n\n`;
+    const userID = this.props.session.user_id;
+    const body = `\n\n\n________________________\n\nPlatform: ${Platform.OS}\nVersion: ${version}\nRelease: ${release}\nNotifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\nNotification Permissions: ${this.state.notificationPermissions}\nUser ID: ${userID}\n\n________________________\n\n`;
 
     Linking.openURL(`mailto:feedback@babystepsapp.net?subject=BabySteps App Feedback (v${version})&body=${body}`);
   };
@@ -253,6 +254,7 @@ class SettingsScreen extends React.Component {
           </Text>
           {this.renderDevDebugItems(release)}
           <Text>Release: {release}</Text>
+          <Text>User ID: {session.user_id}</Text>
 
           <TouchableOpacity
             style={styles.linkContainer}
