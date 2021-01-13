@@ -293,18 +293,29 @@ export class RenderFile extends Component {
 
   async componentDidMount() {
     const question = this.props.question;
+    const isFileVideo = [
+      'file_video',
+      'file_video_frustration',
+    ].includes(question.rn_input_type);
+    const isFileImage = question.rn_input_type === 'file_image';
+    const isFileAudio = [
+      'file_audio',
+      'file_video',
+      'file_video_frustration',
+    ].includes(question.rn_input_type);
     this._isMounted = true;
     let message = [];
     let hasCameraPermission = false;
     let hasMediaLibraryPermission = false;
     let hasAudioPermission = false;
-    if (['file_image', 'file_video'].includes(question.rn_input_type)) {
+
+    if (isFileVideo || isFileImage) { {
       hasMediaLibraryPermission = await registerForPermission(Permissions.MEDIA_LIBRARY);
       if (!hasMediaLibraryPermission) message = renderNoPermissionsMessage('library', message);
       hasCameraPermission = await registerForPermission(Permissions.CAMERA);
       if (!hasCameraPermission) message = renderNoPermissionsMessage('camera', message);
     }
-    if (['file_video', 'file_audio'].includes(question.rn_input_type) ) {
+    if (isFileAudio) {
       hasAudioPermission = await registerForPermission(Permissions.AUDIO_RECORDING);
       if (!hasAudioPermission) message = renderNoPermissionsMessage('audio', message);
     }
