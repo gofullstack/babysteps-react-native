@@ -20,6 +20,16 @@ import { updateSession, fetchSession } from '../actions/session_actions';
 import * as Sentry from 'sentry-expo';
 
 import {
+  apiFetchMilestones,
+  apiFetchMilestoneCalendar,
+} from '../actions/milestone_actions';
+
+import {
+  fetchRespondent,
+  apiUpdateRespondent,
+} from '../actions/registration_actions';
+
+import {
   showMomentaryAssessment,
   updateNotifications,
   updateMomentaryAssessments,
@@ -138,9 +148,8 @@ class RootNavigator extends Component {
   }
 
   componentDidMount() {
-    if (Constants.isDevice) {
-      this._notificationSubscription = this.registerForNotifications();
-    }
+
+    this._notificationSubscription = this.registerForNotifications();
 
     // temporary code for backward compatibility
     addColumn('sessions', 'current_group_index', 'integer');

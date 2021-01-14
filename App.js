@@ -27,7 +27,10 @@ import ApiOfflineListener from './database/api_offline_listener';
 
 import store from './store';
 
+import Player from './components/Player.js';
+
 import Colors from './constants/Colors';
+import soundLibrary from './constants/SoundLibrary';
 
 Sentry.init({
   dsn: Constants.manifest.extra.sentryDSN,
@@ -57,6 +60,9 @@ export default class App extends Component {
   };
 
   _loadResourcesAsync = async () => {
+
+    Player.load(soundLibrary);
+
     await Asset.loadAsync([
       require('./assets/images/baby_book_cover_background.png'),
       require('./assets/images/baby_book_inside_background.png'),
@@ -71,6 +77,11 @@ export default class App extends Component {
       require('./assets/images/camera_delete_media_save_video.png'),
       require('./assets/images/camera_face_position.png'),
       require('./assets/images/camera_flip_direction_icon.png'),
+      require('./assets/images/camera_frustration.gif'),
+      require('./assets/images/camera_frustration_frustrate.gif'),
+      require('./assets/images/camera_frustration_play.gif'),
+      require('./assets/images/camera_frustration_resume.gif'),
+      require('./assets/images/camera_frustration_stop.gif'),
       require('./assets/images/camera_toggle_flash_icon.png'),
       require('./assets/images/camera_toggle_flash_icon_active.png'),
       require('./assets/images/milestones_checkbox.png'),
@@ -92,6 +103,7 @@ export default class App extends Component {
       require('./assets/images/uofi_logo.png'),
       require('./assets/images/exclamation.png'),
     ]);
+
     await Font.loadAsync({
       // This is the font that we are using for our tab bar
       ...Ionicons.font,
