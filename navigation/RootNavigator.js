@@ -127,10 +127,10 @@ class RootNavigator extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    cif (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
+    if (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
       const notifications = nextProps.notifications;
       if (
-        notifications.notifications.fetching || 
+        notifications.notifications.fetching ||
         notifications.momentary_assessments.fetching
       ) {
         return false;
@@ -151,6 +151,11 @@ class RootNavigator extends Component {
           HandleUpdateNotifications(session, subject);
         }
       }
+    }
+
+    if (!session.fetching && session.fetched) {
+      const {
+     this._confirmPushNotificationRegistration();
     }
   }
 

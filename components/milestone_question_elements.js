@@ -304,11 +304,12 @@ export class RenderFile extends Component {
       'file_video',
       'file_video_frustration',
     ].includes(question.rn_input_type);
-    this._isMounted = true;
+
     let message = [];
     let hasCameraPermission = false;
     let hasMediaLibraryPermission = false;
     let hasAudioPermission = false;
+    this._isMounted = true;
 
     if (isFileVideo || isFileImage) {
       hasMediaLibraryPermission = await registerForPermission(Permissions.MEDIA_LIBRARY);
