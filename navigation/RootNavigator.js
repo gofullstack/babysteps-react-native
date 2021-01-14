@@ -23,14 +23,8 @@ import {
 } from '../actions/session_actions';
 
 import {
-  resetMilestoneAnswers,
-  fetchMilestoneAnswers,
-  apiFetchMilestones,
-  apiFetchMilestoneCalendar,
-} from '../actions/milestone_actions';
-
-import {
   fetchRespondent,
+  updateRespondent,
   apiUpdateRespondent,
 } from '../actions/registration_actions';
 
@@ -44,14 +38,10 @@ import {
 import {
   apiFetchMilestones,
   apiFetchMilestoneCalendar,
+  resetMilestoneAnswers,
+  fetchMilestoneAnswers,
   fetchMilestoneAttachments,
 } from '../actions/milestone_actions';
-
-import {
-  fetchRespondent,
-  updateRespondent,
-  apiUpdateRespondent,
-} from '../actions/registration_actions';
 
 import AppNavigator from './AppNavigator';
 import NavigationService from './NavigationService';
@@ -67,8 +57,6 @@ import UploadMilestoneAnswers from '../database/upload_milestone_answers';
 import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
 
 import { openSettings } from '../components/permissions';
-
-import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
 
 import { addColumn } from '../database/common';
 
@@ -204,10 +192,10 @@ class RootNavigator extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    cif (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
+    if (!CONSTANTS.USE_PUSH_NOTIFICATIONS) {
       const notifications = nextProps.notifications;
       if (
-        notifications.notifications.fetching || 
+        notifications.notifications.fetching ||
         notifications.momentary_assessments.fetching
       ) {
         return false;
@@ -249,7 +237,7 @@ class RootNavigator extends Component {
       } = this.props.session;
 
       if (
-        !isEmpty(milestones_updated_at) && 
+        !isEmpty(milestones_updated_at) &&
         milestones_updated_at !== milestones_last_updated_at
       ) {
         const api_milestones = this.props.milestones.api_milestones;

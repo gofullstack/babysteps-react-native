@@ -67,7 +67,7 @@ const UploadMilestoneAttachment = async (session, attachment) => {
     //setAttachmentToUploaded(attachment);
   } else {
     const response = await executeApiCall(answer, attachment);
-    if (response.status === 202) {
+    if (response && response.status === 202) {
       console.log('***** Attachment uploaded successfully');
       if (!attachment.id) {
         if (attachment.answer_id) {
@@ -78,7 +78,7 @@ const UploadMilestoneAttachment = async (session, attachment) => {
       }
       setAttachmentToUploaded(attachment);
     } else {
-      console.log({ response });
+      console.log({ answer, attachment, response });
     }
   }
 };

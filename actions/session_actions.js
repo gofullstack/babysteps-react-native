@@ -261,6 +261,9 @@ export const apiFetchMilestonesLastUpdated = study_id => {
         },
       })
         .then(response => {
+          updateSession({
+            milestones_last_updated_at: response.data.last_updated_at,
+          });
           dispatch(Response(API_FETCH_MILESTONES_LAST_UPDATED_FULFILLED, response));
         })
         .catch(error => {
@@ -289,6 +292,9 @@ export const apiFetchMilestoneCalendarLastUpdated = subject_id => {
         },
       })
         .then(response => {
+          updateSession({
+            milestone_calendar_updated_at: response.data.last_updated_at,
+          });
           dispatch(Response(API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_FULFILLED, response));
         })
         .catch(error => {
