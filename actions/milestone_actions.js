@@ -528,10 +528,17 @@ export const fetchMilestoneAnswers = (params = {}) => {
     dispatch(Pending(FETCH_MILESTONE_ANSWERS_PENDING));
 
     let sql = 'SELECT * FROM answers';
+
     if (params.section_id) {
       sql += ` WHERE answers.section_id = ${params.section_id}`;
+    } else if (params.api_id === 'empty') {
+      sql += ` WHERE COALESCE(answers.api_id, '') = ''`;
+    } else if (params.api_id) {
+      sql += ` WHERE answers.api_id = ${params.api_id}`;
     }
-    sql += ' ORDER BY question_id, choice_id;';
+    sql += ' ORDER BY section_id, question_id, choice_id;';
+
+    console.log(sql);
 
     return (
       db.transaction(tx => {
