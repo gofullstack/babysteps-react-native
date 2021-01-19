@@ -311,7 +311,7 @@ export class RenderFile extends Component {
     let hasMediaLibraryPermission = false;
     let hasAudioPermission = false;
 
-    if (isFileVideo || isFileImage) { {
+    if (isFileVideo || isFileImage) {
       hasMediaLibraryPermission = await registerForPermission(Permissions.MEDIA_LIBRARY);
       if (!hasMediaLibraryPermission) message = renderNoPermissionsMessage('library', message);
       hasCameraPermission = await registerForPermission(Permissions.CAMERA);

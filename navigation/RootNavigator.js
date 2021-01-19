@@ -10,6 +10,7 @@ import { createStackNavigator } from 'react-navigation-stack';
 
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
+
 import moment from 'moment';
 
 import { showMessage } from 'react-native-flash-message';
@@ -20,6 +21,8 @@ import { updateSession, fetchSession } from '../actions/session_actions';
 import * as Sentry from 'sentry-expo';
 
 import {
+  resetMilestoneAnswers,
+  fetchMilestoneAnswers,
   apiFetchMilestones,
   apiFetchMilestoneCalendar,
 } from '../actions/milestone_actions';
@@ -48,6 +51,7 @@ import RegistrationScreen from '../screens/RegistrationScreen';
 import TourNoStudyConfirmScreen from '../screens/TourNoStudyConfirmScreen';
 import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
 
+import UploadMilestoneAnswers from '../database/upload_milestone_answers';
 import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
 
 import { openSettings } from '../components/permissions';
@@ -139,11 +143,14 @@ class RootNavigator extends Component {
     super(props);
 
     this.state = {
+      uploadAnswers: [],
+      uploadAnswersSubmitted: false,
       uploadAttachments: [],
       uploadAttachmentsSubmitted: false,
     };
 
     this.props.fetchSession();
+    this.props.fetchMilestoneAnswers({ api_id: 'empty' });
     this.props.fetchMilestoneAttachments({ upload: true });
   }
 
@@ -174,7 +181,14 @@ class RootNavigator extends Component {
     const session = this.props.session;
     const subject = this.props.registration.subject.data;
     const attachments = this.props.milestones.attachments;
-    const { uploadAttachments, uploadAttachmentsSubmitted } = this.state;
+    const answers = this.props.milestones.answers;
+    const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
+    const {
+      uploadAnswers,
+      uploadAnswersSubmitted,
+      uploadAttachments,
+      uploadAttachmentsSubmitted,
+    } = this.state;
 
     // update local notifications every 7 days to stay under the
     // IOS limit of 64 notifications
@@ -185,6 +199,27 @@ class RootNavigator extends Component {
     }
 
     if (
+      inStudy &&
+      !answers.fetching &&
+      answers.fetched &&
+      !isEmpty(answers.data) &&
+      !uploadAnswersSubmitted
+    ) {
+      this.setState({ uploadAnswers: answers.data });
+    }
+    // upload any answers with no api_id
+    if (
+      inStudy &&
+      !isEmpty(uploadAnswers) &&
+      session.connectionType === 'wifi'
+    ) {
+      UploadMilestoneAnswers(uploadAnswers);
+      this.props.resetMilestoneAnswers();
+      this.setState({ uploadAnswersSubmitted: true, uploadAnswers: [] });
+    }
+
+    if (
+      inStudy &&
       !attachments.fetching &&
       attachments.fetched &&
       !isEmpty(attachments.data) &&
@@ -193,7 +228,11 @@ class RootNavigator extends Component {
       this.setState({ uploadAttachments: attachments.data });
     }
     // upload directly to AWS any attachments not yet uploaded
-    if (!isEmpty(uploadAttachments) && session.connectionType === 'wifi') {
+    if (
+      inStudy &&
+      !isEmpty(uploadAttachments) && 
+      session.connectionType === 'wifi'
+    ) {
       uploadAttachments.forEach(attachment => {
         UploadMilestoneAttachment(session, attachment);
       });
@@ -364,6 +403,8 @@ const mapStateToProps = ({
 const mapDispatchToProps = {
   updateSession,
   fetchSession,
+  resetMilestoneAnswers,
+  fetchMilestoneAnswers,
   showMomentaryAssessment,
   updateNotifications,
   updateMomentaryAssessments,
