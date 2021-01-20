@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "428043979935",
+    "project_id": "babysteps-fedf5",
+    "storage_bucket": "babysteps-fedf5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:428043979935:android:7bb63774fcb5dcc650a6aa",
+        "android_client_info": {
+          "package_name": "com.gofullstack.babysteps.prod"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "428043979935-fpigvmpj32mo1iql0ltu1emmolmdmtk0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAq3voqIUs4-ZT5eS3K7UbQ3c2YXcHiX9Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "428043979935-fpigvmpj32mo1iql0ltu1emmolmdmtk0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -46,6 +46,7 @@
     "android": {
       "versionCode": 87,
       "package": "com.gofullstack.babysteps.prod",
+      "googleServicesFile": "./google-services.prod.json",
       "permissions": [
         "AUDIO_RECORDING",
         "RECORD_AUDIO",

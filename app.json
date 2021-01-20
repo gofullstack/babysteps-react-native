@@ -47,6 +47,7 @@
     "android": {
       "versionCode": 29,
       "package": "com.gofullstack.babysteps.staging",
+      "googleServicesFile": "./google-services.staging.json",
       "permissions": [
         "AUDIO_RECORDING",
         "RECORD_AUDIO",
