@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "499000661401",
+    "project_id": "babysteps-staging",
+    "storage_bucket": "babysteps-staging.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:499000661401:android:a145a694f9012e86e7af08",
+        "android_client_info": {
+          "package_name": "com.gofullstack.babysteps.staging"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "499000661401-2rnli2i350ea8ml1fnb210uqbq9c8eip.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAr7ZjGIcnGFEM72yjsO_dG1F-Vdt-rb2Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "499000661401-2rnli2i350ea8ml1fnb210uqbq9c8eip.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
