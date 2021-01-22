@@ -379,7 +379,8 @@ class RegistrationRespondentForm extends Component {
                       { marginTop: 20, marginBottom: 10 },
                     ]}
                   >
-                    Are You Currently Pregnant?
+                    Are you currently pregnant with the child who will
+                    participate in the study?
                   </Text>
                   <CheckBox
                     title="Yes"
