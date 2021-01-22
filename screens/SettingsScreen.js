@@ -192,22 +192,6 @@ class SettingsScreen extends React.Component {
     this.setState({ notificationPermissions: status });
   };
 
-  renderDevDebugItems = releaseChannel => {
-    return (
-      <View>
-        <Text>
-          Notification Permissions: {this.state.notificationPermissions}
-        </Text>
-        <Text>
-          Notifications Updated:{' '}
-          {moment(this.props.session.notifications_updated_at).format(
-            'MM/DD/YY',
-          )}
-        </Text>
-      </View>
-    );
-  };
-
   renderIRBinformation = () => {
     const respondent = this.props.registration.respondent.data;
     const irb = IRBInformation[respondent.tos_id];
@@ -244,6 +228,7 @@ class SettingsScreen extends React.Component {
     const calendar = this.props.milestones.calendar;
     const session = this.props.session;
     const subject = this.props.registration.subject.data;
+    const notificationPermissions = this.state.notificationPermissions;
 
     return (
       <SafeAreaView>
@@ -252,7 +237,7 @@ class SettingsScreen extends React.Component {
           <Text>
             Version: {manifest.version}:{build}
           </Text>
-          {this.renderDevDebugItems(release)}
+          <Text>Notification Permissions: {notificationPermissions}</Text>
           <Text>Release: {release}</Text>
           <Text>User ID: {session.user_id}</Text>
 

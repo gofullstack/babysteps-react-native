@@ -10,6 +10,7 @@ import { createStackNavigator } from 'react-navigation-stack';
 import { showMessage } from 'react-native-flash-message';
 
 import isEmpty from 'lodash/isEmpty';
+import find from 'lodash/find';
 
 import moment from 'moment';
 
@@ -153,6 +154,8 @@ class RootNavigator extends Component {
       uploadAttachmentsSubmitted: false,
     };
 
+    this.responseListener = null;
+
     this.props.fetchSession();
     this.props.fetchMilestoneAnswers({ api_id: 'empty' });
     this.props.fetchRespondent();
@@ -174,9 +177,9 @@ class RootNavigator extends Component {
       this.setState({ milestone_calendar_updated: true });
     }
     this._getNotificationPermissions();
-    Notifications.addNotificationResponseReceivedListener(
-      this._handleNotificationResponse,
-    );
+    Notifications.addNotificationResponseReceivedListener(response => {
+      this._handleNotificationResponse(response);
+    });
 
     // temporary code for backward compatibility
     Notifications.cancelAllScheduledNotificationsAsync();
@@ -311,16 +314,13 @@ class RootNavigator extends Component {
     this.props.showMomentaryAssessment(data);
   };
 
-  _handleNotificationResponse = async ({ origin, data, remote }) => {
-    // origin
-    // 'received' app is open and foregrounded
-    // 'received' app is open but was backgrounded (ios)
-    // 'selected' app is open but was backgrounded (Andriod)
-    // 'selected' app was not open and opened by selecting notification
-    // 'selected' app was not open but opened by app icon (ios only)
+  _handleNotificationResponse = async response => {
+    console.log({response});
+    const data = response.notification.request.content.data;
+
     if (data.momentary_assessment) {
       this._handleMomentaryAssessment(data);
-    } else if (origin === 'selected') {
+    } else if (data.task_id) {
       this._handleNotificationOnPress(data);
     } else {
       showMessage({
