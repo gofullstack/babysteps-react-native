@@ -28,9 +28,9 @@
     "assetBundlePatterns": [
       "./assets/**/*"
     ],
-    "version": "0.14.13",
+    "version": "0.14.15",
     "ios": {
-      "buildNumber": "23",
+      "buildNumber": "25",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps.staging",
       "requireFullScreen": true,
@@ -45,7 +45,7 @@
       }
     },
     "android": {
-      "versionCode": 23,
+      "versionCode": 25,
       "package": "com.gofullstack.babysteps.staging",
       "googleServicesFile": "./google-services.staging.json",
       "permissions": [
