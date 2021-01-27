@@ -560,9 +560,6 @@ export class RenderExternalLink extends React.PureComponent {
             color={Colors.green}
             onPress={() => this.handleLinkPress(choice)}
           />
-          <Text style={styles.externalLinkHelper}>
-            Press Confirm when completed.
-          </Text>
         </View>
       );
     });

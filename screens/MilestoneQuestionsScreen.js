@@ -425,13 +425,11 @@ class MilestoneQuestionsScreen extends Component {
 
     if (inStudy) {
       this.props.apiUpdateMilestoneAnswers(session, section.id, answers);
-    
+
       // mark calendar entry as complete on api
-    
       const calendar = _.find(calendars, ['task_id', section.task_id]);
       if (calendar && calendar.id) {
-        const date = new Date().toISOString();
-        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: {completed_at: date}});
+        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: { completed_at }});
       }
     }
 
@@ -576,7 +574,7 @@ class MilestoneQuestionsScreen extends Component {
               buttonStyle={styles.buttonTwoStyle}
               titleStyle={styles.buttonTitleStyle}
               onPress={() => this.handleConfirm()}
-              title="Confirm"
+              title="Completed"
               disabled={this.state.confirmed}
             />
           </View>
