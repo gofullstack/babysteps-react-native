@@ -23,6 +23,7 @@ import {
 } from '../actions/notification_actions';
 
 import Colors from '../constants/Colors';
+import States from '../actions/states';
 
 const { width, height } = Dimensions.get('window');
 const modalWidth = width * 0.9;
