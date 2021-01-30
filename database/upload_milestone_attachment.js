@@ -33,7 +33,7 @@ const executeApiCall = async (answer, attachment) => {
   return response;
 };
 
-const UploadMilestoneAttachment = async (session, attachment) => {
+const UploadMilestoneAttachment = async attachment => {
   let method = 'answer';
   let id = null;
   if (attachment.answer_id) id = attachment.answer_id;
@@ -54,7 +54,7 @@ const UploadMilestoneAttachment = async (session, attachment) => {
   }
 
   let loop = 0;
-  const delayMessage = '***** Waiting for Answer API ID...'
+  const delayMessage = '***** Waiting for Answer API ID...';
   while (loop < 10 && !answer.api_id) {
     await delay(3000, delayMessage);
     answer = await getAnswer(id, method);

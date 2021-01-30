@@ -201,7 +201,7 @@ class RegistrationRespondentForm extends Component {
     const uri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
     const signatureFile = await FileSystem.getInfoAsync(uri, {size: true});
     if (signatureFile.exists) {
-      this.props.apiSaveSignature(this.props.session, api_id, uri);
+      this.props.apiSaveSignature(api_id, uri);
     } else {
       console.log('no signature available');
     } // signatureFile exists

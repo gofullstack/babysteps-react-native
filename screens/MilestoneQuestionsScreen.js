@@ -447,7 +447,7 @@ class MilestoneQuestionsScreen extends Component {
         delete attachment.title;
         this.props.updateMilestoneAttachment(attachment);
         if (inStudy) {
-          UploadMilestoneAttachment(session, attachment);
+          UploadMilestoneAttachment(attachment);
         }
       });
     }

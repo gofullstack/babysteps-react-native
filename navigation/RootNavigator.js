@@ -4,6 +4,7 @@ import { Platform, Alert } from 'react-native';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as Permissions from 'expo-permissions';
+import * as FileSystem from 'expo-file-system';
 
 import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
@@ -25,11 +26,19 @@ import {
   fetchMilestoneAnswers,
   apiFetchMilestones,
   apiFetchMilestoneCalendar,
+  fetchMilestoneAttachments,
+  apiFetchChoiceAnswers,
+  apiFetchAnswerAttachments,
 } from '../actions/milestone_actions';
 
 import {
+  resetRespondent,
   fetchRespondent,
   apiUpdateRespondent,
+  apiFetchUserRespondents,
+  apiFetchRespondentAttachments,
+  apiSaveSignature,
+  apiFetchUserSubject,
 } from '../actions/registration_actions';
 
 import {
@@ -38,8 +47,6 @@ import {
   updateMomentaryAssessments,
   deleteAllNotifications,
 } from '../actions/notification_actions';
-
-import { fetchMilestoneAttachments } from '../actions/milestone_actions';
 
 import AppNavigator from './AppNavigator';
 import NavigationService from './NavigationService';
@@ -52,11 +59,10 @@ import TourNoStudyConfirmScreen from '../screens/TourNoStudyConfirmScreen';
 import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
 
 import UploadMilestoneAnswers from '../database/upload_milestone_answers';
-import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
 
 import { openSettings } from '../components/permissions';
 
-import { addColumn } from '../database/common';
+import { delay, addColumn } from '../database/common';
 
 import Colors from '../constants/Colors';
 import States from '../actions/states';
@@ -147,11 +153,15 @@ class RootNavigator extends Component {
       uploadAnswersSubmitted: false,
       uploadAttachments: [],
       uploadAttachmentsSubmitted: false,
+      userRespondentApiUpdated: false,
+      respondentAttachmentsApiUpdated: false,
+      userSubjectApiUpdated: false,
     };
 
     this.props.fetchSession();
+    this.props.resetRespondent();
     this.props.fetchMilestoneAnswers({ api_id: 'empty' });
-    this.props.fetchMilestoneAttachments({ upload: true });
+    this.props.fetchMilestoneAttachments();
   }
 
   componentDidMount() {
@@ -180,6 +190,8 @@ class RootNavigator extends Component {
     const calendar = this.props.milestones.calendar;
     const session = this.props.session;
     const subject = this.props.registration.subject.data;
+    const respondent = this.props.registration.respondent.data;
+    const apiRespondent = this.props.registration.apiRespondent;
     const attachments = this.props.milestones.attachments;
     const answers = this.props.milestones.answers;
     const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
@@ -188,7 +200,37 @@ class RootNavigator extends Component {
       uploadAnswersSubmitted,
       uploadAttachments,
       uploadAttachmentsSubmitted,
+      userRespondentApiUpdated,
+      respondentAttachmentsApiUpdated,
+      userSubjectApiUpdated,
     } = this.state;
+
+    // rebuild respondent and subject on server
+    if (inStudy && !session.fetching && session.fetched) {
+      if (!isEmpty(respondent) && !userRespondentApiUpdated) {
+        this.props.apiFetchUserRespondents(session);
+        this.setState({ userRespondentApiUpdated: true });
+      }
+      if (
+        userRespondentApiUpdated &&
+        !apiRespondent.fetching &&
+        apiRespondent.fetched &&
+        !respondentAttachmentsApiUpdated
+      ) {
+        this.props.apiFetchRespondentAttachments(respondent.api_id);
+        this.setState({ respondentAttachmentsApiUpdated: true });
+      }
+
+      if (
+        !isEmpty(subject) &&
+        userRespondentApiUpdated &&
+        !userSubjectApiUpdated
+      ) {
+        this.props.apiFetchUserSubject(session, subject.api_id);
+        this.props.apiFetchChoiceAnswers(session, subject.api_id);
+        this.setState({ userSubjectApiUpdated: true });
+      }
+    }
 
     // update local notifications every 7 days to stay under the
     // IOS limit of 64 notifications
@@ -215,7 +257,10 @@ class RootNavigator extends Component {
     ) {
       UploadMilestoneAnswers(uploadAnswers);
       this.props.resetMilestoneAnswers();
-      this.setState({ uploadAnswersSubmitted: true, uploadAnswers: [] });
+      this.setState({
+        uploadAnswersSubmitted: true,
+        uploadAnswers: [],
+      });
     }
 
     if (
@@ -230,15 +275,35 @@ class RootNavigator extends Component {
     // upload directly to AWS any attachments not yet uploaded
     if (
       inStudy &&
-      !isEmpty(uploadAttachments) && 
+      !isEmpty(uploadAttachments) &&
       session.connectionType === 'wifi'
     ) {
-      uploadAttachments.forEach(attachment => {
-        UploadMilestoneAttachment(session, attachment);
+      this._uploadAttachments(uploadAttachments);
+      console.log({uploadAttachments})
+      this.setState({
+        uploadAttachmentsSubmitted: true,
+        uploadAttachments: [],
       });
-      this.setState({ uploadAttachmentsSubmitted: true, uploadAttachments: [] });
     }
   }
+
+  _uploadAttachments = async attachments => {
+    for (const attachment of attachments) {
+      this.props.apiFetchAnswerAttachments(attachment);
+      const delayMessage = '*** delay while attachment uploaded...';
+      await delay(3000, delayMessage);
+    }
+  };
+
+  _saveSignature = async api_id => {
+    const uri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
+    const signatureFile = await FileSystem.getInfoAsync(uri, {size: true});
+    if (signatureFile.exists) {
+      this.props.apiSaveSignature(api_id, uri);
+    } else {
+      console.log('no signature available');
+    } // signatureFile exists
+  };
 
   _handleUpdateNotifications = (session, subject) => {
     const today = moment();
@@ -405,11 +470,18 @@ const mapDispatchToProps = {
   fetchSession,
   resetMilestoneAnswers,
   fetchMilestoneAnswers,
+  apiFetchAnswerAttachments,
   showMomentaryAssessment,
   updateNotifications,
   updateMomentaryAssessments,
   deleteAllNotifications,
   fetchMilestoneAttachments,
+  resetRespondent,
+  apiFetchUserRespondents,
+  apiFetchRespondentAttachments,
+  apiSaveSignature,
+  apiFetchUserSubject,
+  apiFetchChoiceAnswers,
 };
 
 export default connect(

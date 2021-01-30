@@ -4,6 +4,8 @@ import axios from "axios";
 
 import { _ } from 'lodash';
 
+import { apiTokenRefresh } from './session_actions';
+
 import { insertRows, getApiUrl } from '../database/common';
 import schema from '../database/registration_schema.json';
 
@@ -46,6 +48,14 @@ import {
   API_UPDATE_RESPONDENT_FULFILLED,
   API_UPDATE_RESPONDENT_REJECTED,
 
+  API_FETCH_USER_RESPONDENT_PENDING,
+  API_FETCH_USER_RESPONDENT_FULFILLED,
+  API_FETCH_USER_RESPONDENT_REJECTED,
+
+  API_FETCH_RESPONDENT_ATTACHMENTS_PENDING,
+  API_FETCH_RESPONDENT_ATTACHMENTS_FULFILLED,
+  API_FETCH_RESPONDENT_ATTACHMENTS_REJECTED,
+
   API_SAVE_SIGNATURE_PENDING,
   API_SAVE_SIGNATURE_FULFILLED,
   API_SAVE_SIGNATURE_REJECTED,
@@ -71,6 +81,10 @@ import {
   API_UPDATE_SUBJECT_PENDING,
   API_UPDATE_SUBJECT_FULFILLED,
   API_UPDATE_SUBJECT_REJECTED,
+
+  API_FETCH_USER_SUBJECT_PENDING,
+  API_FETCH_USER_SUBJECT_FULFILLED,
+  API_FETCH_USER_SUBJECT_REJECTED,
 
   API_SYNC_REGISTRATION_PENDING,
   API_SYNC_REGISTRATION_FULFILLED,
@@ -288,7 +302,7 @@ export const createRespondent = respondent => {
 };
 
 export const apiCreateRespondent = (session, data) => {
-  delete data.id;
+  //delete data.id;
   delete data.api_id;
 
   return function(dispatch) {
@@ -364,7 +378,7 @@ export const apiUpdateRespondent = (session, data) => {
   }; // return dispatch
 };
 
-export const apiSaveSignature = (session, api_id, uri) => {
+export const apiSaveSignature = (api_id, uri) => {
   return function(dispatch) {
 
     dispatch(Pending(API_SAVE_SIGNATURE_PENDING));
@@ -376,21 +390,16 @@ export const apiSaveSignature = (session, api_id, uri) => {
       type: 'image/png',
     });
 
-    const headers = {
-      'ACCESS-TOKEN': session.access_token,
-      'TOKEN-TYPE': 'Bearer',
-      CLIENT: session.client,
-      UID: session.uid,
-      'CONTENT-TYPE': 'multipart/form-data',
-    };
-
     const baseURL = getApiUrl();
+    const url = `/respondents/${api_id}/update_attachment`;
+    const apiToken = Constants.manifest.extra.apiToken;
+    const headers = {"milestone_token": apiToken};
 
     axios({
       method: 'PUT',
       responseType: 'json',
       baseURL,
-      url: '/respondents/' + api_id,
+      url,
       headers,
       data: formData,
     })
@@ -483,7 +492,7 @@ export const createSubject = subject => {
 };
 
 export const apiCreateSubject = (session, data) => {
-  delete data.id;
+  //delete data.id;
   delete data.api_id;
 
   return function(dispatch) {
@@ -630,6 +639,153 @@ export const apiSyncSignature = user_id => {
         })
         .catch(error => {
           dispatch(Response(API_SYNC_SIGNATURE_REJECTED, error));
+        });
+    }); // return Promise
+  }; // return dispatch
+};
+
+export const apiFetchUserRespondents = session => {
+
+  return dispatch => {
+    dispatch(Pending(API_FETCH_USER_RESPONDENT_PENDING));
+    const baseURL = getApiUrl();
+    const apiToken = Constants.manifest.extra.apiToken;
+    const { user_id } = session;
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        responseType: 'json',
+        baseURL,
+        url: '/respondents/by_user',
+        params: { user_id },
+        headers: {
+          "milestone_token": apiToken,
+        },
+      })
+        .then(response => {
+          const { respondents } = response.data;
+          dispatch(Response(API_FETCH_USER_RESPONDENT_FULFILLED, response));
+          if (_.isEmpty(respondents)) {
+
+            db.transaction(tx => {
+              tx.executeSql(
+                `SELECT * FROM respondents LIMIT 1;`,
+                [],
+                (_, response) => {
+                  const respondent = response.rows['_array'][0];
+                  const data = {
+                    ...respondent,
+                    id: respondent.api_id,
+                  };
+                  if (!data.respondent_type) data.respondent_type = 'mother';
+                  //console.log({ respondent: data });
+                  dispatch(apiCreateRespondent(session, data));
+                },
+                (_, error) => {
+                  console.log(error);
+                },
+              );
+            });
+          }
+        })
+        .catch(error => {
+          dispatch(Response(API_FETCH_USER_RESPONDENT_REJECTED, error));
+        });
+    }); // return Promise
+  }; // return dispatch
+};
+
+export const apiFetchRespondentAttachments = api_id => {
+
+  return dispatch => {
+    dispatch(Pending(API_FETCH_RESPONDENT_ATTACHMENTS_PENDING));
+    const baseURL = getApiUrl();
+    const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { "milestone_token": apiToken };
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        responseType: 'json',
+        baseURL,
+        url: '/respondents/has_attachment',
+        params: { id: api_id },
+        headers,
+      })
+        .then(response => {
+          const { status, data } = response;
+          console.log({ data });
+          dispatch(Response(API_FETCH_RESPONDENT_ATTACHMENTS_FULFILLED, response));
+          if (status != 404 && !data.has_attachment) {
+            saveSignature(dispatch, api_id);
+          }
+        })
+        .catch(error => {
+          dispatch(Response(API_FETCH_RESPONDENT_ATTACHMENTS_REJECTED, error));
+        });
+    }); // return Promise
+  }; // return dispatch
+};
+
+const saveSignature = async (dispatch, api_id) => {
+  const uri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
+  const signatureFile = await FileSystem.getInfoAsync(uri, {size: true});
+  if (signatureFile.exists) {
+    dispatch(apiSaveSignature(api_id, uri));
+  } else {
+    console.log('no signature available');
+  } // signatureFile exists
+};
+
+export const apiFetchUserSubject = (session, subject_id) => {
+
+  return dispatch => {
+    dispatch(Pending(API_FETCH_USER_SUBJECT_PENDING));
+    const baseURL = getApiUrl();
+    const apiToken = Constants.manifest.extra.apiToken;
+    const { user_id } = session;
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        responseType: 'json',
+        baseURL,
+        url: '/subjects/by_user',
+        params: { user_id, subject_id },
+        headers: {
+          "milestone_token": apiToken,
+        },
+      })
+        .then(response => {
+          const { subject } = response.data;
+          dispatch(Response(API_FETCH_USER_SUBJECT_FULFILLED, response));
+          if (_.isEmpty(subject)) {
+
+            db.transaction(tx => {
+              tx.executeSql(
+                `SELECT * FROM subjects LIMIT 1;`,
+                [],
+                (_, response) => {
+                  const subject = response.rows['_array'][0];
+                  const data = {
+                    ...subject,
+                    id: subject.api_id,
+                    outcome: 'live_birth',
+                    conception_method: 'natural',
+                  };
+                  //console.log({ subject: data });
+                  dispatch(apiCreateSubject(session, data));
+                },
+                (_, error) => {
+                  console.log(error);
+                },
+              );
+            });
+          }
+        })
+        .catch(error => {
+          dispatch(Response(API_FETCH_USER_SUBJECT_REJECTED, error));
         });
     }); // return Promise
   }; // return dispatch

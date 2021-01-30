@@ -76,6 +76,10 @@ export const UPDATE_MILESTONE_ANSWERS_PENDING = 'update_milestone_answers_pendin
 export const UPDATE_MILESTONE_ANSWERS_FULFILLED = 'update_milestone_answers_fulfilled';
 export const UPDATE_MILESTONE_ANSWERS_REJECTED = 'update_milestone_answers_rejected';
 
+export const API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING = 'api_fetch_milestone_choice_answer_pending';
+export const API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED = 'api_fetch_milestone_choice_answer_fulfilled';
+export const API_FETCH_MILESTONE_CHOICE_ANSWERS_REJECTED = 'api_fetch_milestone_choice_answer_rejected';
+
 export const API_CREATE_MILESTONE_ANSWER_PENDING = 'api_create_milestone_answer_pending';
 export const API_CREATE_MILESTONE_ANSWER_FULFILLED = 'api_create_milestone_answer_fulfilled';
 export const API_CREATE_MILESTONE_ANSWER_REJECTED = 'api_create_milestone_answer_rejected';
@@ -99,6 +103,10 @@ export const CREATE_MILESTONE_ATTACHMENT_REJECTED = 'create_milestone_attachment
 export const UPDATE_MILESTONE_ATTACHMENT_PENDING = 'update_milestone_attachment_pending';
 export const UPDATE_MILESTONE_ATTACHMENT_FULFILLED = 'update_milestone_attachment_fulfilled';
 export const UPDATE_MILESTONE_ATTACHMENT_REJECTED = 'update_milestone_attachment_rejected';
+
+export const API_FETCH_ANSWER_ATTACHMENTS_PENDING = 'api_fetch_answer_attachments_pending';
+export const API_FETCH_ANSWER_ATTACHMENTS_FULFILLED = 'api_fetch_answer_attachments_fulfilled';
+export const API_FETCH_ANSWER_ATTACHMENTS_REJECTED = 'api_fetch_answer_attachments_rejected';
 
 export const FETCH_OVERVIEW_TIMELINE_PENDING = 'fetch_overview_timeline_pending';
 export const FETCH_OVERVIEW_TIMELINE_FULFILLED = 'fetch_overview_timeline_fulfilled';
@@ -134,6 +142,10 @@ export const UPDATE_CONNECTION_TYPE = 'update_connection_type';
 export const API_FETCH_SIGNIN_PENDING = 'api_fetch_signin_pending';
 export const API_FETCH_SIGNIN_FULFILLED = 'api_fetch_signin_fulfilled';
 export const API_FETCH_SIGNIN_REJECTED = 'api_fetch_signin_rejected';
+
+export const API_FETCH_USER_RESPONDENT_PENDING = 'api_fetch_user_respondent_pending';
+export const API_FETCH_USER_RESPONDENT_FULFILLED = 'api_fetch_user_respondent_fulfilled';
+export const API_FETCH_USER_RESPONDENT_REJECTED = 'api_fetch_user_respondent_rejected';
 
 // Notification actions
 
@@ -177,6 +189,10 @@ export const UPDATE_RESPONDENT_PENDING = 'update_respondent_pending';
 export const UPDATE_RESPONDENT_FULFILLED = 'update_respondent_fulfilled';
 export const UPDATE_RESPONDENT_REJECTED = 'update_respondent_rejected';
 
+export const API_FETCH_RESPONDENT_ATTACHMENTS_PENDING = 'api_fetch_respondent_attachment_pending';
+export const API_FETCH_RESPONDENT_ATTACHMENTS_FULFILLED = 'api_fetch_respondent_attachment_fulfilled';
+export const API_FETCH_RESPONDENT_ATTACHMENTS_REJECTED = 'api_fetch_respondent_attachment_rejected';
+
 export const API_CREATE_RESPONDENT_PENDING = 'api_create_respondent_pending';
 export const API_CREATE_RESPONDENT_FULFILLED = 'api_create_respondent_fulfilled';
 export const API_CREATE_RESPONDENT_REJECTED = 'api_create_respondent_rejected';
@@ -210,6 +226,10 @@ export const API_CREATE_SUBJECT_REJECTED = 'api_create_subject_rejected';
 export const API_UPDATE_SUBJECT_PENDING = 'api_update_subject_pending';
 export const API_UPDATE_SUBJECT_FULFILLED = 'api_update_subject_fulfilled';
 export const API_UPDATE_SUBJECT_REJECTED = 'api_update_subject_rejected';
+
+export const API_FETCH_USER_SUBJECT_PENDING = 'api_fetch_user_subject_pending';
+export const API_FETCH_USER_SUBJECT_FULFILLED = 'api_fetch_user_subject_fulfilled';
+export const API_FETCH_USER_SUBJECT_REJECTED = 'api_fetch_user_subject_rejected';
 
 export const API_SYNC_REGISTRATION_PENDING = 'api_sync_registration_pending';
 export const API_SYNC_REGISTRATION_FULFILLED = 'api_sync_registration_fulfilled';

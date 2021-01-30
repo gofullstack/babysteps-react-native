@@ -1,7 +1,8 @@
 import * as FileSystem from 'expo-file-system';
 import * as SQLite from 'expo-sqlite';
+import Constants from 'expo-constants';
+
 import axios from 'axios';
-import url from 'url';
 
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
@@ -11,8 +12,9 @@ import isInteger from 'lodash/isInteger';
 import isEmpty from 'lodash/isEmpty';
 
 import { insertRows, getApiUrl } from '../database/common';
+import UploadMilestoneAnswers from '../database/upload_milestone_answers';
+import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
 
-import Constants from 'expo-constants';
 import CONSTANTS from '../constants';
 
 import {
@@ -94,6 +96,10 @@ import {
   UPDATE_MILESTONE_ANSWERS_FULFILLED,
   UPDATE_MILESTONE_ANSWERS_REJECTED,
 
+  API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING,
+  API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED,
+  API_FETCH_MILESTONE_CHOICE_ANSWERS_REJECTED,
+
   API_CREATE_MILESTONE_ANSWER_PENDING,
   API_CREATE_MILESTONE_ANSWER_FULFILLED,
   API_CREATE_MILESTONE_ANSWER_REJECTED,
@@ -117,6 +123,10 @@ import {
   UPDATE_MILESTONE_ATTACHMENT_PENDING,
   UPDATE_MILESTONE_ATTACHMENT_FULFILLED,
   UPDATE_MILESTONE_ATTACHMENT_REJECTED,
+
+  API_FETCH_ANSWER_ATTACHMENTS_PENDING,
+  API_FETCH_ANSWER_ATTACHMENTS_FULFILLED,
+  API_FETCH_ANSWER_ATTACHMENTS_REJECTED,
 
   FETCH_OVERVIEW_TIMELINE_PENDING,
   FETCH_OVERVIEW_TIMELINE_FULFILLED,
@@ -538,8 +548,6 @@ export const fetchMilestoneAnswers = (params = {}) => {
     }
     sql += ' ORDER BY section_id, question_id, choice_id;';
 
-    console.log(sql);
-
     return (
       db.transaction(tx => {
         tx.executeSql(
@@ -880,9 +888,14 @@ export const fetchMilestoneAttachments = (params = {}) => {
 
     return db.transaction(tx => {
       tx.executeSql(
-        sql, [],
-        (_, response) => dispatch(Response(FETCH_MILESTONE_ATTACHMENTS_FULFILLED, response)),
-        (_, error) => dispatch(Response(FETCH_MILESTONE_ATTACHMENTS_REJECTED, error))
+        sql,
+        [],
+        (_, response) => {
+          dispatch(Response(FETCH_MILESTONE_ATTACHMENTS_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_MILESTONE_ATTACHMENTS_REJECTED, error));
+        },
       );
     });
   };
@@ -942,6 +955,38 @@ export const updateMilestoneAttachment = attachment => {
   }; // dispatch
 };
 
+export const apiFetchAnswerAttachments = attachment => {
+
+  return dispatch => {
+    dispatch(Pending(API_FETCH_ANSWER_ATTACHMENTS_PENDING));
+    const baseURL = getApiUrl();
+    const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { "milestone_token": apiToken };
+    const url = `/answers/has_attachment`;
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        responseType: 'json',
+        baseURL,
+        url,
+        headers,
+        params: { choice_id: attachment.choice_id },
+      })
+        .then(response => {
+          const data = response.data;
+          dispatch(Response(API_FETCH_ANSWER_ATTACHMENTS_FULFILLED, response));
+          if (!data.has_attachment) {
+            UploadMilestoneAttachment(attachment);
+          }
+        })
+        .catch(error => {
+          dispatch(Response(API_FETCH_ANSWER_ATTACHMENTS_REJECTED, error));
+        });
+    }); // return Promise
+  }; // return dispatch
+};
+
 export const fetchOverViewTimeline = () => {
   return dispatch => {
     dispatch(Pending(FETCH_OVERVIEW_TIMELINE_PENDING));
@@ -984,4 +1029,51 @@ export const fetchOverViewTimeline = () => {
       );
     });
   };
+};
+
+export const apiFetchChoiceAnswers = (session, subject_id) => {
+
+  return dispatch => {
+    dispatch(Pending(API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING));
+    const baseURL = getApiUrl();
+    const apiToken = Constants.manifest.extra.apiToken;
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        responseType: 'json',
+        baseURL,
+        url: '/answers/by_subject',
+        params: { subject_id },
+        headers: {
+          "milestone_token": apiToken,
+        },
+      })
+        .then(response => {
+          const { choice_ids } = response.data;
+          dispatch(
+            Response(API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED, response),
+          );
+          const sql = `SELECT * FROM answers WHERE choice_id NOT IN (${choice_ids.join()}) ;`;
+          db.transaction(tx => {
+            tx.executeSql(
+              sql,
+              [],
+              (_, response) => {
+                const answers = response.rows['_array'];
+                UploadMilestoneAnswers(answers);
+              },
+              (_, error) => {
+                console.log(error);
+              },
+            );
+          });
+        })
+        .catch(error => {
+          dispatch(
+            Response(API_FETCH_MILESTONE_CHOICE_ANSWERS_REJECTED, error),
+          );
+        });
+    }); // return Promise
+  }; // return dispatch
 };
