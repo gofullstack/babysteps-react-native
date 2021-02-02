@@ -23,6 +23,7 @@ import checkCustomDirectories from './components/check_custom_directories';
 
 import MomentaryAssessment from './components/momentary_assessment_modal';
 
+import ApiSyncData from './database/api_sync_data';
 import ApiOfflineListener from './database/api_offline_listener';
 
 import store from './store';
@@ -124,7 +125,9 @@ export default class App extends Component {
   };
 
   render() {
-    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
+    const { isLoadingComplete } = this.state;
+    const { skipLoadingScreen } = this.props;
+    if (!isLoadingComplete && !skipLoadingScreen) {
       return (
         <AppLoading
           startAsync={this._loadResourcesAsync}
@@ -138,10 +141,11 @@ export default class App extends Component {
       <Provider store={store}>
         <View style={styles.container}>
           {Platform.OS === 'android' && <StatusBar barStyle="default" />}
+          <ApiSyncData />
+          <ApiOfflineListener />
           <RootNavigator />
           <FlashMessage position="top" />
           <MomentaryAssessment />
-          <ApiOfflineListener />
         </View>
       </Provider>
     );

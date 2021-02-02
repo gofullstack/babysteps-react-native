@@ -253,6 +253,7 @@ class SettingsScreen extends React.Component {
           </Text>
           {this.renderDevDebugItems(release)}
           <Text>Release: {release}</Text>
+          <Text>User ID: {session.user_id}</Text>
 
           <TouchableOpacity
             style={styles.linkContainer}

@@ -56,6 +56,10 @@ import {
   UPDATE_SUBJECT_FULFILLED,
   UPDATE_SUBJECT_REJECTED,
 
+  API_FETCH_USER_SUBJECT_PENDING,
+  API_FETCH_USER_SUBJECT_FULFILLED,
+  API_FETCH_USER_SUBJECT_REJECTED,
+
   API_CREATE_SUBJECT_PENDING,
   API_CREATE_SUBJECT_FULFILLED,
   API_CREATE_SUBJECT_REJECTED,
@@ -656,6 +660,42 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case API_UPDATE_SUBJECT_REJECTED: {
+      return {
+        ...state,
+        apiSubject: {
+          ...state.apiSubject,
+          fetching: false,
+          fetched: false,
+          error: action.payload,
+        },
+      };
+    }
+
+    // API_UPDATE_SUBJECT
+    case API_FETCH_USER_SUBJECT_PENDING: {
+      return {
+        ...state,
+        apiSubject: {
+          ...state.apiSubject,
+          fetching: true,
+          fetched: false,
+          error: null,
+        },
+      };
+    }
+    case API_FETCH_USER_SUBJECT_FULFILLED: {
+      const data = action.payload.data;
+      return {
+        ...state,
+        apiSubject: {
+          ...state.apiSubject,
+          fetching: false,
+          fetched: true,
+          data,
+        },
+      };
+    }
+    case API_FETCH_USER_SUBJECT_REJECTED: {
       return {
         ...state,
         apiSubject: {
