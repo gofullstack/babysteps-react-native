@@ -81,6 +81,11 @@ const parseImageMetaData = (data, image) => {
 
   data.uri = newDir + '/' + data.file_name;
 
+  data.choice = null;
+  if (image.choice_id) {
+    data.choice_id = image.choice_id;
+  }
+
   if (!data.title && image.title) {
     data.title = image.title;
   }
@@ -112,9 +117,10 @@ export const createBabyBookEntry = (data, image) => {
       .then(() => {
         db.transaction(tx => {
           tx.executeSql(
-            'INSERT INTO babybook_entries (user_id, title, detail, cover, file_name, file_type, uri, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+            'INSERT INTO babybook_entries (user_id, choice_id, title, detail, cover, file_name, file_type, uri, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
             [
               data.user_id,
+              data.choice_id,
               data.title,
               data.detail,
               data.cover,
@@ -154,45 +160,48 @@ export const updateBabyBookEntry = (id, data, image = null) => {
 
     updateSQL = `UPDATE babybook_entries SET ${updateSQL.join(', ')} WHERE babybook_entries.id = ${id};`
 
-    return (
-      db.transaction(tx => {
-        tx.executeSql( updateSQL, [],
-          (_, response) => {
-            dispatch(Response(UPDATE_BABYBOOK_ENTRY_FULFILLED, response, data));
-          },
-          (_, error) => {
-            dispatch(Response(UPDATE_BABYBOOK_ENTRY_REJECTED, error))
-          }
-        );
-      })
-    )
+    return db.transaction(tx => {
+      tx.executeSql(
+        updateSQL,
+        [],
+        (_, response) => {
+          dispatch(Response(UPDATE_BABYBOOK_ENTRY_FULFILLED, response, data));
+        },
+        (_, error) => {
+          dispatch(Response(UPDATE_BABYBOOK_ENTRY_REJECTED, error))
+        }
+      );
+    })
   };
 };
 
 export const apiCreateBabyBookEntry = (session, data, image = null) => {
-  data = parseImageMetaData(data, image);
 
   const formData = new FormData();
 
-  if (data.file_name) {
+  data = parseImageMetaData(data, image);
+  data.user_id = session.user_id;
+
+  // only upload files for entries not originating from answers
+  if (data.file_name && !data.choice_id) {
     formData.append(`babybook_entry[attachment]`, {
       uri: data.uri,
       name: data.file_name,
       type: data.file_type,
     });
   }
-  const entry = omit(data, ['uri', 'file_name', 'file_type']);
-  forEach(entry, (value, key) => {
+
+  forEach(data, (value, key) => {
     const name = `babybook_entry[${key}]`;
     formData.append(name, value);
   });
+
   return dispatch => {
     dispatch({
       type: API_CREATE_BABYBOOK_ENTRY_PENDING,
       payload: {
         data: formData,
         session,
-        multipart: true,
       },
       meta: {
         offline: {

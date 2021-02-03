@@ -56,6 +56,7 @@ class ApiSyncData extends PureComponent {
     addColumn('attachments', 'size', 'integer');
     addColumn('attachments', 'uploaded', 'integer');
     addColumn('attachments', 'checksum', 'string');
+    addColumn('babybook_entries', 'choice_id', 'integer');
   }
 
   componentDidUpdate(prevProps, prevState) {

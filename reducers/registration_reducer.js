@@ -720,8 +720,10 @@ const reducer = (state = initialState, action, formData = {}) => {
     }
     case API_SYNC_REGISTRATION_FULFILLED: {
       const data = action.payload.data;
-      const respondent = data.respondents[0];
-      const subject = data.subjects[0];
+      let respondent = {};
+      if (data.respondents) respondent = data.respondents[0];
+      let subject = {};
+      if (data.subjects) subject = data.subjects[0];
       return {
         ...state,
         apiRespondent: {
@@ -731,11 +733,11 @@ const reducer = (state = initialState, action, formData = {}) => {
           error: null,
         },
         respondent: {
-          ...respondent,
+          ...state.respondent,
           data: respondent,
         },
         subject: {
-          ...subject,
+          ...state.subject,
           data: subject,
         },
       };

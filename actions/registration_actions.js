@@ -569,7 +569,6 @@ export const apiUpdateSubject = (session, data) => {
 
 // this fetches respondent and subject from api based on user id
 export const apiSyncRegistration = user_id => {
-
   return dispatch => {
     dispatch(Pending(API_SYNC_REGISTRATION_PENDING));
     const baseURL = getApiUrl();
@@ -589,15 +588,21 @@ export const apiSyncRegistration = user_id => {
         },
       })
         .then(response => {
-          const respondents = response.data.respondents;
-          // respondent id becomes api id in sqlite
-          respondents[0].api_id = respondents[0].id;
-          const subjects = response.data.subjects;
-          // subject id becomes api id in sqlite
-          subjects[0].api_id = subjects[0].id;
-
-          insertRows('respondents', schema['respondents'], respondents);
-          insertRows('subjects', schema['subjects'], subjects);
+          if (response.status !== 404) {
+            const data = response.data;
+            if (data.respondents) {
+              const respondents = data.respondents;
+              // respondent id becomes api id in sqlite
+              respondents[0].api_id = respondents[0].id;
+              insertRows('respondents', schema['respondents'], respondents);
+            }
+            if (data.subjects) {
+              const subjects = data.subjects;
+              // subject id becomes api id in sqlite
+              subjects[0].api_id = subjects[0].id;
+              insertRows('subjects', schema['subjects'], subjects);
+            }
+          }
           dispatch(Response(API_SYNC_REGISTRATION_FULFILLED, response));
         })
         .catch(error => {
@@ -629,13 +634,17 @@ export const apiSyncSignature = user_id => {
       })
         .then(response => {
           const imageUrls = response.data;
-          FileSystem.downloadAsync(imageUrls[0], fileUri)
-            .then(response => {
-              dispatch(Response(API_SYNC_SIGNATURE_FULFILLED, response));
-            })
-            .catch(error => {
-              dispatch(Response(API_SYNC_SIGNATURE_REJECTED, error));
-            });
+          if (imageUrls.status !== 404) {
+            FileSystem.downloadAsync(imageUrls[0], fileUri)
+              .then(response => {
+                dispatch(Response(API_SYNC_SIGNATURE_FULFILLED, response));
+              })
+              .catch(error => {
+                dispatch(Response(API_SYNC_SIGNATURE_REJECTED, error));
+              });
+          } else {
+            dispatch(Response(API_SYNC_SIGNATURE_FULFILLED, response));
+          }
         })
         .catch(error => {
           dispatch(Response(API_SYNC_SIGNATURE_REJECTED, error));

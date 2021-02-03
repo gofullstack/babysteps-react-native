@@ -4,6 +4,7 @@
       "id": "INTEGER PRIMARY KEY",
       "api_id": "INTEGER",
       "user_id": "INTEGER",
+      "choice_id": "INTEGER",
       "cover": "INTEGER",
       "title": "TEXT", 
       "detail": "TEXT",

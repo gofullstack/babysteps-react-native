@@ -74,67 +74,71 @@ class SignInScreen extends Component {
 
   _saveSignInSession = session => {
     const { syncMilestones, syncRegistration, syncCalendar, syncAnswers } = this.state;
-    const milestones = this.props.milestones;
+    
     const registration = this.props.registration;
+    const { apiRespondent, apiSignature } = registration;
+
+    const milestones = this.props.milestones;
+    const { api_milestones, api_calendar, apiAnswers } = milestones;
+
     if (session.fetched) {
       // get respondent and subject data
       if (!syncRegistration) {
-        this.setState({ syncRegistration: true });
         this.props.resetRespondent();
         this.props.resetSubject();
         this.props.apiSyncRegistration(session.api_id);
         this.props.apiSyncSignature(session.api_id);
+        this.setState({ syncRegistration: true });
         // slow down to allow API to respond
         return;
       }
-      // wait for registration to sync
-      if (syncRegistration && registration.apiRespondent.fetching) {
-        setTimeout(() => {}, 1000);
-        return;
-      }
+
       // redirect to sign up if no respondent information
       if (
-        registration.apiRespondent.error &&
-        registration.apiRespondent.error.includes("message") &&
+        !apiRespondent.fetching &&
+        apiRespondent.fetched &&
         isEmpty(registration.respondent.data)
       ) {
+        console.log('*** User found but not Respondent...');
         this.props.updateSession({
           registration_state: States.REGISTERING_FULL_CONSENT,
         });
         return;
       }
-      // slow down cycles to allow API to respond
-      setTimeout(() => {}, 1000);
-      if (!syncMilestones) {
-        this.setState({ syncMilestones: true });
-        this.props.resetApiMilestones();
-        this.props.apiFetchMilestones();
+
+      if (!apiRespondent.fetching && apiRespondent.fetched) {
+        if (!syncMilestones) {
+          this.setState({ syncMilestones: true });
+          this.props.resetApiMilestones();
+          this.props.apiFetchMilestones();
+        }
+        if (!syncCalendar && !isEmpty(registration.subject.data)) {
+          this.setState({ syncCalendar: true });
+          this.props.resetMilestoneCalendar();
+          this.props.apiFetchMilestoneCalendar({ subject_id: registration.subject.data.api_id });
+        }
+        if (
+          !syncAnswers &&
+          !apiAnswers.fetched &&
+          !isEmpty(registration.respondent.data) &&
+          !isEmpty(registration.subject.data)
+        ) {
+          this.setState({ syncAnswers: true });
+          this.props.resetMilestoneAnswers();
+          this.props.apiSyncMilestoneAnswers(session.api_id);
+        }
       }
-      if (!syncCalendar && !isEmpty(registration.subject.data)) {
-        this.setState({ syncCalendar: true });
-        this.props.resetMilestoneCalendar();
-        this.props.apiFetchMilestoneCalendar({ subject_id: registration.subject.data.api_id });
-      }
-      if (
-        !syncAnswers &&
-        !milestones.apiAnswers.fetched &&
-        !isEmpty(registration.respondent.data) &&
-        !isEmpty(registration.subject.data)
-      ) {
-        this.setState({ syncAnswers: true });
-        this.props.resetMilestoneAnswers();
-        this.props.apiSyncMilestoneAnswers(session.api_id);
-      }
+
       if (
         syncMilestones &&
-        milestones.api_milestones.fetched &&
+        api_milestones.fetched &&
         syncRegistration &&
-        registration.apiRespondent.fetched &&
-        registration.apiSignature.fetched &&
+        apiRespondent.fetched &&
+        apiSignature.fetched &&
         syncCalendar &&
-        milestones.api_calendar.fetched &&
+        api_calendar.fetched &&
         syncAnswers &&
-        milestones.apiAnswers.fetched
+        apiAnswers.fetched
       ) {
         this.setState({ shouldUpdate: false });
         this.props.updateSession({

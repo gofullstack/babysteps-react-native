@@ -376,9 +376,9 @@ class MilestoneQuestionsScreen extends Component {
         return;
       }
       _.assign(attachment, {
-        title: att.title,
         section_id: this.state.section.id,
         choice_id: choice.id,
+        title: att.title,
         width: att.width,
         height: att.height,
         size: resultFile.size,
@@ -442,7 +442,7 @@ class MilestoneQuestionsScreen extends Component {
         ) {
           const data = {title: null, detail: null, cover};
           this.props.createBabyBookEntry(data, attachment);
-          //this.props.apiCreateBabyBookEntry(session, data, attachment);
+          this.props.apiCreateBabyBookEntry(session, data, attachment);
         }
         delete attachment.title;
         this.props.updateMilestoneAttachment(attachment);
