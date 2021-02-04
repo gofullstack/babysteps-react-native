@@ -218,7 +218,7 @@ class CameraModal extends Component {
     if (videoTimer) {
       const minutes = videoTimer.minutes();
       const seconds = videoTimer.seconds();
-      if (question.rn_input_type === 'file_video_frustration') {
+      if (question && question.rn_input_type === 'file_video_frustration') {
         if (minutes >= 3) {
           if (seconds === 1) {
             Player.playSound('trill');

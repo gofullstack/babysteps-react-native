@@ -30,6 +30,10 @@ import {
   UPDATE_RESPONDENT_FULFILLED,
   UPDATE_RESPONDENT_REJECTED,
 
+  API_FETCH_USER_RESPONDENT_PENDING,
+  API_FETCH_USER_RESPONDENT_FULFILLED,
+  API_FETCH_USER_RESPONDENT_REJECTED,
+
   API_CREATE_RESPONDENT_PENDING,
   API_CREATE_RESPONDENT_FULFILLED,
   API_CREATE_RESPONDENT_REJECTED,
@@ -373,6 +377,42 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
 
+
+    case API_FETCH_USER_RESPONDENT_PENDING: {
+      return {
+        ...state,
+        apiRespondent: {
+          ...state.apiRespondent,
+          fetching: true,
+          fetched: false,
+          error: null,
+          data: {},
+        },
+      };
+    }
+    case API_FETCH_USER_RESPONDENT_FULFILLED: {
+      return {
+        ...state,
+        apiRespondent: {
+          ...state.apiRespondent,
+          fetching: false,
+          fetched: true,
+          data: {},
+        },
+      };
+    }
+    case API_FETCH_USER_RESPONDENT_REJECTED: {
+      return {
+        ...state,
+        apiRespondent: {
+          ...state.apiRespondent,
+          fetching: false,
+          fetched: false,
+          error: action.payload,
+          data: {},
+        },
+      };
+    }
     // API_CREATE_RESPONDENT
     case API_CREATE_RESPONDENT_PENDING: {
       return {
@@ -680,6 +720,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           fetching: true,
           fetched: false,
           error: null,
+          data: {},
         },
       };
     }
@@ -691,7 +732,8 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.apiSubject,
           fetching: false,
           fetched: true,
-          data,
+          error: null,
+          data: {},
         },
       };
     }
@@ -703,6 +745,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           fetching: false,
           fetched: false,
           error: action.payload,
+          data: {},
         },
       };
     }

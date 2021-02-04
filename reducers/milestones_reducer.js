@@ -77,6 +77,10 @@ import {
   UPDATE_MILESTONE_ANSWERS_FULFILLED,
   UPDATE_MILESTONE_ANSWERS_REJECTED,
 
+  API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING,
+  API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED,
+  API_FETCH_MILESTONE_CHOICE_ANSWERS_REJECTED,
+
   API_CREATE_MILESTONE_ANSWER_PENDING,
   API_CREATE_MILESTONE_ANSWER_FULFILLED,
   API_CREATE_MILESTONE_ANSWER_REJECTED,
@@ -183,6 +187,7 @@ const initialState = {
     fetching: false,
     fetched: false,
     error: null,
+    data: [],
   },
   attachment: {
     fetching: false,
@@ -844,6 +849,45 @@ const reducer = (state = initialState, action, formData = []) => {
           ...state.answers,
           fetching: false,
           error: action.payload,
+        },
+      };
+    }
+
+    case API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING: {
+      return {
+        ...state,
+        apiAnswers: {
+          ...state.apiAnswers,
+          fetching: true,
+          fetched: false,
+          error: null,
+          data: [],
+        },
+      };
+    }
+    case API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED: {
+      const data = action.payload.data;
+      return {
+        ...state,
+        apiAnswers: {
+          ...state.apiAnswers,
+          fetching: false,
+          fetched: true,
+          error: null,
+          data,
+        },
+      };
+    }
+    case API_FETCH_MILESTONE_CHOICE_ANSWERS_REJECTED: {
+      const error = action.payload;
+      return {
+        ...state,
+        apiAnswers: {
+          ...state.apiAnswers,
+          fetching: false,
+          fetched: false,
+          error,
+          data: [],
         },
       };
     }

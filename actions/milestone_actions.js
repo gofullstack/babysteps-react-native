@@ -1051,9 +1051,6 @@ export const apiFetchChoiceAnswers = (session, subject_id) => {
       })
         .then(response => {
           const { choice_ids } = response.data;
-          dispatch(
-            Response(API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED, response),
-          );
           const sql = `SELECT * FROM answers WHERE choice_id NOT IN (${choice_ids.join()}) ;`;
           db.transaction(tx => {
             tx.executeSql(
@@ -1068,6 +1065,9 @@ export const apiFetchChoiceAnswers = (session, subject_id) => {
               },
             );
           });
+          dispatch(
+            Response(API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED, response),
+          );
         })
         .catch(error => {
           dispatch(

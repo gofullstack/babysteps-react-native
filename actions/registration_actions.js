@@ -689,6 +689,7 @@ export const apiFetchUserRespondents = session => {
                   };
                   if (!data.respondent_type) data.respondent_type = 'mother';
                   //console.log({ respondent: data });
+                  //console.log({ session })
                   dispatch(apiCreateRespondent(session, data));
                 },
                 (_, error) => {
@@ -747,7 +748,7 @@ const saveSignature = async (dispatch, api_id) => {
   } // signatureFile exists
 };
 
-export const apiFetchUserSubject = (session, subject_id) => {
+export const apiFetchUserSubject = (session, respondent_id, subject_id) => {
 
   return dispatch => {
     dispatch(Pending(API_FETCH_USER_SUBJECT_PENDING));
@@ -782,6 +783,7 @@ export const apiFetchUserSubject = (session, subject_id) => {
                     id: subject.api_id,
                     outcome: 'live_birth',
                     conception_method: 'natural',
+                    respondent_ids: [respondent_id],
                   };
                   //console.log({ subject: data });
                   dispatch(apiCreateSubject(session, data));

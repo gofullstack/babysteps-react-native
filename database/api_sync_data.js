@@ -1,11 +1,16 @@
 import { PureComponent } from 'react';
+import { AppState } from 'react-native';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 
 import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
-import { updateSession, fetchSession } from '../actions/session_actions';
+import {
+  updateSession,
+  fetchSession,
+  apiDisptachTokenRefresh
+} from '../actions/session_actions';
 import {
   resetMilestoneAnswers,
   fetchMilestoneAnswers,
@@ -14,7 +19,11 @@ import {
   apiFetchAnswerAttachments,
 } from '../actions/milestone_actions';
 import {
+  fetchUser,
   resetRespondent,
+  fetchRespondent,
+  resetSubject,
+  fetchSubject,
   apiFetchUserRespondents,
   apiFetchRespondentAttachments,
   apiSaveSignature,
@@ -34,23 +43,29 @@ class ApiSyncData extends PureComponent {
     super(props);
 
     this.state = {
-      uploadAnswers: [],
+      appState: AppState.currentState,
       uploadAnswersSubmitted: false,
-      uploadAttachments: [],
       uploadAttachmentsSubmitted: false,
       userRespondentApiUpdated: false,
+      userChoiceAnswersUpdated: false,
       respondentAttachmentsApiUpdated: false,
       userSubjectApiUpdated: false,
       uploadCalendarsCompletedSubmitted: false,
     };
 
     this.props.fetchSession();
-    this.props.resetRespondent();
+    this.props.fetchUser();
+    this.props.fetchRespondent();
+    this.props.fetchSubject();
+    //this.props.resetRespondent();
+    //this.props.resetSubject();
     this.props.fetchMilestoneAnswers({ api_id: 'empty' });
     this.props.fetchMilestoneAttachments();
   }
 
   componentDidMount() {
+    AppState.addEventListener('change', this._handleAppStateChange);
+
     // temporary code for backward compatibility
     addColumn('sessions', 'current_group_index', 'integer');
     addColumn('attachments', 'size', 'integer');
@@ -61,25 +76,28 @@ class ApiSyncData extends PureComponent {
 
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
+    const user = this.props.registration.user.data;
     const subject = this.props.registration.subject.data;
     const respondent = this.props.registration.respondent.data;
     const { apiRespondent, apiSubject } = this.props.registration;
-    const attachments = this.props.milestones.attachments;
-    const answers = this.props.milestones.answers;
+    const { apiAnswers, answers, attachments } = this.props.milestones;
     const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
+
     const {
       userRespondentApiUpdated,
       respondentAttachmentsApiUpdated,
       userSubjectApiUpdated,
-      uploadAnswers,
+      userChoiceAnswersUpdated,
       uploadAnswersSubmitted,
-      uploadAttachments,
       uploadAttachmentsSubmitted,
       uploadCalendarsCompletedSubmitted,
     } = this.state;
 
-    // rebuild respondent and subject on server
-    if (inStudy && !session.fetching && session.fetched) {
+    if (!session.fetching && session.fetched && !session.access_token ) {
+      this.props.apiDisptachTokenRefresh(session);
+    }
+     // rebuild respondent and subject on server
+    if (inStudy && session.access_token && !session.fetching && session.fetched) {
       if (!isEmpty(respondent) && !userRespondentApiUpdated) {
         this.props.apiFetchUserRespondents(session);
         this.setState({ userRespondentApiUpdated: true });
@@ -88,6 +106,7 @@ class ApiSyncData extends PureComponent {
         userRespondentApiUpdated &&
         !apiRespondent.fetching &&
         apiRespondent.fetched &&
+        !isEmpty(apiRespondent.data) &&
         !respondentAttachmentsApiUpdated
       ) {
         this.props.apiFetchRespondentAttachments(respondent.api_id);
@@ -95,69 +114,86 @@ class ApiSyncData extends PureComponent {
       }
 
       if (
+        !isEmpty(respondent) &&
         !isEmpty(subject) &&
         userRespondentApiUpdated &&
         !apiRespondent.fetching &&
         apiRespondent.fetched &&
+        !isEmpty(apiRespondent.data) &&
         !userSubjectApiUpdated
       ) {
-        this.props.apiFetchUserSubject(session, subject.api_id);
-        this.props.apiFetchChoiceAnswers(session, subject.api_id);
+        this.props.apiFetchUserSubject(session, respondent.api_id, subject.api_id);
         this.setState({ userSubjectApiUpdated: true });
       }
     }
 
     if (
       inStudy &&
-      !answers.fetching &&
-      answers.fetched &&
-      !isEmpty(answers.data) &&
-      !uploadAnswersSubmitted
+      !apiSubject.fetching &&
+      apiSubject.fetched &&
+      !isEmpty(apiSubject.data)
     ) {
-      this.setState({ uploadAnswers: answers.data });
-    }
-    // upload any answers with no api_id
-    if (
-      inStudy &&
-      !isEmpty(uploadAnswers) &&
-      session.connectionType === 'wifi'
-    ) {
-      UploadMilestoneAnswers(uploadAnswers);
-      this.props.resetMilestoneAnswers();
-      this.setState({
-        uploadAnswersSubmitted: true,
-        uploadAnswers: [],
-      });
+
+      if (!userChoiceAnswersUpdated) {
+        this.props.apiFetchChoiceAnswers(session, subject.api_id);
+        this.setState({ userChoiceAnswersUpdated: true });
+      }
+
+      // upload any missing answers
+      if (
+        !uploadAnswersSubmitted &&
+        !answers.fetching &&
+        answers.fetched &&
+        !isEmpty(answers.data)
+      ) {
+        UploadMilestoneAnswers(answers.data);
+        this.props.resetMilestoneAnswers();
+        this.setState({ uploadAnswersSubmitted: true });
+      }
+
+      // upload any attachments not yet uploaded
+      if (
+        !uploadAttachmentsSubmitted &&
+        !attachments.fetching &&
+        attachments.fetched &&
+        !isEmpty(attachments.data) &&
+        session.connectionType === 'wifi'
+      ) {
+        this._uploadAttachments(attachments.data);
+        this.setState({ uploadAttachmentsSubmitted: true });
+      }
+
+      // upload completed datestamps for calender entries
+      if (uploadAnswersSubmitted && !uploadCalendarsCompletedSubmitted) {
+        UploadMilestoneCalendarsCompleted();
+        this.setState({ uploadCalendarsCompletedSubmitted: true });
+      }
     }
 
-    if (
-      inStudy &&
-      !attachments.fetching &&
-      attachments.fetched &&
-      !isEmpty(attachments.data) &&
-      !uploadAttachmentsSubmitted
-    ) {
-      this.setState({ uploadAttachments: attachments.data });
-    }
-    // upload directly to AWS any attachments not yet uploaded
-    if (
-      inStudy &&
-      !isEmpty(uploadAttachments) &&
-      session.connectionType === 'wifi'
-    ) {
-      this._uploadAttachments(uploadAttachments);
-      this.setState({
-        uploadAttachmentsSubmitted: true,
-        uploadAttachments: [],
-      });
-    }
-    if (inStudy && !uploadCalendarsCompletedSubmitted) {
-      UploadMilestoneCalendarsCompleted();
-      this.setState({ uploadCalendarsCompletedSubmitted: true });
-    }
   }
 
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this._handleAppStateChange);
+  }
+
+  _handleAppStateChange = nextAppState => {
+    const { appState } = this.state;
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.setState({
+        appState: nextAppState,
+        uploadAnswersSubmitted: false,
+        uploadAttachmentsSubmitted: false,
+        userRespondentApiUpdated: false,
+        userChoiceAnswersUpdated: false,
+        respondentAttachmentsApiUpdated: false,
+        userSubjectApiUpdated: false,
+        uploadCalendarsCompletedSubmitted: false,
+      });
+    }
+  };
+
   _uploadAttachments = async attachments => {
+    await delay(10000, '*** wait for answers to be updated...');
     for (const attachment of attachments) {
       this.props.apiFetchAnswerAttachments(attachment);
       const delayMessage = '*** check if attachment uploaded...';
@@ -177,8 +213,8 @@ class ApiSyncData extends PureComponent {
 
   render() {
     return null;
-  };
-};
+  }
+}
 
 const mapStateToProps = ({
   session,
@@ -192,11 +228,17 @@ const mapStateToProps = ({
 const mapDispatchToProps = {
   updateSession,
   fetchSession,
+  apiDisptachTokenRefresh,
+  fetchUser,
+  resetRespondent,
+  fetchRespondent,
+  resetSubject,
+  fetchSubject,
   resetMilestoneAnswers,
   fetchMilestoneAnswers,
   apiFetchAnswerAttachments,
   fetchMilestoneAttachments,
-  resetRespondent,
+  
   apiFetchUserRespondents,
   apiFetchRespondentAttachments,
   apiSaveSignature,
