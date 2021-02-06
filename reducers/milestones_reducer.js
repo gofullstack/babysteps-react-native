@@ -93,6 +93,10 @@ import {
   API_SYNC_MILESTONE_ANSWERS_FULFILLED,
   API_SYNC_MILESTONE_ANSWERS_REJECTED,
 
+  DELETE_MILESTONE_ANSWERS_PENDING,
+  DELETE_MILESTONE_ANSWERS_FULFILLED,
+  DELETE_MILESTONE_ANSWERS_REJECTED,
+
   FETCH_MILESTONE_ATTACHMENTS_PENDING,
   FETCH_MILESTONE_ATTACHMENTS_FULFILLED,
   FETCH_MILESTONE_ATTACHMENTS_REJECTED,
@@ -995,6 +999,41 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: false,
           fetched: false,
           error,
+        },
+      };
+    }
+
+    case DELETE_MILESTONE_ANSWERS_PENDING: {
+      return {
+        ...state,
+        answers: {
+          ...state.answers,
+          fetching: true,
+          fetched: false,
+          error: null,
+        },
+      };
+    }
+    case DELETE_MILESTONE_ANSWERS_FULFILLED: {
+      return {
+        ...state,
+        answers: {
+          ...state.answers,
+          fetching: false,
+          fetched: false,
+          error: null,
+          data: [],
+        },
+      };
+    }
+    case DELETE_MILESTONE_ANSWERS_REJECTED: {
+      return {
+        ...state,
+        answers: {
+          ...state.answers,
+          fetching: false,
+          fetched: false,
+          error: action.payload,
         },
       };
     }

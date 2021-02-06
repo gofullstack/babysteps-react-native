@@ -66,7 +66,7 @@ class OverviewTimeline extends React.Component {
     }
   }
 
-  _fetchOverviewTimeline = subject => {
+  _fetchOverviewTimeline = async subject => {
     let baseDate = '';
     let postBirth = false;
     if (subject.data.date_of_birth) {
@@ -107,6 +107,19 @@ class OverviewTimeline extends React.Component {
             // otherwise remove
             return true;
           });
+
+          // confirm image exists
+          for (const item of overviewTimelines) {
+            if (item.uri) {
+              await Image.getSize(
+                item.uri,
+                response => {},
+                error => {
+                  item.uri = null;
+                },
+              )
+            }
+          }
 
           // calculate weeks
           forEach(overviewTimelines, item => {
@@ -202,6 +215,7 @@ class OverviewTimeline extends React.Component {
       moment().isAfter(available_start_at) && 
       moment().isBefore(available_end_at);
     const task = find(this.props.milestones.tasks.data, ['id', item.task_id]);
+
     if (item.uri) {
       return (
         <TouchableOpacity onPress={() => this.handleOnPress(item, task)}>

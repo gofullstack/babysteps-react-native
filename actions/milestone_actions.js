@@ -112,6 +112,10 @@ import {
   API_SYNC_MILESTONE_ANSWERS_FULFILLED,
   API_SYNC_MILESTONE_ANSWERS_REJECTED,
 
+  DELETE_MILESTONE_ANSWERS_PENDING,
+  DELETE_MILESTONE_ANSWERS_FULFILLED,
+  DELETE_MILESTONE_ANSWERS_REJECTED,
+
   FETCH_MILESTONE_ATTACHMENTS_PENDING,
   FETCH_MILESTONE_ATTACHMENTS_FULFILLED,
   FETCH_MILESTONE_ATTACHMENTS_REJECTED,
@@ -548,15 +552,19 @@ export const fetchMilestoneAnswers = (params = {}) => {
     }
     sql += ' ORDER BY section_id, question_id, choice_id;';
 
-    return (
-      db.transaction(tx => {
-        tx.executeSql(
-          sql, [],
-          (_, response) => {dispatch(Response(FETCH_MILESTONE_ANSWERS_FULFILLED, response))},
-          (_, error) => {dispatch(Response(FETCH_MILESTONE_ANSWERS_REJECTED, error))}
-        );
-      })
-    );
+    return db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, response) => {
+          dispatch(Response(FETCH_MILESTONE_ANSWERS_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_MILESTONE_ANSWERS_REJECTED, error));
+        },
+      );
+    });
+
   };
 };
 
@@ -871,6 +879,28 @@ export const apiSyncMilestoneAnswers = api_user_id => {
         });
     }); // return Promise
   }; // return dispatch
+};
+
+export const deleteMilestoneAnswer = answer_id => {
+  return dispatch => {
+    dispatch(Pending(DELETE_MILESTONE_ANSWERS_PENDING));
+
+    let sql = `DELETE FROM answers WHERE id = ${answer_id}`;
+
+    return db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, response) => {
+          dispatch(Response(DELETE_MILESTONE_ANSWERS_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(DELETE_MILESTONE_ANSWERS_REJECTED, error));
+        },
+      );
+    });
+
+  };
 };
 
 export const fetchMilestoneAttachments = (params = {}) => {

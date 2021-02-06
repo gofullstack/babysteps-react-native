@@ -1,28 +1,27 @@
 import { PureComponent } from 'react';
 import { AppState } from 'react-native';
-import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 
 import isEmpty from 'lodash/isEmpty';
+import _ from 'lodash';
 
 import { connect } from 'react-redux';
 import {
   updateSession,
   fetchSession,
-  apiDisptachTokenRefresh
+  apiDisptachTokenRefresh,
 } from '../actions/session_actions';
 import {
-  resetMilestoneAnswers,
   fetchMilestoneAnswers,
+  deleteMilestoneAnswer,
   fetchMilestoneAttachments,
   apiFetchChoiceAnswers,
   apiFetchAnswerAttachments,
+  updateMilestoneAttachment,
 } from '../actions/milestone_actions';
 import {
   fetchUser,
-  resetRespondent,
   fetchRespondent,
-  resetSubject,
   fetchSubject,
   apiFetchUserRespondents,
   apiFetchRespondentAttachments,
@@ -51,15 +50,15 @@ class ApiSyncData extends PureComponent {
       respondentAttachmentsApiUpdated: false,
       userSubjectApiUpdated: false,
       uploadCalendarsCompletedSubmitted: false,
+      cleanDuplicateAnswersSubmitted: false,
+      confirmImageAttachmentsSubmitted: false,
     };
 
     this.props.fetchSession();
     this.props.fetchUser();
     this.props.fetchRespondent();
     this.props.fetchSubject();
-    //this.props.resetRespondent();
-    //this.props.resetSubject();
-    this.props.fetchMilestoneAnswers({ api_id: 'empty' });
+    this.props.fetchMilestoneAnswers();
     this.props.fetchMilestoneAttachments();
   }
 
@@ -91,7 +90,35 @@ class ApiSyncData extends PureComponent {
       uploadAnswersSubmitted,
       uploadAttachmentsSubmitted,
       uploadCalendarsCompletedSubmitted,
+      cleanDuplicateAnswersSubmitted,
+      confirmImageAttachmentsSubmitted,
     } = this.state;
+
+    if(
+      !answers.fetching &&
+      answers.fetched &&
+      !isEmpty(answers.data) &&
+      !cleanDuplicateAnswersSubmitted
+    ) {
+      this._cleanDuplicateAnswers();
+      this.setState({ cleanDuplicateAnswersSubmitted: true });
+      this.props.fetchMilestoneAnswers();
+      return;
+    }
+
+    if(
+      !answers.fetching &&
+      answers.fetched &&
+      !attachments.fetching &&
+      attachments.fetched &&
+      !isEmpty(attachments.data) &&
+      !confirmImageAttachmentsSubmitted
+    ) {
+      this._confirmAttachments();
+      this.setState({ confirmImageAttachmentsSubmitted: true });
+      this.props.fetchMilestoneAttachments();
+      return;
+    }
 
     if (!session.fetching && session.fetched && !session.access_token ) {
       this.props.apiDisptachTokenRefresh(session);
@@ -211,6 +238,59 @@ class ApiSyncData extends PureComponent {
     } // signatureFile exists
   };
 
+  _cleanDuplicateAnswers = () => {
+    const { answers } = this.props.milestones;
+    if (!isEmpty(answers.data)) {
+      const choice_ids = _.groupBy(answers.data, 'choice_id');
+      _.map(choice_ids, choice_id => {
+        if (choice_id.length > 1) {
+          choice_id = _.orderBy(choice_id, ['id'], ['desc']);
+          const saveAnswerID = choice_id[0].id;
+          _.map(choice_id, answer => {
+            if (answer.id !== saveAnswerID) {
+              this.props.deleteMilestoneAnswer(answer.id);
+            }
+          });
+        }
+      });
+    }
+  };
+
+  _confirmAttachments = async () => {
+    const { attachments, answers } = this.props.milestones;
+    // confirm image exists
+    if (!isEmpty(attachments.data)) {
+      for (const item of attachments.data) {
+
+        // associate answer
+        if (!item.answer_id) {
+          const answer = _.find(answers.data, ['choice_id', item.choice_id]);
+          if (answer) {
+            item.answer_id = answer.id;
+          }
+        }
+
+        if (item.uri) {
+          let resultFile = await FileSystem.getInfoAsync(item.uri);
+          if (!resultFile.exists) {
+            // file not found or otherwise defective
+            console.log(`*** attachment not found or otherwise defective - ID: ${item.id}, URI: ${item.uri}`);
+            item = {
+              ...item,
+              uri: null,
+              filename: null,
+              height: null,
+              width: null,
+              uploaded: 0,
+            };
+          }
+        } // if item.uri
+
+        this.props.updateMilestoneAttachment(item);
+      } // for attachments.data
+    } // if !isEmpty(attachments.data)
+  };
+
   render() {
     return null;
   }
@@ -230,15 +310,13 @@ const mapDispatchToProps = {
   fetchSession,
   apiDisptachTokenRefresh,
   fetchUser,
-  resetRespondent,
   fetchRespondent,
-  resetSubject,
   fetchSubject,
-  resetMilestoneAnswers,
   fetchMilestoneAnswers,
+  deleteMilestoneAnswer,
   apiFetchAnswerAttachments,
   fetchMilestoneAttachments,
-  
+  updateMilestoneAttachment,
   apiFetchUserRespondents,
   apiFetchRespondentAttachments,
   apiSaveSignature,

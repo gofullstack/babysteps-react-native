@@ -26,9 +26,15 @@ class AutoHeightImage extends Component {
 
   getImageSize = async () => {
     const source = this.props.source;
-    await Image.getSize(source.uri, (height, width) => {
-      this.updateDimensionState(width, height);
-    });
+    await Image.getSize(
+      source.uri, 
+      (height, width) => {
+        this.updateDimensionState(width, height);
+      },
+      (error) => {
+        console.log(error);
+      },
+    );
   };
 
   updateDimensionState = (xWidth, xHeight) => {

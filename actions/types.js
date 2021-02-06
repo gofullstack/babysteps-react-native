@@ -92,6 +92,10 @@ export const API_SYNC_MILESTONE_ANSWERS_PENDING = 'api_sync_milestone_answers_pe
 export const API_SYNC_MILESTONE_ANSWERS_FULFILLED = 'api_sync_milestone_answers_fulfilled';
 export const API_SYNC_MILESTONE_ANSWERS_REJECTED = 'api_sync_milestone_answers_rejected';
 
+export const DELETE_MILESTONE_ANSWERS_PENDING = 'delete_milestone_answers_pending';
+export const DELETE_MILESTONE_ANSWERS_FULFILLED = 'delete_milestone_answers_fulfilled';
+export const DELETE_MILESTONE_ANSWERS_REJECTED = 'delete_milestone_answers_fulfilled';
+
 export const FETCH_MILESTONE_ATTACHMENTS_PENDING = 'fetch_milestone_attachments_pending';
 export const FETCH_MILESTONE_ATTACHMENTS_FULFILLED = 'fetch_milestone_attachments_fulfilled';
 export const FETCH_MILESTONE_ATTACHMENTS_REJECTED = 'fetch_milestone_attachments_rejected';

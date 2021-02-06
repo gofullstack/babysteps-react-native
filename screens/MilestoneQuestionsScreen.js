@@ -261,11 +261,16 @@ class MilestoneQuestionsScreen extends Component {
     const respondent = this.props.registration.respondent;
     const index = _.findIndex(answers, { choice_id: choice.id });
 
+    if (format === 'single') {
+      _.map(answers, answer => {
+        if (answer.question_id === choice.question_id) {
+          answer.answer_boolean = false;
+        }
+        return answer;
+      });
+    }
+
     if (index === -1) {
-      if (format === 'single' && !response.answer_boolean) {
-        // Do not save response if only single response allowed and answer boolean false
-        return null;
-      }
       answer = {
         section_id: this.state.section.id,
         question_id: choice.question_id,
@@ -321,7 +326,7 @@ class MilestoneQuestionsScreen extends Component {
       // remove from collecton
       new_attachments = _.reject(new_attachments, {id: attachment.id})
       // delete old file
-      await FileSystem.deleteAsync(attachment.uri, { idempotent: true });
+      // await FileSystem.deleteAsync(attachment.uri, { idempotent: true });
     }
 
     await _.map(response.attachments, async att => {
@@ -356,6 +361,7 @@ class MilestoneQuestionsScreen extends Component {
         default:
           attachment.content_type = '';
       }
+
       // confirm physical file
       let resultFile = await FileSystem.getInfoAsync(att.uri);
 
@@ -363,18 +369,21 @@ class MilestoneQuestionsScreen extends Component {
         console.log('Error: attachment not saved: ', choice.id, attachment.filename);
         this.setState({errorMessage: 'Error: Attachment Not Saved'});
         return;
-      } 
+      }
+
       // move file from camera cache to app cache
       await FileSystem.copyAsync({ from: att.uri, to: attachment.uri });
       resultFile = await FileSystem.getInfoAsync(attachment.uri, {
         size: true,
         md5: true,
       });
+
       if (!resultFile.exists) {
         console.log('Error: attachment not copied: ', attachment.filename);
         this.setState({errorMessage: 'Error: Attachment Not Saved'});
         return;
       }
+
       _.assign(attachment, {
         section_id: this.state.section.id,
         choice_id: choice.id,
@@ -385,7 +394,9 @@ class MilestoneQuestionsScreen extends Component {
         uploaded: 0,
         checksum: resultFile.md5,
       });
+
       new_attachments.push(attachment);
+
       this.updateAttachmentState(new_attachments);
     }); // map attachments
     //return new_attachments;

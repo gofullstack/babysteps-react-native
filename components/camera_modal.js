@@ -313,9 +313,7 @@ class CameraModal extends Component {
                 style={{
                   fontSize: 15,
                   color:
-                    activeOption === 'video'
-                      ? Colors.magenta
-                      : Colors.white,
+                    activeOption === 'video' ? Colors.magenta : Colors.white,
                 }}
               >
                 Video

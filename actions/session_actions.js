@@ -195,17 +195,16 @@ export const apiFetchSignin = (email, password) => {
   return dispatch => {
     dispatch(Pending(API_FETCH_SIGNIN_PENDING));
     const baseURL = getApiUrl();
+    const url = '/user_session';
+    const data = { email, password };
 
     return new Promise((resolve, reject) => {
       axios({
         method: 'post',
         responseType: 'json',
         baseURL,
-        url: '/user_session',
-        data: {
-          email,
-          password,
-        },
+        url,
+        data,
       })
         .then(response => {
           let data = response.data.data;
@@ -232,4 +231,3 @@ export const apiFetchSignin = (email, password) => {
     }); // return Promise
   }; // return dispatch
 };
-

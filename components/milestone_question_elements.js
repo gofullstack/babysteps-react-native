@@ -35,7 +35,6 @@ import Colors from '../constants/Colors';
 import VideoFormats from '../constants/VideoFormats';
 import ImageFormats from '../constants/ImageFormats';
 import AudioFormats from '../constants/AudioFormats';
-import Constants from '../constants';
 
 const { width } = Dimensions.get('window');
 
@@ -149,7 +148,7 @@ export class RenderCheckYesNo extends React.PureComponent {
             this.props.saveResponse(
               choice,
               { answer_boolean: !checked },
-              { format: "single" },
+              { format: 'single' },
             )
           }
         />
