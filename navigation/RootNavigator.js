@@ -18,6 +18,7 @@ import * as Sentry from 'sentry-expo';
 
 import { connect } from 'react-redux';
 import { updateSession, fetchSession } from '../actions/session_actions';
+
 import {
   showMomentaryAssessment,
   updateNotifications,
@@ -127,7 +128,6 @@ class RootNavigator extends Component {
   }
 
   componentDidMount() {
-
     this._getNotificationPermissions();
     Notifications.addNotificationResponseReceivedListener(response => {
       this._handleNotificationResponse(response);
@@ -135,7 +135,6 @@ class RootNavigator extends Component {
 
     // temporary code for backward compatibility
     Notifications.cancelAllScheduledNotificationsAsync();
-
   }
 
   shouldComponentUpdate(nextProps) {
@@ -290,7 +289,7 @@ class RootNavigator extends Component {
     if (States.REGISTERING_REGISTRATION.includes(registration_state)) {
       return <RegistrationNavigationContainer />;
     }
-    if ( ['none', 'undefined'].includes(registration_state) ) {
+    if (['none', 'undefined'].includes(registration_state)) {
       return <TourNavigationContainer />;
     }
   }
@@ -314,7 +313,6 @@ const mapDispatchToProps = {
   updateNotifications,
   updateMomentaryAssessments,
   deleteAllNotifications,
-  
 };
 
 export default connect(

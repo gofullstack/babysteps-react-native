@@ -35,7 +35,7 @@ class RegisterForPushNotifications extends Component {
     if (!Constants.isDevice) return false;
     if (isEmpty(respondent)) return false;
     if (respondent.api_id === null || respondent.api_id === undefined) return false;
-    //if (respondent.push_token !== null) return false;
+    if (respondent.push_token !== null) return false;
     if (requestedPushToken) return false;
     return true;
   }

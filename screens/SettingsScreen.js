@@ -88,9 +88,7 @@ class SettingsScreen extends React.Component {
             >
               <Ionicons name = "md-close" size = {36} />
             </TouchableOpacity>
-            <SettingsFAQContent
-              setModalVisible={this.setFAQModalVisible}
-            />
+            <SettingsFAQContent setModalVisible={this.setFAQModalVisible} />
           </View>
         </Modal>
       </View>
