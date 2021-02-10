@@ -166,8 +166,7 @@ class RootNavigator extends Component {
     }
 
     if (!session.fetching && session.fetched) {
-      const {
-     this._confirmPushNotificationRegistration();
+      this._confirmPushNotificationRegistration();
     }
   }
 

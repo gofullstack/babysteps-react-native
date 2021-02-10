@@ -98,6 +98,7 @@ class MomentaryAssessment extends Component {
 
     setTimeout(() => {
       this.props.hideMomentaryAssessment(momentary_assessment, answer);
+      this.setState({ selectedIndex: null });
     }, 2000);
   };
 

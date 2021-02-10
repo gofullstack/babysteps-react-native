@@ -185,7 +185,7 @@ export default store => next => action => {
       // Not signed in
       if (response.status === 401) {
         // not already getting fresh token
-        if (!session.fetching_token) {
+        if (!session.fetching && session.fetching_token && !session.error) {
           //AnalyticsEvent(
           //  'API',
           //  API_TOKEN_REFRESH_PENDING,

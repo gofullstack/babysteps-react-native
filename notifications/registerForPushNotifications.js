@@ -30,11 +30,12 @@ class RegisterForPushNotifications extends Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    if (!Constants.isDevice) return false;
     const respondent = nextProps.registration.respondent.data;
+    const requestedPushToken = nextState.requestedPushToken;
+    if (!Constants.isDevice) return false;
     if (isEmpty(respondent)) return false;
     if (respondent.api_id === null || respondent.api_id === undefined) return false;
-    const requestedPushToken = nextState.requestedPushToken;
+    //if (respondent.push_token !== null) return false;
     if (requestedPushToken) return false;
     return true;
   }
