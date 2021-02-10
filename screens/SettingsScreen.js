@@ -19,7 +19,6 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
-import { fetchNotifications } from '../actions/notification_actions';
 import { fetchRespondent } from '../actions/registration_actions';
 
 import ConsentDisclosureContent from '../components/consent_disclosure_content';
@@ -38,44 +37,12 @@ class SettingsScreen extends React.Component {
     super(props);
 
     this.state = {
-      notificationPermissions: '',
       faqModalVisible: false,
       consentModalVisible: false,
     };
 
-    this.props.fetchNotifications();
     this.props.fetchRespondent();
-    this.getNotificationPermissions();
   }
-
-  renderNotificationList = releaseChannel => {
-    if (releaseChannel !== 'Production') {
-      const notifications = this.props.notifications.notifications.data;
-      return (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications:</Text>
-          <FlatList
-            scrollEnabled
-            data={notifications}
-            renderItem={this.renderItem}
-            keyExtractor={item => item.id.toString()}
-          />
-        </View>
-      );
-    }
-    return null;
-  };
-
-  renderItem = item => {
-    const notification = item.item;
-    const notify_at = moment(notification.notify_at).format('YYYY-MM-DD h:mm a Z');
-    return (
-      <ListItem
-        title={notify_at}
-        subtitle={notification.body}
-      />
-    );
-  };
 
   getRelease = () => {
     if (__DEV__) {
@@ -93,7 +60,8 @@ class SettingsScreen extends React.Component {
     const release = this.getRelease();
 
     const version = `${Constants.manifest.version}:${build}`;
-    const body = `\n\n\n________________________\n\nPlatform: ${Platform.OS}\nVersion: ${version}\nRelease: ${release}\nNotifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\nNotification Permissions: ${this.state.notificationPermissions}\n\n________________________\n\n`;
+    const { session, registration } = this.props;
+    const body = `\n\n\n________________________\n\nPlatform: ${Platform.OS}\nVersion: ${version}\nRelease: ${release}\nNotifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\nNotification Permissions: ${session.notifications_permission}\nUser ID: ${registration.user.data.api_id}\n\n________________________\n\n\n`;
 
     Linking.openURL(`mailto:feedback@babystepsapp.net?subject=BabySteps App Feedback (v${version})&body=${body}`);
   };
@@ -120,9 +88,7 @@ class SettingsScreen extends React.Component {
             >
               <Ionicons name = "md-close" size = {36} />
             </TouchableOpacity>
-            <SettingsFAQContent
-              setModalVisible={this.setFAQModalVisible}
-            />
+            <SettingsFAQContent setModalVisible={this.setFAQModalVisible} />
           </View>
         </Modal>
       </View>
@@ -183,30 +149,6 @@ class SettingsScreen extends React.Component {
     return build;
   };
 
-  getNotificationPermissions = async () => {
-    const { status } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
-
-    // console.log("Notification Settings: ", status);
-
-    this.setState({ notificationPermissions: status });
-  };
-
-  renderDevDebugItems = releaseChannel => {
-    return (
-      <View>
-        <Text>
-          Notification Permissions: {this.state.notificationPermissions}
-        </Text>
-        <Text>
-          Notifications Updated:{' '}
-          {moment(this.props.session.notifications_updated_at).format(
-            'MM/DD/YY',
-          )}
-        </Text>
-      </View>
-    );
-  };
-
   renderIRBinformation = () => {
     const respondent = this.props.registration.respondent.data;
     const irb = IRBInformation[respondent.tos_id];
@@ -243,6 +185,7 @@ class SettingsScreen extends React.Component {
     const calendar = this.props.milestones.calendar;
     const session = this.props.session;
     const subject = this.props.registration.subject.data;
+    const user = this.props.registration.user.data;
 
     return (
       <SafeAreaView>
@@ -251,9 +194,9 @@ class SettingsScreen extends React.Component {
           <Text>
             Version: {manifest.version}:{build}
           </Text>
-          {this.renderDevDebugItems(release)}
+          <Text>Notification Permission: {session.notifications_permission}</Text>
           <Text>Release: {release}</Text>
-          <Text>User ID: {session.user_id}</Text>
+          <Text>User ID: {user.api_id}</Text>
 
           <TouchableOpacity
             style={styles.linkContainer}
@@ -284,8 +227,6 @@ class SettingsScreen extends React.Component {
           {this.renderIRBinformation()}
 
         </View>
-
-        {this.renderNotificationList(release)}
 
         {this.renderFAQModal()}
         {this.renderConsentModal()}
@@ -340,7 +281,7 @@ const mapStateToProps = ({
   registration,
 });
 
-const mapDispatchToProps = { fetchNotifications, fetchRespondent };
+const mapDispatchToProps = { fetchRespondent };
 
 export default connect(
   mapStateToProps,

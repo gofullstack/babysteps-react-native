@@ -43,6 +43,7 @@ class ApiSyncData extends PureComponent {
 
     this.state = {
       appState: AppState.currentState,
+      apiRefreshTokenSubmitted: false,
       uploadAnswersSubmitted: false,
       uploadAttachmentsSubmitted: false,
       userRespondentApiUpdated: false,
@@ -66,6 +67,12 @@ class ApiSyncData extends PureComponent {
     AppState.addEventListener('change', this._handleAppStateChange);
 
     // temporary code for backward compatibility
+
+    addColumn('sessions', 'push_token', 'text');
+    addColumn('sessions', 'milestones_updated_at', 'text');
+    addColumn('sessions', 'milestones_last_updated_at', 'text');
+    addColumn('sessions', 'milestone_calendar_updated_at', 'text');
+    addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
     addColumn('sessions', 'current_group_index', 'integer');
     addColumn('attachments', 'size', 'integer');
     addColumn('attachments', 'uploaded', 'integer');
@@ -83,6 +90,7 @@ class ApiSyncData extends PureComponent {
     const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
 
     const {
+      apiRefreshTokenSubmitted,
       userRespondentApiUpdated,
       respondentAttachmentsApiUpdated,
       userSubjectApiUpdated,
@@ -120,8 +128,13 @@ class ApiSyncData extends PureComponent {
       return;
     }
 
-    if (!session.fetching && session.fetched && !session.access_token ) {
+    if (
+      !session.fetching &&
+      !session.fetching_token &&
+      !apiRefreshTokenSubmitted
+    ) {
       this.props.apiDisptachTokenRefresh(session);
+      this.setState({ apiRefreshTokenSubmitted: true });
     }
      // rebuild respondent and subject on server
     if (inStudy && session.access_token && !session.fetching && session.fetched) {
@@ -208,6 +221,7 @@ class ApiSyncData extends PureComponent {
     if (appState.match(/inactive|background/) && nextAppState === 'active') {
       this.setState({
         appState: nextAppState,
+        apiRefreshTokenSubmitted: false,
         uploadAnswersSubmitted: false,
         uploadAttachmentsSubmitted: false,
         userRespondentApiUpdated: false,
@@ -239,7 +253,7 @@ class ApiSyncData extends PureComponent {
   };
 
   _cleanDuplicateAnswers = () => {
-    const { answers } = this.props.milestones;
+    const { answers, attachments } = this.props.milestones;
     if (!isEmpty(answers.data)) {
       const choice_ids = _.groupBy(answers.data, 'choice_id');
       _.map(choice_ids, choice_id => {
@@ -247,7 +261,13 @@ class ApiSyncData extends PureComponent {
           choice_id = _.orderBy(choice_id, ['id'], ['desc']);
           const saveAnswerID = choice_id[0].id;
           _.map(choice_id, answer => {
-            if (answer.id !== saveAnswerID) {
+            if (answer.id === saveAnswerID) {
+              const attachment = _.find(attachments.data, ['choice_id', answer.choice_id]);
+              if (attachment) {
+                attachment.answer_id = answer.id;
+                this.props.updateMilestoneAttachment(attachment);
+              }
+            } else {
               this.props.deleteMilestoneAnswer(answer.id);
             }
           });

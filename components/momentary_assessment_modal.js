@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Text, View, Image, Modal, Dimensions, StyleSheet } from 'react-native';
 import { ButtonGroup } from 'react-native-elements';
 
+import _ from 'lodash';
+
 import { connect } from 'react-redux';
 import {
   fetchUser,
@@ -11,6 +13,9 @@ import {
 import {
   createMilestoneAnswer,
   apiCreateMilestoneAnswer,
+  fetchMilestoneCalendar,
+  updateMilestoneCalendar,
+  apiUpdateMilestoneCalendar,
 } from '../actions/milestone_actions';
 import {
   fetchMomentaryAssessment,
@@ -18,6 +23,7 @@ import {
 } from '../actions/notification_actions';
 
 import Colors from '../constants/Colors';
+import States from '../actions/states';
 
 const { width, height } = Dimensions.get('window');
 const modalWidth = width * 0.9;
@@ -36,6 +42,7 @@ class MomentaryAssessment extends Component {
     this.props.fetchUser();
     this.props.fetchRespondent();
     this.props.fetchSubject();
+    this.props.fetchMilestoneCalendar();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -62,7 +69,9 @@ class MomentaryAssessment extends Component {
     const respondent = this.props.registration.respondent.data;
     const subject = this.props.registration.subject.data;
     const momentary_assessment = this.props.notifications.momentary_assessment.data;
+    const calendars = this.props.milestones.calendar.data;
     const session = this.props.session;
+    const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
     const answer = {
       user_id: user.id,
       user_api_id: user.api_id,
@@ -74,12 +83,23 @@ class MomentaryAssessment extends Component {
       answer_numeric: selectedIndex + 1,
       notified_at: momentary_assessment.notify_at,
     };
+    const completed_at = new Date().toISOString();
+
+    this.props.createMilestoneAnswer(answer);
+    this.props.updateMilestoneCalendar(momentary_assessment.task_id, { completed_at });
+
+    if (inStudy) {
+      this.props.apiCreateMilestoneAnswer(session, answer);
+      const calendar = _.find(calendars, ['task_id', momentary_assessment.task_id]);
+      if (calendar && calendar.id) {
+        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: { completed_at }});
+      }
+    }
+
     setTimeout(() => {
       this.props.hideMomentaryAssessment(momentary_assessment, answer);
+      this.setState({ selectedIndex: null });
     }, 2000);
-    //
-    this.props.createMilestoneAnswer(answer);
-    this.props.apiCreateMilestoneAnswer(session, answer);
   };
 
   getModalContent = task => {
@@ -221,6 +241,9 @@ const mapDispatchToProps = {
   fetchMomentaryAssessment,
   createMilestoneAnswer,
   apiCreateMilestoneAnswer,
+  fetchMilestoneCalendar,
+  updateMilestoneCalendar,
+  apiUpdateMilestoneCalendar,
   hideMomentaryAssessment,
 };
 

@@ -78,7 +78,7 @@ const UploadMilestoneAttachment = async attachment => {
       }
       setAttachmentToUploaded(attachment);
     } else {
-      console.log({ response });
+      console.log({ answer, attachment, response });
     }
   }
 };
