@@ -7,14 +7,14 @@ import Constants from 'expo-constants';
 import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
-import { updateSession } from '../actions/session_actions';
+import { fetchSession, updateSession } from '../actions/session_actions';
 import {
   fetchRespondent,
   updateRespondent,
   apiUpdateRespondent,
 } from '../actions/registration_actions';
-import { fetchMilestones } from '../actions/milestone_actions';
-import { showMomentaryAssessment } from '../actions/notification_actions';
+
+import { openSettings } from '../components/permissions';
 
 class RegisterForPushNotifications extends Component {
 
@@ -23,9 +23,9 @@ class RegisterForPushNotifications extends Component {
 
     this.state = {
       requestedPushToken: false,
-    }
+    };
 
-    this.props.fetchMilestones();
+    this.props.fetchSession();
     this.props.fetchRespondent();
   }
 
@@ -34,8 +34,7 @@ class RegisterForPushNotifications extends Component {
     const requestedPushToken = nextState.requestedPushToken;
     if (!Constants.isDevice) return false;
     if (isEmpty(respondent)) return false;
-    if (respondent.api_id === null || respondent.api_id === undefined) return false;
-    if (respondent.push_token !== null) return false;
+    if ([null, undefined].includes(respondent.api_id)) return false;
     if (requestedPushToken) return false;
     return true;
   }
@@ -88,39 +87,44 @@ class RegisterForPushNotifications extends Component {
       return;
     }
 
+    this._setPushNotificationToken();
     this.setState({ requestedPushToken: true });
-    const result = await Notifications.getExpoPushTokenAsync();
-    const push_token = result.data;
-    this.props.updateSession({ push_token });
-    this.props.updateRespondent({ push_token });
-    const data = {api_id: respondent.api_id, push_token}
-    this.props.apiUpdateRespondent(session, data);
   }
+
+  _setPushNotificationToken = async () => {
+    // simulator will not generate a token
+    if (!Constants.isDevice) return null;
+    const session = this.props.session;
+    const respondent = this.props.registration.respondent.data;
+    if (
+      session.notifications_permission === 'granted' &&
+      !isEmpty(respondent) && ![null, undefined].includes(respondent.api_id)
+    ) {
+      const result = await Notifications.getExpoPushTokenAsync();
+      const push_token = result.data;
+      const api_id = respondent.api_id;
+      this.props.updateSession({ push_token });
+      this.props.updateRespondent({ push_token });
+      this.props.apiUpdateRespondent(session, { api_id, push_token });
+    }
+  };
 
   render() {
     return null;
   }
 }
 
-const mapStateToProps = ({
+const mapStateToProps = ({ session, registration }) => ({
   session,
-  milestones,
   registration,
-  notifications,
-}) => ({
-  session,
-  milestones,
-  registration,
-  notifications,
 });
 
 const mapDispatchToProps = {
+  fetchSession,
   updateSession,
-  fetchMilestones,
   fetchRespondent,
   updateRespondent,
   apiUpdateRespondent,
-  showMomentaryAssessment,
 };
 
 export default connect(

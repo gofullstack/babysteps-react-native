@@ -31,9 +31,13 @@ const createAPIKeys = answer => {
       delete answer[keyPair.key];
     }
   });
-  answer.respondent_api_id = answer.respondent.id;
+  if (!_.isEmpty(answer.respondent) && answer.respondent.id) {
+    answer.respondent_api_id = answer.respondent.id;
+  }
   delete answer.respondent;
-  answer.subject_api_id = answer.subject.id;
+  if (!_.isEmpty(answer.subject) && answer.subject.id) {
+    answer.subject_api_id = answer.subject.id;
+  }
   delete answer.subject;
   delete answer.created_at;
   return answer;
@@ -47,7 +51,6 @@ export default store => next => action => {
     return next(action);
   }
   const data = action.payload.data;
-  const respondent_id = data[0].respondent.id;
 
   return _.map(data, answer => {
     answer = createAPIKeys(answer);

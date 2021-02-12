@@ -187,7 +187,6 @@ class RegistrationRespondentForm extends Component {
     if (session.notifications_permission === 'granted') {
       const result = await Notifications.getExpoPushTokenAsync();
       const push_token = result.data;
-      console.log('********** Push Token: ' + push_token);
       this.props.updateSession({ push_token });
       this.props.updateRespondent({ push_token });
       this.props.apiUpdateRespondent(session, { api_id, push_token });

@@ -725,7 +725,6 @@ export const apiFetchRespondentAttachments = api_id => {
       })
         .then(response => {
           const { status, data } = response;
-          console.log({ data });
           dispatch(Response(API_FETCH_RESPONDENT_ATTACHMENTS_FULFILLED, response));
           if (status != 404 && !data.has_attachment) {
             saveSignature(dispatch, api_id);

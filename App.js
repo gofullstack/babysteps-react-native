@@ -23,9 +23,11 @@ import checkCustomDirectories from './components/check_custom_directories';
 //import moveDataToMainDirectory from './components/move_data_to_main_directory';
 
 import RegisterForPushNotifications from './notifications/registerForPushNotifications';
+import HandleNotifications from './notifications/handleNotifications';
 
 import MomentaryAssessment from './components/momentary_assessment_modal';
 
+import CheckDataIntegrity from './database/check_data_integrity.js';
 import ApiSyncData from './database/api_sync_data';
 import ApiOfflineListener from './database/api_offline_listener';
 
@@ -152,11 +154,13 @@ export default class App extends Component {
       <Provider store={store}>
         <View style={styles.container}>
           {Platform.OS === 'android' && <StatusBar barStyle="default" />}
+          <CheckDataIntegrity />
           <ApiSyncData />
           <ApiOfflineListener />
           <RootNavigator />
           <FlashMessage position="top" />
           <RegisterForPushNotifications />
+          <HandleNotifications />
           <MomentaryAssessment />
         </View>
       </Provider>

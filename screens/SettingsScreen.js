@@ -19,7 +19,12 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
-import { fetchRespondent } from '../actions/registration_actions';
+import { fetchSession } from '../actions/session_actions';
+import {
+  fetchUser,
+  fetchRespondent,
+  fetchSubject,
+} from '../actions/registration_actions';
 
 import ConsentDisclosureContent from '../components/consent_disclosure_content';
 import SettingsFAQContent from '../components/settings_faq_content';
@@ -40,8 +45,10 @@ class SettingsScreen extends React.Component {
       faqModalVisible: false,
       consentModalVisible: false,
     };
-
+    this.props.fetchSession();
+    this.props.fetchUser();
     this.props.fetchRespondent();
+    this.props.fetchSubject();
   }
 
   getRelease = () => {
@@ -182,9 +189,7 @@ class SettingsScreen extends React.Component {
     const manifest = Constants.manifest;
     const build = this.getAppVersion();
     const release = this.getRelease();
-    const calendar = this.props.milestones.calendar;
     const session = this.props.session;
-    const subject = this.props.registration.subject.data;
     const user = this.props.registration.user.data;
 
     return (
@@ -281,7 +286,12 @@ const mapStateToProps = ({
   registration,
 });
 
-const mapDispatchToProps = { fetchRespondent };
+const mapDispatchToProps = {
+  fetchSession,
+  fetchUser,
+  fetchRespondent,
+  fetchSubject,
+};
 
 export default connect(
   mapStateToProps,
