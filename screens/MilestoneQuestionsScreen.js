@@ -574,7 +574,7 @@ class MilestoneQuestionsScreen extends Component {
               buttonStyle={styles.buttonTwoStyle}
               titleStyle={styles.buttonTitleStyle}
               onPress={() => this.handleConfirm()}
-              title="Completed"
+              title="Mark Completed"
               disabled={this.state.confirmed}
             />
           </View>

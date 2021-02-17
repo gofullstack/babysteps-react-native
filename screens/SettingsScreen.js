@@ -3,18 +3,17 @@ import {
   Linking,
   Text,
   View,
-  FlatList,
   SafeAreaView,
   StyleSheet,
   Platform,
   TouchableOpacity,
   Modal,
 } from 'react-native';
-import { ListItem } from 'react-native-elements';
-import * as Permissions from 'expo-permissions';
+
+import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
 
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 import moment from 'moment';
 
@@ -29,9 +28,10 @@ import {
 import ConsentDisclosureContent from '../components/consent_disclosure_content';
 import SettingsFAQContent from '../components/settings_faq_content';
 
+import CONSTANTS from '../constants';
 import IRBInformation from '../constants/IRB';
-
 import Colors from '../constants/Colors';
+
 
 class SettingsScreen extends React.Component {
   static navigationOptions = {
@@ -65,12 +65,45 @@ class SettingsScreen extends React.Component {
   _handleFeedbackPress = () => {
     const build = this.getAppVersion();
     const release = this.getRelease();
-
     const version = `${Constants.manifest.version}:${build}`;
     const { session, registration } = this.props;
-    const body = `\n\n\n________________________\n\nPlatform: ${Platform.OS}\nVersion: ${version}\nRelease: ${release}\nNotifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\nNotification Permissions: ${session.notifications_permission}\nUser ID: ${registration.user.data.api_id}\n\n________________________\n\n\n`;
+    let body = `\n\n\n________________________\n\n`
+    body += `Platform: ${Platform.OS}\n`
+    body += `Version: ${version}\n`
+    body += `Release: ${release}\n`
+    body += `Notifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\n`
+    body += `Notification Permissions: ${session.notifications_permission}\n`
+    body += `User ID: ${registration.user.data.api_id}\n\n`
+    body += `________________________\n\n\n`;
+    Linking.openURL(
+      `mailto:feedback@babystepsapp.net?subject=BabySteps App Feedback (v${version})&body=${body}`,
+    );
+  };
 
-    Linking.openURL(`mailto:feedback@babystepsapp.net?subject=BabySteps App Feedback (v${version})&body=${body}`);
+  _handleDirectoryListingPress = async () => {
+    const { registration } = this.props;
+    const release = this.getRelease();
+    const attachmentDir = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY  + '/'
+    const fileNames = await FileSystem.readDirectoryAsync(attachmentDir);
+    let body = `\nRelease: ${release}\n`;
+    body += `Directory: ${CONSTANTS.ATTACHMENTS_DIRECTORY}\n`;
+    body += `User ID: ${registration.user.data.api_id}\n`;
+    body += '________________________\n\n';
+
+    for (const fileName of fileNames) {
+      const fileInfo = await FileSystem.getInfoAsync(attachmentDir + fileName);
+      if (fileInfo.exists) {
+        const shortFileName = fileName.substring(24, 100);
+        const timeStamp = moment(fileInfo.modificationTime * 1000).format('MM/DD/YYYY hh:MM');
+        const fileSize = `${Math.ceil(fileInfo.size / 1000).toLocaleString()}K`;
+        body += `${shortFileName} - ${fileSize} - ${timeStamp}\n`;
+      }
+    }
+
+    body += '________________________\n\n';
+    Linking.openURL(
+      `mailto:feedback@babystepsapp.net?subject=BabySteps App Directory&body=${body}`,
+    );
   };
 
   _handleConsentAgreementPress = () => {
@@ -221,6 +254,19 @@ class SettingsScreen extends React.Component {
             onPress={this._handleFeedbackPress}
           >
             <Text style={styles.linkText}>Ask Questions or Provide Feedback</Text>
+            <Ionicons
+              name="ios-arrow-forward"
+              size={28}
+              color="#bdc6cf"
+              style={styles.linkIcon}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.linkContainer}
+            onPress={this._handleDirectoryListingPress }
+          >
+            <Text style={styles.linkText}>Provide Attachment Data Feedback</Text>
             <Ionicons
               name="ios-arrow-forward"
               size={28}

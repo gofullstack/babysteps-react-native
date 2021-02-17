@@ -37,7 +37,7 @@ export class TourItemFour extends Component {
                 {
                   scale: animatedValue.interpolate({
                     inputRange: [index - 1, index, index + 1],
-                    outputRange: [1, 1.1, 1],
+                    outputRange: [1, 1, 1],
                     extrapolate: 'clamp',
                   }),
                 },
@@ -70,6 +70,8 @@ export class TourItemFour extends Component {
           onMomentumScrollEnd={() => this.props.handleNestedScrollEvent(true)}
           onScrollEndDrag={() => this.props.handleNestedScrollEvent(false)}
           style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
         >
           <View style={styles.nestedView}>
             <Image
@@ -134,7 +136,7 @@ export class TourItemFour extends Component {
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    paddingTop: 10,
+    paddingTop: 20,
     width: width - 40,
     height: height * 0.3,
     borderTopColor: Colors.grey,
@@ -168,9 +170,9 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'contain',
     width: width - 200,
-    height: undefined,
   },
   textBlock: {
+    marginTop: -50,
     width: width - 40,
     paddingBottom: 10,
   },

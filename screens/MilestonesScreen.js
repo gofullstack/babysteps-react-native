@@ -70,15 +70,14 @@ class MilestonesScreen extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const tasks = this.props.milestones.tasks;
-    const {
-      tasksForList,
-      tasksSaved,
-      sectionIndex,
-    } = this.state;
-    const selectedGroupIndex = this.props.navigation.getParam('currentGroupIndex', null);
+    const { tasks } = this.props.milestones;
+    const { tasksForList, tasksSaved, sectionIndex } = this.state;
+    // default to navigation param, then subject base group
+    let selectedGroupIndex = this.props.navigation.getParam('currentGroupIndex', null);
+    if (!selectedGroupIndex) {
+      selectedGroupIndex = this.props.session.current_group_index;
+    }
 
-    
     if (tasks.fetched && !isEmpty(tasks.data) && !tasksSaved) {
       this._saveTasksData(tasks);
     }
