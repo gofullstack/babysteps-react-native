@@ -18,7 +18,6 @@ import {
   apiFetchAnswerAttachments,
 } from '../actions/milestone_actions';
 import {
-  fetchUser,
   fetchRespondent,
   fetchSubject,
   apiFetchUserRespondents,
@@ -52,7 +51,6 @@ class ApiSyncData extends PureComponent {
     };
 
     this.props.fetchSession();
-    this.props.fetchUser();
     this.props.fetchRespondent();
     this.props.fetchSubject();
     this.props.fetchMilestoneAnswers();
@@ -66,7 +64,6 @@ class ApiSyncData extends PureComponent {
 
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
-    const user = this.props.registration.user.data;
     const subject = this.props.registration.subject.data;
     const respondent = this.props.registration.respondent.data;
     const { apiRespondent, apiSubject } = this.props.registration;
@@ -92,7 +89,7 @@ class ApiSyncData extends PureComponent {
       this.props.apiDisptachTokenRefresh(session);
       this.setState({ apiRefreshTokenSubmitted: true });
     }
-     // rebuild respondent and subject on server
+    // rebuild respondent and subject on server
     if (inStudy && !session.fetching && session.fetched) {
       if (!isEmpty(respondent) && !userRespondentApiUpdated) {
         this.props.apiFetchUserRespondents(session);
@@ -217,7 +214,6 @@ const mapDispatchToProps = {
   updateSession,
   fetchSession,
   apiDisptachTokenRefresh,
-  fetchUser,
   fetchRespondent,
   fetchSubject,
   resetMilestoneAnswers,

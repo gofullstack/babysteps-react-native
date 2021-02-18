@@ -17,6 +17,7 @@ import { updateSession } from '../actions/session_actions';
 
 import ConsentDisclosureContent001 from './consent_disclosure_content_001';
 import ConsentDisclosureContent002 from './consent_disclosure_content_002';
+import ConsentDisclosureContent003 from './consent_disclosure_content_003';
 
 import IRBInformation from '../constants/IRB';
 import States from '../actions/states';
@@ -34,13 +35,14 @@ const signatureHeight = signatureWidth * 0.4;
 const components = {
   '001': ConsentDisclosureContent001,
   '002': ConsentDisclosureContent002,
+  '003': ConsentDisclosureContent003,
 };
 
 class ConsentDisclosureContent extends Component {
 
   constructor(props) {
     super(props);
- 
+
     const screening_blood =
       ['null', null, undefined].includes(this.props.screening_blood) ? null : !!this.props.screening_blood;
     const screening_blood_other =
@@ -164,7 +166,7 @@ class ConsentDisclosureContent extends Component {
 
   render() {
     const { formState, tosID } = this.props;
-    const { 
+    const {
       screening_blood,
       screening_blood_other,
       screening_blood_notification,

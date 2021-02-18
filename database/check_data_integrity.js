@@ -1,9 +1,13 @@
 import { PureComponent } from 'react';
 
+import * as FileSystem from 'expo-file-system';
+
 import isEmpty from 'lodash/isEmpty';
 import _ from 'lodash';
 
 import { connect } from 'react-redux';
+import { fetchSession, updateSession } from '../actions/session_actions';
+import { fetchUser } from '../actions/registration_actions';
 import {
   fetchMilestoneAnswers,
   deleteMilestoneAnswer,
@@ -11,7 +15,7 @@ import {
   updateMilestoneAttachment,
 } from '../actions/milestone_actions';
 
-import { delay, addColumn } from './common';
+import { addColumn } from './common';
 
 class CheckDataIntegrity extends PureComponent {
   constructor(props) {
@@ -22,12 +26,15 @@ class CheckDataIntegrity extends PureComponent {
       confirmImageAttachmentsSubmitted: false,
     };
 
+    this.props.fetchSession();
+    this.props.fetchUser();
     this.props.fetchMilestoneAnswers();
     this.props.fetchMilestoneAttachments();
   }
 
   componentDidMount() {
     console.log('*** Checking Data Integrity');
+
     // temporary code for backward compatibility
     addColumn('sessions', 'push_token', 'text');
     addColumn('sessions', 'milestones_updated_at', 'text');
@@ -42,13 +49,18 @@ class CheckDataIntegrity extends PureComponent {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    const session = this.props.session;
     const { answers, attachments } = this.props.milestones;
     const {
       cleanDuplicateAnswersSubmitted,
       confirmImageAttachmentsSubmitted,
     } = this.state;
 
-    if(
+    if (!session.fetching && session.fetched) {
+      this._confirmSessionAttributes();
+    }
+
+    if (
       !answers.fetching &&
       answers.fetched &&
       !isEmpty(answers.data) &&
@@ -71,6 +83,17 @@ class CheckDataIntegrity extends PureComponent {
       this.setState({ confirmImageAttachmentsSubmitted: true });
     }
   }
+
+  _confirmSessionAttributes = () => {
+    const session = this.props.session;
+    const { user } = this.props.registration;
+    if (!user.fetching && user.fetched && !isEmpty(user.data)) {
+      const data = user.data;
+      if (!session.uid && data.email) {
+        this.props.updateSession({ email: data.email, uid: data.email, password: data.password });
+      }
+    }
+  };
 
   _cleanDuplicateAnswers = () => {
     const { answers, attachments } = this.props.milestones;
@@ -101,7 +124,6 @@ class CheckDataIntegrity extends PureComponent {
     // confirm image exists
     if (!isEmpty(attachments.data)) {
       for (const item of attachments.data) {
-
         // associate answer
         if (!item.answer_id) {
           const answer = _.find(answers.data, ['choice_id', item.choice_id]);
@@ -136,8 +158,19 @@ class CheckDataIntegrity extends PureComponent {
   }
 }
 
-const mapStateToProps = ({ milestones }) => ({ milestones });
+const mapStateToProps = ({
+  session,
+  registration,
+  milestones,
+}) => ({
+  session,
+  registration,
+  milestones,
+});
 const mapDispatchToProps = {
+  fetchSession,
+  updateSession,
+  fetchUser,
   fetchMilestoneAnswers,
   deleteMilestoneAnswer,
   fetchMilestoneAttachments,

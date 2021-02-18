@@ -75,6 +75,7 @@ class RegisterForPushNotifications extends Component {
 
     if (notifications_permission !== session.notifications_permission) {
       this.props.updateSession({ notifications_permission });
+      this.props.apiUpdateRespondent(session, {notifications_permission})
     }
 
     if (notifications_permission !== 'granted') {

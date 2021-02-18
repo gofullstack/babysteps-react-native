@@ -1,17 +1,12 @@
 import React, { Component } from 'react';
-import {
-  Text,
-  View,
-  ScrollView,
-  Dimensions,
-  StyleSheet,
-} from 'react-native';
+import { Text, View, ScrollView, Dimensions, StyleSheet } from 'react-native';
 import { Button } from 'react-native-elements';
 
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 
 import ConsentSummaryContent002 from './consent_summary_content_002';
+import ConsentSummaryContent003 from './consent_summary_content_003';
 
 import IRBInformation from '../constants/IRB';
 import States from '../actions/states';
@@ -27,6 +22,7 @@ const signatureHeight = signatureWidth * 0.4;
 
 const components = {
   '002': ConsentSummaryContent002,
+  '003': ConsentSummaryContent003,
 };
 
 class ConsentSummaryContent extends Component {
