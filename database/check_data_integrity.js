@@ -89,8 +89,13 @@ class CheckDataIntegrity extends PureComponent {
     const { user } = this.props.registration;
     if (!user.fetching && user.fetched && !isEmpty(user.data)) {
       const data = user.data;
-      if (!session.uid && data.email) {
-        this.props.updateSession({ email: data.email, uid: data.email, password: data.password });
+      if ((!session.uid && data.email) || (!session.user_id && data.api_id)) {
+        this.props.updateSession({
+          user_id: data.api_id,
+          email: data.email,
+          uid: data.email,
+          password: data.password,
+        });
       }
     }
   };
