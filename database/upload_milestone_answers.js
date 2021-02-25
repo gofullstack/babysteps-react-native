@@ -10,15 +10,18 @@ import { getApiUrl } from './common';
 const db = SQLite.openDatabase('babysteps.db');
 
 const apiToken = Constants.manifest.extra.apiToken;
+const headers = { milestone_token: apiToken };
+const baseURL = getApiUrl();
 
 const executeApiCall = async answers => {
-  const baseURL = `${getApiUrl()}/answers/bulk_upload`;
-  const headers = { milestone_token: apiToken };
-
+  
+  const url = '/answers/bulk_upload';
+  
   return axios({
     method: 'POST',
     responseType: 'json',
     baseURL,
+    url,
     headers,
     data: { answers },
   })
@@ -44,7 +47,7 @@ const executeApiCall = async answers => {
     });
 };
 
-const UploadMilestoneAnswers = async (data) => {
+const UploadMilestoneAnswers = async data => {
   const answers = [];
   forEach(data, row => {
     const answer = omit(row, [

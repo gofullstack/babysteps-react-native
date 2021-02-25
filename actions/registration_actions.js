@@ -653,59 +653,6 @@ export const apiSyncSignature = user_id => {
   }; // return dispatch
 };
 
-export const apiFetchUserRespondents = session => {
-
-  return dispatch => {
-    dispatch(Pending(API_FETCH_USER_RESPONDENT_PENDING));
-    const baseURL = getApiUrl();
-    const apiToken = Constants.manifest.extra.apiToken;
-    const { user_id } = session;
-
-    return new Promise((resolve, reject) => {
-      axios({
-        method: 'get',
-        responseType: 'json',
-        baseURL,
-        url: '/respondents/by_user',
-        params: { user_id },
-        headers: {
-          "milestone_token": apiToken,
-        },
-      })
-        .then(response => {
-          const { respondents } = response.data;
-          dispatch(Response(API_FETCH_USER_RESPONDENT_FULFILLED, response));
-          if (_.isEmpty(respondents)) {
-
-            db.transaction(tx => {
-              tx.executeSql(
-                `SELECT * FROM respondents LIMIT 1;`,
-                [],
-                (_, response) => {
-                  const respondent = response.rows['_array'][0];
-                  const data = {
-                    ...respondent,
-                    id: respondent.api_id,
-                  };
-                  if (!data.respondent_type) data.respondent_type = 'mother';
-                  //console.log({ respondent: data });
-                  //console.log({ session })
-                  dispatch(apiCreateRespondent(session, data));
-                },
-                (_, error) => {
-                  console.log(error);
-                },
-              );
-            });
-          }
-        })
-        .catch(error => {
-          dispatch(Response(API_FETCH_USER_RESPONDENT_REJECTED, error));
-        });
-    }); // return Promise
-  }; // return dispatch
-};
-
 export const apiFetchRespondentAttachments = api_id => {
 
   return dispatch => {
@@ -745,58 +692,4 @@ const saveSignature = async (dispatch, api_id) => {
   } else {
     console.log('no signature available');
   } // signatureFile exists
-};
-
-export const apiFetchUserSubject = (session, respondent_id, subject_id) => {
-
-  return dispatch => {
-    dispatch(Pending(API_FETCH_USER_SUBJECT_PENDING));
-    const baseURL = getApiUrl();
-    const apiToken = Constants.manifest.extra.apiToken;
-    const { user_id } = session;
-
-    return new Promise((resolve, reject) => {
-      axios({
-        method: 'get',
-        responseType: 'json',
-        baseURL,
-        url: '/subjects/by_user',
-        params: { user_id, subject_id },
-        headers: {
-          "milestone_token": apiToken,
-        },
-      })
-        .then(response => {
-          const { subject } = response.data;
-          dispatch(Response(API_FETCH_USER_SUBJECT_FULFILLED, response));
-          if (_.isEmpty(subject)) {
-
-            db.transaction(tx => {
-              tx.executeSql(
-                `SELECT * FROM subjects LIMIT 1;`,
-                [],
-                (_, response) => {
-                  const subject = response.rows['_array'][0];
-                  const data = {
-                    ...subject,
-                    id: subject.api_id,
-                    outcome: 'live_birth',
-                    conception_method: 'natural',
-                    respondent_ids: [respondent_id],
-                  };
-                  //console.log({ subject: data });
-                  dispatch(apiCreateSubject(session, data));
-                },
-                (_, error) => {
-                  console.log(error);
-                },
-              );
-            });
-          }
-        })
-        .catch(error => {
-          dispatch(Response(API_FETCH_USER_SUBJECT_REJECTED, error));
-        });
-    }); // return Promise
-  }; // return dispatch
 };
