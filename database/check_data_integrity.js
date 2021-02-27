@@ -13,6 +13,7 @@ import {
   deleteMilestoneAnswer,
   fetchMilestoneAttachments,
   updateMilestoneAttachment,
+  deleteMilestoneAttachment,
 } from '../actions/milestone_actions';
 
 import { addColumn } from './common';
@@ -43,7 +44,7 @@ class CheckDataIntegrity extends PureComponent {
     addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
     addColumn('sessions', 'current_group_index', 'integer');
     addColumn('attachments', 'size', 'integer');
-    addColumn('attachments', 'uploaded', 'integer');
+    //addColumn('attachments', 'uploaded', 'integer');
     addColumn('attachments', 'checksum', 'string');
     addColumn('babybook_entries', 'choice_id', 'integer');
   }
@@ -61,9 +62,9 @@ class CheckDataIntegrity extends PureComponent {
     }
 
     if (
-      !answers.fetching &&
       answers.fetched &&
       !isEmpty(answers.data) &&
+      attachments.fetched &&
       !cleanDuplicateAnswersSubmitted
     ) {
       this._cleanDuplicateAnswers();
@@ -72,9 +73,8 @@ class CheckDataIntegrity extends PureComponent {
     }
 
     if(
-      !answers.fetching &&
+      cleanDuplicateAnswersSubmitted &&
       answers.fetched &&
-      !attachments.fetching &&
       attachments.fetched &&
       !isEmpty(attachments.data) &&
       !confirmImageAttachmentsSubmitted
@@ -101,20 +101,28 @@ class CheckDataIntegrity extends PureComponent {
   };
 
   _cleanDuplicateAnswers = () => {
+    console.log('*** Begin Clean Duplicate Answers');
     const { answers, attachments } = this.props.milestones;
     if (!isEmpty(answers.data)) {
-      const choice_ids = _.groupBy(answers.data, 'choice_id');
-      _.map(choice_ids, choice_id => {
-        if (choice_id.length > 1) {
-          choice_id = _.orderBy(choice_id, ['id'], ['desc']);
-          const saveAnswerID = choice_id[0].id;
-          _.map(choice_id, answer => {
+      const ansChoiceIDs = _.groupBy(answers.data, 'choice_id');
+      _.map(ansChoiceIDs, ansChoiceID => {
+        if (ansChoiceID.length >= 1) {
+          ansChoiceID = _.orderBy(ansChoiceID, ['id'], ['desc']);
+          const saveAnswerID = ansChoiceID[0].id;
+          _.map(ansChoiceID, answer => {
             if (answer.id === saveAnswerID) {
-              const attachment = _.find(attachments.data, ['choice_id', answer.choice_id]);
-              if (attachment) {
-                attachment.answer_id = answer.id;
-                this.props.updateMilestoneAttachment(attachment);
-              }
+              let attChoiceIDs = _.filter(attachments.data, { choice_id: answer.choice_id })
+              attChoiceIDs = _.orderBy(attChoiceIDs, ['id'], ['desc']);
+              const saveAttachmentID = attChoiceIDs[0].id;
+              _.map(attChoiceIDs, attachment => {
+                if (attachment.id === saveAttachmentID) {
+                  attachment.answer_id = answer.id;
+                  this.props.updateMilestoneAttachment(attachment);
+                } else {
+                  this.props.deleteMilestoneAttachment(attachment.id);
+                }
+              });
+
             } else {
               this.props.deleteMilestoneAnswer(answer.id);
             }
@@ -125,6 +133,7 @@ class CheckDataIntegrity extends PureComponent {
   };
 
   _confirmAttachments = async () => {
+    console.log('*** Begin Confirm Attachment Files');
     const { attachments, answers } = this.props.milestones;
     // confirm image exists
     if (!isEmpty(attachments.data)) {
@@ -180,6 +189,7 @@ const mapDispatchToProps = {
   deleteMilestoneAnswer,
   fetchMilestoneAttachments,
   updateMilestoneAttachment,
+  deleteMilestoneAttachment,
 };
 
 export default connect(

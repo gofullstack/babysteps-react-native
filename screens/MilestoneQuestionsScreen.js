@@ -52,7 +52,7 @@ import {
 
 import { RenderChoices } from '../components/milestone_question_components';
 
-import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
+import { UploadMilestoneAttachment } from '../database/sync_milestone_attachments';
 
 import Colors from '../constants/Colors';
 import States from '../actions/states';
@@ -252,14 +252,13 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   saveResponse = async (choice, response, options = {}) => {
-    let answer = {};
-    const answers = [...this.state.answers]
+
+    const answers = [...this.state.answers];
     const format = options.format;
 
     const user = this.props.registration.user;
     const subject = this.props.registration.subject;
     const respondent = this.props.registration.respondent;
-    const index = _.findIndex(answers, { choice_id: choice.id });
 
     if (format === 'single') {
       _.map(answers, answer => {
@@ -270,7 +269,9 @@ class MilestoneQuestionsScreen extends Component {
       });
     }
 
-    if (index === -1) {
+    let answer = _.find(answers, ['choice_id', choice.id]);
+
+    if (!answer) {
       answer = {
         section_id: this.state.section.id,
         question_id: choice.question_id,
@@ -279,9 +280,11 @@ class MilestoneQuestionsScreen extends Component {
         pregnancy: 0,
       };
     } else {
-      answer = _.find(answers, ['choice_id', choice.id]);
-      _.remove(answers, ['choice_id', choice.id]);
-    } // index = -1
+      answers = _.reject(answers, ['choice_id', choice.id]);
+    }
+
+    console.log({ answers })
+    console.log({ answer })
 
     if (!_.isEmpty(user.data)) {
       answer.user_id = user.data.id;
@@ -305,6 +308,8 @@ class MilestoneQuestionsScreen extends Component {
     } // response.attachments
 
     answers.push(answer);
+
+    console.log({ answers })
 
     this.updateAnswersState(answers);
   };

@@ -116,6 +116,10 @@ export const UPDATE_MILESTONE_ATTACHMENT_PENDING = 'update_milestone_attachment_
 export const UPDATE_MILESTONE_ATTACHMENT_FULFILLED = 'update_milestone_attachment_fulfilled';
 export const UPDATE_MILESTONE_ATTACHMENT_REJECTED = 'update_milestone_attachment_rejected';
 
+export const DELETE_MILESTONE_ATTACHMENT_PENDING = 'delete_milestone_attachment_pending';
+export const DELETE_MILESTONE_ATTACHMENT_FULFILLED = 'delete_milestone_attachment_fulfilled';
+export const DELETE_MILESTONE_ATTACHMENT_REJECTED = 'delete_milestone_attachment_rejected';
+
 export const API_FETCH_ANSWER_ATTACHMENTS_PENDING = 'api_fetch_answer_attachments_pending';
 export const API_FETCH_ANSWER_ATTACHMENTS_FULFILLED = 'api_fetch_answer_attachments_fulfilled';
 export const API_FETCH_ANSWER_ATTACHMENTS_REJECTED = 'api_fetch_answer_attachments_rejected';

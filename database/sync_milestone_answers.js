@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
+import isEmpty from 'lodash/isEmpty';
 import forEach from 'lodash/forEach';
 import omit from 'lodash/omit';
 
@@ -14,9 +15,8 @@ const headers = { milestone_token: apiToken };
 const baseURL = getApiUrl();
 
 const executeApiCall = async answers => {
-  
   const url = '/answers/bulk_upload';
-  
+
   return axios({
     method: 'POST',
     responseType: 'json',
@@ -65,9 +65,47 @@ const UploadMilestoneAnswers = async data => {
       subject_id: row.subject_api_id,
     });
   });
-
-  const response = await executeApiCall(answers);
-
+  if (isEmpty(answers)) {
+    console.log('*** All Answers Exist on Server');
+  } else {
+    await executeApiCall(answers);
+  }
 };
 
-export default UploadMilestoneAnswers;
+const SyncMilestoneAnswers = subject_id => {
+  console.log('*** Begin Milestone Answers Sync');
+  const url = '/answers/by_subject';
+
+  return new Promise((resolve, reject) => {
+    axios({
+      method: 'get',
+      responseType: 'json',
+      baseURL,
+      url,
+      headers,
+      params: { subject_id },
+    })
+      .then(response => {
+        const { choice_ids } = response.data;
+        const sql = `SELECT * FROM answers WHERE choice_id NOT IN (${choice_ids.join()}) ;`;
+        db.transaction(tx => {
+          tx.executeSql(
+            sql,
+            [],
+            (_, response) => {
+              const answers = response.rows['_array'];
+              UploadMilestoneAnswers(answers);
+            },
+            (_, error) => { 
+              console.log(error);
+            },
+          );
+        });
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }); // return Promise
+};
+
+export default SyncMilestoneAnswers;

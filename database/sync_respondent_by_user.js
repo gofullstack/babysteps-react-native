@@ -72,6 +72,8 @@ const SyncRespondentByUser = async user_id => {
               },
             );
           });
+        } else {
+          console.log('*** Respondent Exists on Server');
         }
       })
       .catch(error => {

@@ -12,8 +12,6 @@ import isInteger from 'lodash/isInteger';
 import isEmpty from 'lodash/isEmpty';
 
 import { insertRows, getApiUrl } from '../database/common';
-import UploadMilestoneAnswers from '../database/upload_milestone_answers';
-import UploadMilestoneAttachment from '../database/upload_milestone_attachment';
 
 import CONSTANTS from '../constants';
 
@@ -127,6 +125,10 @@ import {
   UPDATE_MILESTONE_ATTACHMENT_PENDING,
   UPDATE_MILESTONE_ATTACHMENT_FULFILLED,
   UPDATE_MILESTONE_ATTACHMENT_REJECTED,
+
+  DELETE_MILESTONE_ATTACHMENT_PENDING,
+  DELETE_MILESTONE_ATTACHMENT_FULFILLED,
+  DELETE_MILESTONE_ATTACHMENT_REJECTED,
 
   API_FETCH_ANSWER_ATTACHMENTS_PENDING,
   API_FETCH_ANSWER_ATTACHMENTS_FULFILLED,
@@ -985,36 +987,26 @@ export const updateMilestoneAttachment = attachment => {
   }; // dispatch
 };
 
-export const apiFetchAnswerAttachments = attachment => {
-
+export const deleteMilestoneAttachment = attachment_id => {
   return dispatch => {
-    dispatch(Pending(API_FETCH_ANSWER_ATTACHMENTS_PENDING));
-    const baseURL = getApiUrl();
-    const apiToken = Constants.manifest.extra.apiToken;
-    const headers = { "milestone_token": apiToken };
-    const url = `/answers/has_attachment`;
+    dispatch(Pending(DELETE_MILESTONE_ATTACHMENT_PENDING));
 
-    return new Promise((resolve, reject) => {
-      axios({
-        method: 'get',
-        responseType: 'json',
-        baseURL,
-        url,
-        headers,
-        params: { choice_id: attachment.choice_id },
-      })
-        .then(response => {
-          const data = response.data;
-          dispatch(Response(API_FETCH_ANSWER_ATTACHMENTS_FULFILLED, response));
-          if (!data.has_attachment) {
-            UploadMilestoneAttachment(attachment);
-          }
-        })
-        .catch(error => {
-          dispatch(Response(API_FETCH_ANSWER_ATTACHMENTS_REJECTED, error));
-        });
-    }); // return Promise
-  }; // return dispatch
+    let sql = `DELETE FROM attachments WHERE id = ${attachment_id}`;
+
+    return db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, response) => {
+          dispatch(Response(DELETE_MILESTONE_ATTACHMENT_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(DELETE_MILESTONE_ATTACHMENT_REJECTED, error));
+        },
+      );
+    });
+
+  };
 };
 
 export const fetchOverViewTimeline = () => {
@@ -1059,51 +1051,4 @@ export const fetchOverViewTimeline = () => {
       );
     });
   };
-};
-
-export const apiFetchChoiceAnswers = (session, subject_id) => {
-
-  return dispatch => {
-    dispatch(Pending(API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING));
-    const baseURL = getApiUrl();
-    const apiToken = Constants.manifest.extra.apiToken;
-
-    return new Promise((resolve, reject) => {
-      axios({
-        method: 'get',
-        responseType: 'json',
-        baseURL,
-        url: '/answers/by_subject',
-        params: { subject_id },
-        headers: {
-          "milestone_token": apiToken,
-        },
-      })
-        .then(response => {
-          const { choice_ids } = response.data;
-          const sql = `SELECT * FROM answers WHERE choice_id NOT IN (${choice_ids.join()}) ;`;
-          db.transaction(tx => {
-            tx.executeSql(
-              sql,
-              [],
-              (_, response) => {
-                const answers = response.rows['_array'];
-                UploadMilestoneAnswers(answers);
-              },
-              (_, error) => {
-                console.log(error);
-              },
-            );
-          });
-          dispatch(
-            Response(API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED, response),
-          );
-        })
-        .catch(error => {
-          dispatch(
-            Response(API_FETCH_MILESTONE_CHOICE_ANSWERS_REJECTED, error),
-          );
-        });
-    }); // return Promise
-  }; // return dispatch
 };

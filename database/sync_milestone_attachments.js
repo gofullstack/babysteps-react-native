@@ -1,18 +1,22 @@
+import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
+import * as SQLite from 'expo-sqlite';
 
 import {
   delay,
   getApiUrl,
   getAnswer,
-  getAttachment,
   setAttachmentToUploaded,
 } from './common';
 
+const db = SQLite.openDatabase('babysteps.db');
+
+const baseURL = getApiUrl();
 const apiToken = Constants.manifest.extra.apiToken;
 
 const executeApiCall = async (answer, attachment) => {
-  const attachmentUrl = `${getApiUrl()}/answers/${answer.api_id}/attachments`;
+  const url = `${baseURL}/answers/${answer.api_id}/attachments`;
 
   const headers = {
     'Content-Type': attachment.content_type,
@@ -20,7 +24,7 @@ const executeApiCall = async (answer, attachment) => {
     milestone_token: apiToken,
   };
 
-  const response = await FileSystem.uploadAsync(attachmentUrl, attachment.uri, {
+  const response = await FileSystem.uploadAsync(url, attachment.uri, {
     headers,
     httpMethod: 'POST',
     uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
@@ -33,7 +37,8 @@ const executeApiCall = async (answer, attachment) => {
   return response;
 };
 
-const UploadMilestoneAttachment = async attachment => {
+export const UploadMilestoneAttachment = async attachment => {
+  console.log('*** Begin Milestone Attachment Update');
   let method = 'answer';
   let id = null;
   if (attachment.answer_id) id = attachment.answer_id;
@@ -69,18 +74,66 @@ const UploadMilestoneAttachment = async attachment => {
     const response = await executeApiCall(answer, attachment);
     if (response && response.status === 202) {
       console.log('***** Attachment uploaded successfully');
-      if (!attachment.id) {
-        if (attachment.answer_id) {
-          attachment = await getAttachment(attachment.answer_id, 'answer');
-        } else {
-          attachment = await getAttachment(attachment.choice_id, 'choice');
-        }
-      }
-      setAttachmentToUploaded(attachment);
     } else {
       console.log({ answer, attachment, response });
     }
   }
 };
 
-export default UploadMilestoneAttachment;
+const ConfirmAttachment = async (subject_id, attachment) => {
+
+  const url = '/answers/has_attachment';
+  const headers = { milestone_token: apiToken };
+
+  return new Promise((resolve, reject) => {
+    axios({
+      method: 'get',
+      responseType: 'json',
+      baseURL,
+      url,
+      headers,
+      params: {
+        subject_id,
+        choice_id: attachment.choice_id,
+      },
+    })
+      .then(response => {
+        const data = response.data;
+        if (!data.has_attachment) {
+          UploadMilestoneAttachment(attachment);
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }); // return Promise
+};
+
+const ConfirmAttachments = async (subject_id, attachments) => {
+  for (const attachment of attachments) {
+    ConfirmAttachment(subject_id, attachment);
+    const delayMessage = '*** Check if attachment uploaded...';
+    await delay(10000, delayMessage);
+  }
+};
+
+const SyncMilestoneAttachments = subject_id => {
+  console.log('*** Begin Milestone Attachments Sync');
+  const sql = 'SELECT * FROM attachments ORDER BY choice_id;';
+
+  return db.transaction(tx => {
+    tx.executeSql(
+      sql,
+      [],
+      (_, response) => {
+        const attachments = response.rows['_array'];
+        ConfirmAttachments(subject_id, attachments);
+      },
+      (_, error) => {
+        console.log(error);
+      },
+    );
+  });
+};
+
+export default SyncMilestoneAttachments;

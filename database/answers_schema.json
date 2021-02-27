@@ -50,7 +50,7 @@
       "content_type": "TEXT",
       "uri": "TEXT",
       "url": "TEXT",
-      "uploaded": "INTEGER",
+      // "uploaded": "INTEGER",
       "checksum": "STRING",
     },
     "indexes": [

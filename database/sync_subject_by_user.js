@@ -74,6 +74,8 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
               },
             );
           });
+        } else {
+          console.log('*** Subject Exists on Server');
         }
       })
       .catch(error => {

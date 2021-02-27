@@ -109,6 +109,10 @@ import {
   UPDATE_MILESTONE_ATTACHMENT_FULFILLED,
   UPDATE_MILESTONE_ATTACHMENT_REJECTED,
 
+  DELETE_MILESTONE_ATTACHMENT_PENDING,
+  DELETE_MILESTONE_ATTACHMENT_FULFILLED,
+  DELETE_MILESTONE_ATTACHMENT_REJECTED,
+
   FETCH_OVERVIEW_TIMELINE_PENDING,
   FETCH_OVERVIEW_TIMELINE_FULFILLED,
   FETCH_OVERVIEW_TIMELINE_REJECTED,
@@ -1132,6 +1136,41 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
     case UPDATE_MILESTONE_ATTACHMENT_REJECTED: {
+      return {
+        ...state,
+        attachment: {
+          ...state.attachment,
+          fetching: false,
+          fetched: false,
+          error: action.payload,
+        },
+      };
+    }
+
+    case DELETE_MILESTONE_ATTACHMENT_PENDING: {
+      return {
+        ...state,
+        attachment: {
+          ...state.attachment,
+          fetching: true,
+          fetched: false,
+          error: null,
+        },
+      };
+    }
+    case DELETE_MILESTONE_ATTACHMENT_FULFILLED: {
+      return {
+        ...state,
+        attachment: {
+          ...state.attachment,
+          fetching: false,
+          fetched: false,
+          error: null,
+          data: [],
+        },
+      };
+    }
+    case DELETE_MILESTONE_ATTACHMENT_REJECTED: {
       return {
         ...state,
         attachment: {
