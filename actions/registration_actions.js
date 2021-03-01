@@ -94,6 +94,14 @@ import {
   API_SYNC_SIGNATURE_FULFILLED,
   API_SYNC_SIGNATURE_REJECTED,
 
+  FETCH_CONSENT_PENDING,
+  FETCH_CONSENT_FULFILLED,
+  FETCH_CONSENT_REJECTED,
+
+  API_FETCH_CONSENT_PENDING,
+  API_FETCH_CONSENT_FULFILLED,
+  API_FETCH_CONSENT_REJECTED,
+
 } from './types';
 
 const db = SQLite.openDatabase('babysteps.db');
@@ -153,7 +161,7 @@ export const fetchUser = () => {
 };
 
 export const createUser = user => {
-  return function (dispatch) {
+  return function(dispatch) {
     dispatch(Pending(CREATE_USER_PENDING));
 
     return db.transaction(tx => {
