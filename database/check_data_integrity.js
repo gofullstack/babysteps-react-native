@@ -111,17 +111,20 @@ class CheckDataIntegrity extends PureComponent {
           const saveAnswerID = ansChoiceID[0].id;
           _.map(ansChoiceID, answer => {
             if (answer.id === saveAnswerID) {
+              
               let attChoiceIDs = _.filter(attachments.data, { choice_id: answer.choice_id })
-              attChoiceIDs = _.orderBy(attChoiceIDs, ['id'], ['desc']);
-              const saveAttachmentID = attChoiceIDs[0].id;
-              _.map(attChoiceIDs, attachment => {
-                if (attachment.id === saveAttachmentID) {
-                  attachment.answer_id = answer.id;
-                  this.props.updateMilestoneAttachment(attachment);
-                } else {
-                  this.props.deleteMilestoneAttachment(attachment.id);
-                }
-              });
+              if (!isEmpty(attChoiceIDs)) {
+                attChoiceIDs = _.orderBy(attChoiceIDs, ['id'], ['desc']);
+                const saveAttachmentID = attChoiceIDs[0].id;
+                _.map(attChoiceIDs, attachment => {
+                  if (attachment.id === saveAttachmentID) {
+                    attachment.answer_id = answer.id;
+                    this.props.updateMilestoneAttachment(attachment);
+                  } else {
+                    this.props.deleteMilestoneAttachment(attachment.id);
+                  }
+                });
+              }
 
             } else {
               this.props.deleteMilestoneAnswer(answer.id);
