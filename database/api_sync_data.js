@@ -71,6 +71,8 @@ class ApiSyncData extends PureComponent {
     if (
       !session.fetching &&
       !session.fetching_token &&
+      session.email &&
+      session.password &&
       !apiRefreshTokenSubmitted
     ) {
       this.props.apiDisptachTokenRefresh(session);

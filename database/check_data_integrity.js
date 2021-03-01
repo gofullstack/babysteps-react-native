@@ -150,7 +150,7 @@ class CheckDataIntegrity extends PureComponent {
           let resultFile = await FileSystem.getInfoAsync(item.uri);
           if (!resultFile.exists) {
             // file not found or otherwise defective
-            console.log(`*** attachment not found or otherwise defective - ID: ${item.id}, URI: ${item.uri}`);
+            console.log(`*** attachment not found or otherwise defective - URI: ${item.uri}`);
             item = {
               ...item,
               uri: null,
