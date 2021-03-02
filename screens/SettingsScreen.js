@@ -25,6 +25,9 @@ import {
   fetchSubject,
 } from '../actions/registration_actions';
 
+import UploadSQLiteDatabase from '../database/upload_sqlite_database';
+import UploadRawAttachments from '../database/upload_raw_attachments';
+
 import ConsentDisclosureContent from '../components/consent_disclosure_content';
 import SettingsFAQContent from '../components/settings_faq_content';
 
@@ -104,6 +107,12 @@ class SettingsScreen extends React.Component {
     Linking.openURL(
       `mailto:feedback@babystepsapp.net?subject=BabySteps App Directory&body=${body}`,
     );
+  };
+
+  _handleFileUploadPress = () => {
+    const user = this.props.registration.user.data;
+    UploadSQLiteDatabase(user.api_id);
+    UploadRawAttachments(user.api_id);
   };
 
   _handleConsentAgreementPress = () => {
@@ -267,6 +276,19 @@ class SettingsScreen extends React.Component {
             onPress={this._handleDirectoryListingPress }
           >
             <Text style={styles.linkText}>Provide Attachment Data Feedback</Text>
+            <Ionicons
+              name="ios-arrow-forward"
+              size={28}
+              color="#bdc6cf"
+              style={styles.linkIcon}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.linkContainer}
+            onPress={this._handleFileUploadPress}
+          >
+            <Text style={styles.linkText}>Upload Attachment Data</Text>
             <Ionicons
               name="ios-arrow-forward"
               size={28}

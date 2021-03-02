@@ -28,9 +28,9 @@
     "assetBundlePatterns": [
       "./assets/**/*"
     ],
-    "version": "1.1.8",
+    "version": "1.1.9",
     "ios": {
-      "buildNumber": "97",
+      "buildNumber": "98",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps",
       "associatedDomains": [
@@ -44,7 +44,7 @@
       }
     },
     "android": {
-      "versionCode": 97,
+      "versionCode": 98,
       "package": "com.gofullstack.babysteps.prod",
       "googleServicesFile": "./google-services.prod.json",
       "permissions": [

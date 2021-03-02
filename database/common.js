@@ -188,7 +188,7 @@ export const setAttachmentToUploaded = attachment => {
   });
 };
 
-export const delay = (ms, message = null) => {
+export const delay = async (ms, message = null) => {
   if (message) console.log(message);
   return new Promise(response => setTimeout(response, ms));
 };

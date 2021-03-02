@@ -105,8 +105,8 @@ const ConfirmAttachment = async (subject_id, attachment) => {
 const ConfirmAttachments = async (subject_id, attachments) => {
   for (const attachment of attachments) {
     ConfirmAttachment(subject_id, attachment);
-    const delayMessage = '*** Check if attachment uploaded...';
-    await delay(10000, delayMessage);
+    //const delayMessage = '*** Check if attachment uploaded...';
+    //await delay(10000, delayMessage);
   }
 };
 

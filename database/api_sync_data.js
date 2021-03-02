@@ -119,7 +119,8 @@ class ApiSyncData extends PureComponent {
             !uploadAttachmentsSubmitted &&
             session.connectionType === 'wifi'
           ) {
-            this._uploadAttachments(subject_api_id);
+            SyncMilestoneAttachments(subject_api_id);
+            //this._uploadAttachments(subject_api_id);
             this.setState({ uploadAttachmentsSubmitted: true });
           }
 
