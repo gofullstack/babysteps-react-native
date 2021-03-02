@@ -3,12 +3,7 @@ import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
 import * as SQLite from 'expo-sqlite';
 
-import {
-  delay,
-  getApiUrl,
-  getAnswer,
-  setAttachmentToUploaded,
-} from './common';
+import { delay, getApiUrl, getAnswer } from './common';
 
 const db = SQLite.openDatabase('babysteps.db');
 
@@ -68,8 +63,6 @@ export const UploadMilestoneAttachment = async attachment => {
 
   if (!answer.api_id) {
     console.log('***** Error: answer does not have an API ID. Answer ID: ', answer.id);
-    // may need to mark the attachment as undelivered so as to stop retrying
-    //setAttachmentToUploaded(attachment);
   } else {
     const response = await executeApiCall(answer, attachment);
     if (response && response.status === 202) {

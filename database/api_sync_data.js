@@ -116,7 +116,6 @@ class ApiSyncData extends PureComponent {
 
           // upload any attachments not yet uploaded
           if (
-            uploadAnswersSubmitted &&
             !uploadAttachmentsSubmitted &&
             session.connectionType === 'wifi'
           ) {
@@ -125,7 +124,7 @@ class ApiSyncData extends PureComponent {
           }
 
           // upload completed datestamps for calender entries
-          if (uploadAnswersSubmitted && !uploadCalendarsCompletedSubmitted) {
+          if (!uploadCalendarsCompletedSubmitted) {
             UploadMilestoneCalendarsCompleted();
             this.setState({ uploadCalendarsCompletedSubmitted: true });
           }
