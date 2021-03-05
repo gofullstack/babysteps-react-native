@@ -187,6 +187,10 @@ export const CREATE_USER_PENDING = 'create_user_pending';
 export const CREATE_USER_FULFILLED = 'create_user_fulfilled';
 export const CREATE_USER_REJECTED = 'create_user_rejected';
 
+export const UPDATE_USER_PENDING = 'update_user_pending';
+export const UPDATE_USER_FULFILLED = 'update_user_fulfilled';
+export const UPDATE_USER_REJECTED = 'update_user_rejected';
+
 export const API_CREATE_USER_PENDING = 'api_create_user_pending';
 export const API_CREATE_USER_FULFILLED = 'api_create_user_fulfilled';
 export const API_CREATE_USER_REJECTED = 'api_create_user_rejected';

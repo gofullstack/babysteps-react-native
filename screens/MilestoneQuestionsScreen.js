@@ -253,7 +253,7 @@ class MilestoneQuestionsScreen extends Component {
 
   saveResponse = async (choice, response, options = {}) => {
 
-    const answers = [...this.state.answers];
+    let answers = [...this.state.answers];
     const format = options.format;
 
     const user = this.props.registration.user;
@@ -283,9 +283,6 @@ class MilestoneQuestionsScreen extends Component {
       answers = _.reject(answers, ['choice_id', choice.id]);
     }
 
-    console.log({ answers })
-    console.log({ answer })
-
     if (!_.isEmpty(user.data)) {
       answer.user_id = user.data.id;
       answer.user_api_id = user.data.api_id;
@@ -308,8 +305,6 @@ class MilestoneQuestionsScreen extends Component {
     } // response.attachments
 
     answers.push(answer);
-
-    console.log({ answers })
 
     this.updateAnswersState(answers);
   };

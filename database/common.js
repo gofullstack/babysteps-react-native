@@ -133,20 +133,20 @@ export const getAnswer = async (id, method = 'answer') => {
   if (method !== 'answer') {
     sql = `SELECT * FROM answers WHERE ${method}_id = ${id}`;
   }
+
   await new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
         sql,
         [],
-        (_, result) => resolve(result.rows._array),
+        (_, result) => resolve((answer = result.rows._array)),
         (_, error) => {
           console.log({error});
         },
       );
     });
-  }).then(result => {
-    answer = result[0];
   });
+
   return answer;
 };
 
@@ -156,36 +156,57 @@ export const getAttachment = async (id, method = 'attachment') => {
   if (method !== 'attachment') {
     sql = `SELECT * FROM attachments WHERE ${method}_id = ${id}`;
   }
+
   await new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
         sql,
         [],
-        (_, result) => resolve(result.rows._array),
+        (_, result) => resolve((attachment = result.rows._array[0])),
         (_, error) => {
           console.log({error});
         },
       );
     });
-  }).then(result => {
-    attachment = result[0];
   });
+
   return attachment;
 };
 
-export const setAttachmentToUploaded = attachment => {
-  return new Promise((resolve, reject) => {
+export const getAttachments = async () => {
+  let attachments = [];
+  let sql = `SELECT * FROM attachments`;
+
+  await new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        `UPDATE attachments SET uploaded = 1 WHERE id = ${attachment.id}`,
+        sql,
         [],
-        (_, result) => resolve(result),
+        (_, result) => resolve((attachments = result.rows._array)),
         (_, error) => {
           console.log({error});
         },
       );
     });
   });
+
+  return attachments;
+};
+
+export const setAttachmentToUploaded = attachment => {
+  db.transaction(tx => {
+    tx.executeSql(
+      `UPDATE attachments SET uploaded = 1 WHERE id = ${attachment.id}`,
+      [],
+      (_, result) => {
+        console.log('Attachment marked as uploaded');
+      },
+      (_, error) => {
+        console.log({error});
+      },
+    );
+  });
+  return null;
 };
 
 export const delay = async (ms, message = null) => {

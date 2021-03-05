@@ -1,25 +1,25 @@
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
-import * as SQLite from 'expo-sqlite';
 
-import { delay, getApiUrl, getAnswer } from './common';
-
-const db = SQLite.openDatabase('babysteps.db');
+import { getApiUrl, getAttachments } from './common';
 
 const baseURL = getApiUrl();
 const apiToken = Constants.manifest.extra.apiToken;
 
-const executeApiCall = async (answer, attachment) => {
-  const url = `${baseURL}/answers/${answer.api_id}/attachments`;
+const executeApiCall = async attachment => {
+  const url = `${baseURL}/answers/attachments`;
+  const uri = attachment.uri;
 
   const headers = {
     'Content-Type': attachment.content_type,
     'Content-File-Name': attachment.filename,
+    'Subject-ID': attachment.subject_api_id,
+    'Choice-ID': attachment.choice_id,
     milestone_token: apiToken,
   };
 
-  const response = await FileSystem.uploadAsync(url, attachment.uri, {
+  const response = await FileSystem.uploadAsync(url, uri, {
     headers,
     httpMethod: 'POST',
     uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
@@ -34,99 +34,84 @@ const executeApiCall = async (answer, attachment) => {
 
 export const UploadMilestoneAttachment = async attachment => {
   console.log('*** Begin Milestone Attachment Update');
-  let method = 'answer';
-  let id = null;
-  if (attachment.answer_id) id = attachment.answer_id;
-  if (id === null && attachment.choice_id) {
-    method = 'choice';
-    id = attachment.choice_id;
-  }
-  if (!id) {
-    console.log('***** Error: answer ID not available. Attachment ID: ', attachment.id);
-    return;
-  }
 
-  let answer = await getAnswer(id, method);
-
-  if (!answer) {
-    console.log('***** Error: answer does not exist. Attachment ID: ', attachment.id);
-    return;
-  }
-
-  let loop = 0;
-  const delayMessage = '***** Waiting for Answer API ID...';
-  while (loop < 10 && !answer.api_id) {
-    await delay(3000, delayMessage);
-    answer = await getAnswer(id, method);
-    loop++;
-  }
-
-  if (!answer.api_id) {
-    console.log('***** Error: answer does not have an API ID. Answer ID: ', answer.id);
+  const response = await executeApiCall(attachment);
+  if (response && response.status === 202) {
+    console.log('***** Attachment uploaded successfully');
   } else {
-    const response = await executeApiCall(answer, attachment);
-    if (response && response.status === 202) {
-      console.log('***** Attachment uploaded successfully');
-    } else {
-      console.log({ answer, attachment, response });
-    }
+    console.log({ attachment, response });
   }
+
+  return null;
 };
 
-const ConfirmAttachment = async (subject_id, attachment) => {
+export const ConfirmAPIAttachment = async attachment => {
+
+  let has_attachment = false;
 
   const url = '/answers/has_attachment';
   const headers = { milestone_token: apiToken };
+  const { subject_api_id, choice_id } = attachment;
 
-  return new Promise((resolve, reject) => {
-    axios({
-      method: 'get',
-      responseType: 'json',
-      baseURL,
-      url,
-      headers,
-      params: {
-        subject_id,
-        choice_id: attachment.choice_id,
-      },
+  await axios({
+    method: 'get',
+    responseType: 'json',
+    baseURL,
+    url,
+    headers,
+    params: {
+      subject_id: subject_api_id,
+      choice_id,
+    },
+  })
+    .then(response => {
+      has_attachment = response.data.has_attachment;
     })
-      .then(response => {
-        const data = response.data;
-        if (!data.has_attachment) {
-          UploadMilestoneAttachment(attachment);
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  }); // return Promise
+    .catch(error => {
+      console.log(error);
+    });
+
+  return has_attachment;
 };
 
-const ConfirmAttachments = async (subject_id, attachments) => {
-  for (const attachment of attachments) {
-    ConfirmAttachment(subject_id, attachment);
-    //const delayMessage = '*** Check if attachment uploaded...';
-    //await delay(10000, delayMessage);
-  }
+export const ConfirmAPIAttachments = async (subject_id, choice_ids) => {
+
+  let has_attachments = [];
+
+  const url = '/answers/has_attachments';
+  const headers = { milestone_token: apiToken };
+
+  await axios({
+    method: 'get',
+    responseType: 'json',
+    baseURL,
+    url,
+    headers,
+    params: {
+      subject_id,
+      choice_ids,
+    },
+  })
+    .then(response => {
+      has_attachments = response.data.has_attachments;
+    })
+    .catch(error => {
+      console.log(error);
+    });
+
+  return has_attachments;
 };
 
-const SyncMilestoneAttachments = subject_id => {
+const SyncMilestoneAttachments = async () => {
   console.log('*** Begin Milestone Attachments Sync');
-  const sql = 'SELECT * FROM attachments ORDER BY choice_id;';
-
-  return db.transaction(tx => {
-    tx.executeSql(
-      sql,
-      [],
-      (_, response) => {
-        const attachments = response.rows['_array'];
-        ConfirmAttachments(subject_id, attachments);
-      },
-      (_, error) => {
-        console.log(error);
-      },
-    );
-  });
+  const attachments = await getAttachments();
+  for (const attachment of attachments) {
+    const has_attachment = await ConfirmAPIAttachment(attachment);
+    if (!has_attachment) {
+      await UploadMilestoneAttachment(attachment);
+    }
+  }
+  return null;
 };
 
 export default SyncMilestoneAttachments;

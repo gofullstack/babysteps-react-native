@@ -12,6 +12,10 @@ import {
   CREATE_USER_FULFILLED,
   CREATE_USER_REJECTED,
 
+  UPDATE_USER_PENDING,
+  UPDATE_USER_FULFILLED,
+  UPDATE_USER_REJECTED,
+
   API_CREATE_USER_PENDING,
   API_CREATE_USER_FULFILLED,
   API_CREATE_USER_REJECTED,
@@ -194,6 +198,43 @@ const reducer = (state = initialState, action, formData = {}) => {
         user: {
           ...state.user,
           fetching: false,
+          error: action.payload,
+        },
+      };
+    }
+
+    case UPDATE_USER_PENDING: {
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          fetching: true,
+          fetched: false,
+          error: null,
+        },
+      };
+    }
+    case UPDATE_USER_FULFILLED: {
+      const formData = action.formData;
+      const data = { ...state.user.data, ...formData };
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          fetching: false,
+          fetched: true,
+          data,
+        },
+      };
+    }
+    case UPDATE_USER_REJECTED: {
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          fetching: false,
+          fetched: false,
+          data: {},
           error: action.payload,
         },
       };

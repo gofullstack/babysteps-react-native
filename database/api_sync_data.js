@@ -119,8 +119,7 @@ class ApiSyncData extends PureComponent {
             !uploadAttachmentsSubmitted &&
             session.connectionType === 'wifi'
           ) {
-            SyncMilestoneAttachments(subject_api_id);
-            //this._uploadAttachments(subject_api_id);
+            SyncMilestoneAttachments();
             this.setState({ uploadAttachmentsSubmitted: true });
           }
 
@@ -154,11 +153,6 @@ class ApiSyncData extends PureComponent {
     } else {
       this.setState({ appState: nextAppState });
     }
-  };
-
-  _uploadAttachments = async subject_api_id => {
-    await delay(10000, '*** Wait for answers to be updated before syncing attachments...');
-    SyncMilestoneAttachments(subject_api_id);
   };
 
   render() {

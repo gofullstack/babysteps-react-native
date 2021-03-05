@@ -3,6 +3,8 @@ import {
   Linking,
   Text,
   View,
+  ScrollView,
+  FlatList,
   SafeAreaView,
   StyleSheet,
   Platform,
@@ -17,6 +19,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 import moment from 'moment';
 
+import isEmpty from 'lodash/isEmpty';
+import map from 'lodash/map';
+import filter from 'lodash/filter';
+import find from 'lodash/find';
+
 import { connect } from 'react-redux';
 import { fetchSession } from '../actions/session_actions';
 import {
@@ -24,9 +31,13 @@ import {
   fetchRespondent,
   fetchSubject,
 } from '../actions/registration_actions';
+import { fetchMilestoneAttachments } from '../actions/milestone_actions';
 
 import UploadSQLiteDatabase from '../database/upload_sqlite_database';
-import UploadRawAttachments from '../database/upload_raw_attachments';
+import {
+  ConfirmAPIAttachments,
+  UploadMilestoneAttachment,
+} from '../database/sync_milestone_attachments';
 
 import ConsentDisclosureContent from '../components/consent_disclosure_content';
 import SettingsFAQContent from '../components/settings_faq_content';
@@ -34,7 +45,6 @@ import SettingsFAQContent from '../components/settings_faq_content';
 import CONSTANTS from '../constants';
 import IRBInformation from '../constants/IRB';
 import Colors from '../constants/Colors';
-
 
 class SettingsScreen extends React.Component {
   static navigationOptions = {
@@ -47,12 +57,49 @@ class SettingsScreen extends React.Component {
     this.state = {
       faqModalVisible: false,
       consentModalVisible: false,
+      mediaFilesModalVisible: false,
+      mediaFileModalRendered: false,
+      uploadDatabaseSelected: false,
+      apiAttachmentsSubmitted: false,
+      missingAPIAttachments: [],
     };
+
     this.props.fetchSession();
     this.props.fetchUser();
     this.props.fetchRespondent();
     this.props.fetchSubject();
+    this.props.fetchMilestoneAttachments();
   }
+
+  componentDidUpdate() {
+    const { subject } = this.props.registration;
+    const { attachments } = this.props.milestones;
+    const { apiAttachmentsSubmitted } = this.state;
+    if (subject.fetched && attachments.fetched && !apiAttachmentsSubmitted) {
+      this.getMissingAttachments();
+      this.setState({ apiAttachmentsSubmitted: true });
+    }
+  }
+
+  getMissingAttachments = async () => {
+    const subject = this.props.registration.subject.data;
+    const attachments = this.props.milestones.attachments.data;
+    const choiceIDs = map(attachments, 'choice_id');
+
+    const hasAttachments = await ConfirmAPIAttachments(subject.api_id, choiceIDs);
+
+    const missingAPIAttachments = [];
+    map(hasAttachments, att => {
+      if (!att.has_attachment) {
+        const attachment = find(attachments, { choice_id: att.choice_id });
+        missingAPIAttachments.push(attachment);
+      }
+    });
+
+    if (!isEmpty(missingAPIAttachments)) {
+      this.setState({ missingAPIAttachments });
+    }
+  };
 
   getRelease = () => {
     if (__DEV__) {
@@ -61,11 +108,11 @@ class SettingsScreen extends React.Component {
     return Constants.manifest.extra.release;
   };
 
-  _handleFAQPress = () => {
+  handleFAQPress = () => {
     this.setState({ faqModalVisible: true });
   };
 
-  _handleFeedbackPress = () => {
+  handleFeedbackPress = () => {
     const build = this.getAppVersion();
     const release = this.getRelease();
     const version = `${Constants.manifest.version}:${build}`;
@@ -83,12 +130,12 @@ class SettingsScreen extends React.Component {
     );
   };
 
-  _handleDirectoryListingPress = async () => {
+  handleDirectoryListingPress = async () => {
     const { registration } = this.props;
     const release = this.getRelease();
     const attachmentDir = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY  + '/'
     const fileNames = await FileSystem.readDirectoryAsync(attachmentDir);
-    let body = `\nRelease: ${release}\n`;
+    let body = `<div>Release: ${release}</div>`;
     body += `Directory: ${CONSTANTS.ATTACHMENTS_DIRECTORY}\n`;
     body += `User ID: ${registration.user.data.api_id}\n`;
     body += '________________________\n\n';
@@ -99,7 +146,7 @@ class SettingsScreen extends React.Component {
         const shortFileName = fileName.substring(24, 100);
         const timeStamp = moment(fileInfo.modificationTime * 1000).format('MM/DD/YYYY hh:MM');
         const fileSize = `${Math.ceil(fileInfo.size / 1000).toLocaleString()}K`;
-        body += `${shortFileName} - ${fileSize} - ${timeStamp}\n`;
+        body += `${shortFileName} - ${fileSize} - ${timeStamp}\n\n`;
       }
     }
 
@@ -109,13 +156,18 @@ class SettingsScreen extends React.Component {
     );
   };
 
-  _handleFileUploadPress = () => {
+  handleUploadDatabasePress = () => {
     const user = this.props.registration.user.data;
     UploadSQLiteDatabase(user.api_id);
-    UploadRawAttachments(user.api_id);
+    //UploadRawAttachments(user.api_id);
+    this.setState({ uploadDatabaseSelected: true });
   };
 
-  _handleConsentAgreementPress = () => {
+  handleUploadMediaFilesPress = () => {
+    this.setState({ mediaFilesModalVisible: true });
+  };
+
+  handleConsentAgreementPress = () => {
     this.setState({ consentModalVisible: true });
   };
 
@@ -163,7 +215,7 @@ class SettingsScreen extends React.Component {
                 this.setConsentModalVisible(!this.state.consentModalVisible);
               }}
             >
-              <Ionicons name = "md-close" size = {36} />
+              <Ionicons name="md-close" size={36} />
             </TouchableOpacity>
             <ConsentDisclosureContent
               formState="view"
@@ -181,13 +233,79 @@ class SettingsScreen extends React.Component {
     );
   };
 
+  handleUploadMediaFile = async attachment => {
+    let { missingAPIAttachments } = this.state;
+    UploadMilestoneAttachment(attachment);
+    missingAPIAttachments = filter(missingAPIAttachments, missingAttachment => {
+      return missingAttachment.id !== attachment.id;
+    })
+    this.setState({ missingAPIAttachments });
+  };
+
+  renderMediaFileItem = attachment => {
+    const shortFileName = attachment.filename.substring(24, 100);
+    return (
+      <View>
+        <TouchableOpacity
+          style={styles.linkContainer}
+          onPress={() => {
+            this.handleUploadMediaFile(attachment);
+          }}
+        >
+          <View style={styles.mediaFileContainer}>
+            <Text style={styles.mediaFileText}>Choice ID: {attachment.choice_id}</Text>
+            <Text style={styles.mediaFileText}>{shortFileName}</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  renderMediaFilesModal = () => {
+    const { mediaFilesModalVisible, missingAPIAttachments } = this.state;
+
+    return (
+      <SafeAreaView>
+        <View>
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={mediaFilesModalVisible}
+            onRequestClose={() => {}}
+          >
+            <View style={styles.section}>
+              <TouchableOpacity
+                style={{alignSelf: 'flex-end', marginTop: 24, marginRight: 20}}
+                onPress={() => {
+                  this.setMediaFilesModalVisible(!mediaFilesModalVisible);
+                }}
+              >
+                <Ionicons name="md-close" size={36} />
+              </TouchableOpacity>
+              <Text style={styles.sectionTitle}>Media Files to Upload:</Text>
+              <FlatList
+                data={missingAPIAttachments}
+                renderItem={item => this.renderMediaFileItem(item.item)}
+                keyExtractor={item => item.filename}
+              />
+            </View>
+          </Modal>
+        </View>
+      </SafeAreaView>
+    );
+  };
+
   setConsentModalVisible = (visible) => {
-    this.setState({consentModalVisible: visible});
+    this.setState({ consentModalVisible: visible });
   };
 
   setFAQModalVisible = (visible) => {
-    this.setState({faqModalVisible: visible});
-  }
+    this.setState({ faqModalVisible: visible });
+  };
+
+  setMediaFilesModalVisible = (visible) => {
+    this.setState({ mediaFilesModalVisible: visible });
+  };
 
   getAppVersion = () => {
     const manifest = Constants.manifest;
@@ -212,7 +330,7 @@ class SettingsScreen extends React.Component {
 
           <TouchableOpacity
             style={styles.linkContainer}
-            onPress={this._handleConsentAgreementPress}
+            onPress={this.handleConsentAgreementPress}
           >
             <Text style={styles.linkText}>Review Consent Agreement</Text>
             <Ionicons
@@ -233,10 +351,11 @@ class SettingsScreen extends React.Component {
     const release = this.getRelease();
     const session = this.props.session;
     const user = this.props.registration.user.data;
+    const { uploadDatabaseSelected } = this.state;
 
     return (
       <SafeAreaView>
-        <View style={styles.section}>
+        <ScrollView style={styles.section}>
           <Text style={styles.sectionTitle}>BabySteps App Information:</Text>
           <Text>
             Version: {manifest.version}:{build}
@@ -247,7 +366,7 @@ class SettingsScreen extends React.Component {
 
           <TouchableOpacity
             style={styles.linkContainer}
-            onPress={this._handleFAQPress}
+            onPress={this.handleFAQPress}
           >
             <Text style={styles.linkText}>Frequently Asked Questions</Text>
             <Ionicons
@@ -260,7 +379,7 @@ class SettingsScreen extends React.Component {
 
           <TouchableOpacity
             style={styles.linkContainer}
-            onPress={this._handleFeedbackPress}
+            onPress={this.handleFeedbackPress}
           >
             <Text style={styles.linkText}>Ask Questions or Provide Feedback</Text>
             <Ionicons
@@ -273,9 +392,9 @@ class SettingsScreen extends React.Component {
 
           <TouchableOpacity
             style={styles.linkContainer}
-            onPress={this._handleDirectoryListingPress }
+            onPress={this.handleDirectoryListingPress}
           >
-            <Text style={styles.linkText}>Provide Attachment Data Feedback</Text>
+            <Text style={styles.linkText}>Provide Media File Feedback</Text>
             <Ionicons
               name="ios-arrow-forward"
               size={28}
@@ -286,9 +405,24 @@ class SettingsScreen extends React.Component {
 
           <TouchableOpacity
             style={styles.linkContainer}
-            onPress={this._handleFileUploadPress}
+            onPress={this.handleUploadDatabasePress}
+            disabled={uploadDatabaseSelected}
           >
-            <Text style={styles.linkText}>Upload Attachment Data</Text>
+            <Text style={styles.linkText}>Upload Answers Database</Text>
+            <Ionicons
+              name="ios-arrow-forward"
+              size={28}
+              color="#bdc6cf"
+              style={styles.linkIcon}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.linkContainer}
+            onPress={this.handleUploadMediaFilesPress}
+            disabled={uploadDatabaseSelected}
+          >
+            <Text style={styles.linkText}>Upload Media Files</Text>
             <Ionicons
               name="ios-arrow-forward"
               size={28}
@@ -299,10 +433,11 @@ class SettingsScreen extends React.Component {
 
           {this.renderIRBinformation()}
 
-        </View>
+        </ScrollView>
 
         {this.renderFAQModal()}
         {this.renderConsentModal()}
+        {this.renderMediaFilesModal()}
       </SafeAreaView>
     );
   }
@@ -323,9 +458,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderTopColor: Colors.mediumGrey,
     borderBottomColor: Colors.mediumGrey,
-    marginTop: 20,
-    paddingTop: 15,
-    paddingBottom: 15,
+    marginTop: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
     paddingLeft: 10,
     position: 'relative',
   },
@@ -338,7 +473,15 @@ const styles = StyleSheet.create({
     color: Colors.darkGreen,
     right: 9,
     position: 'absolute',
-    top: 12,
+    top: 6,
+  },
+  mediaFileContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  mediaFileText: {
+    fontSize: 16,
+    flex: 1,
   },
 });
 
@@ -359,6 +502,7 @@ const mapDispatchToProps = {
   fetchUser,
   fetchRespondent,
   fetchSubject,
+  fetchMilestoneAttachments,
 };
 
 export default connect(

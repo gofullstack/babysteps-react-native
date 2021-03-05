@@ -593,6 +593,7 @@ const answerFields = [
 
 const attachmentFields = [
   'api_id',
+  'subject_api_id',
   'section_id',
   'choice_id',
   'answer_id',
@@ -601,6 +602,7 @@ const attachmentFields = [
   'height',
   'size',
   'content_type',
+  'checksum',
   'uri',
   'url',
   'uploaded',

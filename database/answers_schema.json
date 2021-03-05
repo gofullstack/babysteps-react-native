@@ -40,6 +40,7 @@
     "columns": {
       "id": "INTEGER PRIMARY KEY",
       "api_id": "INTEGER",
+      "subject_api_id": "INTEGER",
       "section_id": "INTEGER",
       "choice_id": "INTEGER",
       "answer_id": "INTEGER",
@@ -54,7 +55,6 @@
       "checksum": "STRING",
     },
     "indexes": [
-      "attachments_api_id ON attachments (api_id);",
       "attachments_section_id ON attachments (section_id);",
       "attachments_choice_id ON attachments (choice_id);",
       "attachments_answer_id ON attachments (answer_id);",

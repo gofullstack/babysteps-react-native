@@ -22,6 +22,10 @@ import {
   CREATE_USER_FULFILLED,
   CREATE_USER_REJECTED,
 
+  UPDATE_USER_PENDING,
+  UPDATE_USER_FULFILLED,
+  UPDATE_USER_REJECTED,
+
   API_CREATE_USER_PENDING,
   API_CREATE_USER_FULFILLED,
   API_CREATE_USER_REJECTED,
@@ -183,6 +187,28 @@ export const createUser = user => {
   };
 };
 
+export const updateUser = data => {
+  return function(dispatch) {
+    dispatch(Pending(UPDATE_USER_PENDING));
+    const id = data.id;
+    delete data.id;
+    const updateSQL = getUpdateSQL(data);
+
+    return db.transaction(tx => {
+      tx.executeSql(
+        `UPDATE users SET ${updateSQL.join(', ')} WHERE id = ${id};`,
+        [],
+        (_, response) => {
+          dispatch(Response(UPDATE_USER_FULFILLED, response, data));
+        },
+        (_, error) => {
+          dispatch(Response(UPDATE_USER_REJECTED, error));
+        },
+      );
+    });
+  };
+};
+
 export const apiCreateUser = user => {
   return function(dispatch) {
     dispatch(Pending(API_CREATE_USER_PENDING));
@@ -328,8 +354,8 @@ export const apiCreateRespondent = (session, data) => {
   };
 };
 
-export const updateRespondent = (data) => {
-  return function (dispatch) {
+export const updateRespondent = data => {
+  return function(dispatch) {
     dispatch(Pending(UPDATE_RESPONDENT_PENDING));
     delete data.id;
     const updateSQL = getUpdateSQL(data);
