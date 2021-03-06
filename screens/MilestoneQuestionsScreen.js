@@ -334,6 +334,7 @@ class MilestoneQuestionsScreen extends Component {
       if (answer.id) {
         attachment.answer_id = answer.id;
       }
+      attachment.subject_api_id = answer.subject_api_id;
 
       attachment.filename = att.uri.substring(
         att.uri.lastIndexOf('/') + 1,
