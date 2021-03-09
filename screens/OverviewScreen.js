@@ -1,8 +1,5 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import * as Notifications from 'expo-notifications';
-
-import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
 import {
@@ -10,6 +7,7 @@ import {
   fetchMilestoneTasks,
   fetchOverViewTimeline,
 } from '../actions/milestone_actions';
+
 import { fetchSubject, updateSubject } from '../actions/registration_actions';
 
 import Colors from '../constants/Colors';
@@ -18,7 +16,7 @@ import OverviewTimeline from '../components/overview_timeline';
 import OverviewScreeningEvents from '../components/overview_screening_events';
 import OverviewMilestones from '../components/overview_milestones';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const wp = (percentage, direction) => {
   const value = (percentage * direction) / 100;

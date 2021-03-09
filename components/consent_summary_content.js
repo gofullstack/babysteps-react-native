@@ -4,6 +4,7 @@ import { Button } from 'react-native-elements';
 
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
+import { fetchConsent } from '../actions/registration_actions';
 
 import ConsentSummaryContent002 from './consent_summary_content_002';
 import ConsentSummaryContent003 from './consent_summary_content_003';
@@ -26,9 +27,15 @@ const components = {
 };
 
 class ConsentSummaryContent extends Component {
-  state = {
-    scrollOffset: 800,
-  };
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      scrollOffset: 800,
+    };
+
+    this.props.fetchConsent();
+  }
 
   handleSubmit = () => {
     const registration_state = States.REGISTERING_FULL_CONSENT;
@@ -37,11 +44,13 @@ class ConsentSummaryContent extends Component {
 
   renderButton = () => {
     if (this.props.formState === 'edit') {
-      const irb = IRBInformation[this.props.tosID];
+      const consent = this.props.registration.consent.data;
+      let tos_expires_on = '';
+      if (!isEmpty(consent)) tos_expires_on = consent.tos_expires_on;
       return (
         <View style={styles.buttonContainer}>
           <Text style={styles.expires}>
-            This Disclosure expires: {irb.expiration_date}.
+             This Disclosure expires: {tos_expires_on}.
           </Text>
           <Button
             title="CONTINUE"
@@ -106,7 +115,7 @@ const mapStateToProps = ({ session, registration }) => ({
   session,
   registration,
 });
-const mapDispatchToProps = { updateSession };
+const mapDispatchToProps = { updateSession, fetchConsent };
 
 export default connect(
   mapStateToProps,

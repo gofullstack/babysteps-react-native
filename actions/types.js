@@ -153,6 +153,10 @@ export const API_FETCH_SIGNIN_PENDING = 'api_fetch_signin_pending';
 export const API_FETCH_SIGNIN_FULFILLED = 'api_fetch_signin_fulfilled';
 export const API_FETCH_SIGNIN_REJECTED = 'api_fetch_signin_rejected';
 
+export const API_FETCH_CONSENT_LAST_UPDATED_PENDING = 'api_fetch_consent_last_updated_pending';
+export const API_FETCH_CONSENT_LAST_UPDATED_FULFILLED = 'api_fetch_consent_last_updated_fulfilled';
+export const API_FETCH_CONSENT_LAST_UPDATED_REJECTED = 'api_fetch_consent_last_updated_rejected';
+
 export const API_FETCH_USER_RESPONDENT_PENDING = 'api_fetch_user_respondent_pending';
 export const API_FETCH_USER_RESPONDENT_FULFILLED = 'api_fetch_user_respondent_fulfilled';
 export const API_FETCH_USER_RESPONDENT_REJECTED = 'api_fetch_user_respondent_rejected';

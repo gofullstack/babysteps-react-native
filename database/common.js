@@ -2,8 +2,10 @@ import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
 import forEach from 'lodash/forEach';
+
 import find from 'lodash/find';
 import isEmpty from 'lodash/isEmpty';
+import isInteger from 'lodash/isInteger';
 
 import CONSTANTS from '../constants';
 
@@ -278,4 +280,18 @@ export const delay = async (theObject, queryCount, ms, message = null) => {
     theObject.setState({ queryCount: queryCount + 1 });
   }, ms);
   return null;
+};
+
+export const getUpdateSQL = data => {
+  const keys = _.keys(data);
+  const updateSQL = [];
+
+  forEach(keys, key => {
+    if (isInteger(data[key])) {
+      updateSQL.push(`${key} = ${data[key]}`);
+    } else {
+      updateSQL.push(`${key} = '${data[key]}'`);
+    }
+  });
+  return updateSQL;
 };

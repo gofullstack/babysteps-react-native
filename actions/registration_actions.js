@@ -6,7 +6,7 @@ import { _ } from 'lodash';
 
 import { apiTokenRefresh } from './session_actions';
 
-import { insertRows, getApiUrl } from '../database/common';
+import { insertRows, getApiUrl, getUpdateSQL } from '../database/common';
 import schema from '../database/registration_schema.json';
 
 import Constants from 'expo-constants';
@@ -112,20 +112,6 @@ const Pending = type => {
 
 const Response = (type, payload, formData = {}) => {
   return { type, payload, formData };
-};
-
-const getUpdateSQL = data => {
-  const keys = _.keys(data);
-  const updateSQL = [];
-
-  _.forEach(keys, key => {
-    if (_.isInteger(data[key])) {
-      updateSQL.push(`${key} = ${data[key]}`);
-    } else {
-      updateSQL.push(`${key} = '${data[key]}'`);
-    }
-  });
-  return updateSQL;
 };
 
 export const fetchRegistrationData = () => {
@@ -642,6 +628,56 @@ export const apiSyncSignature = user_id => {
         })
         .catch(error => {
           dispatch(Response(API_SYNC_SIGNATURE_REJECTED, error));
+        });
+    }); // return Promise
+  }; // return dispatch
+};
+
+export const fetchConsent = () => {
+  return function(dispatch) {
+    dispatch(Pending(FETCH_CONSENT_PENDING));
+
+    return db.transaction(tx => {
+      tx.executeSql(
+        `SELECT * FROM consents LIMIT 1;`,
+        [],
+        (_, response) => {
+          dispatch(Response(FETCH_CONSENT_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_CONSENT_REJECTED, error));
+        },
+      );
+    });
+  };
+};
+
+export const apiFetchConsent = study_id => {
+
+  return dispatch => {
+    dispatch(Pending(API_FETCH_CONSENT_PENDING));
+    const baseURL = getApiUrl();
+    const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
+
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'get',
+        responseType: 'json',
+        baseURL,
+        url: '/consents/current',
+        headers,
+        params: { study_id },
+      })
+        .then(response => {
+          const consent = [response.data];
+          // consent id becomes api id in sqlite
+          consent[0].api_id = consent[0].id;
+          insertRows('consents', schema['consents'], consent);
+          dispatch(Response(API_FETCH_CONSENT_FULFILLED, consent));
+        })
+        .catch(error => {
+          dispatch(Response(API_FETCH_CONSENT_REJECTED, error));
         });
     }); // return Promise
   }; // return dispatch

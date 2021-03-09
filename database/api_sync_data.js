@@ -38,6 +38,7 @@ class ApiSyncData extends Component {
       apiRefreshTokenSubmitted: false,
       userRespondentApiUpdated: false,
       respondentAttachmentsApiUpdated: false,
+      updateConsentVersionSubmitted: false,
       userSubjectApiUpdated: false,
       uploadMilestonesSubmitted: false,
       uploadMilestoneTriggersSubmitted: false,
@@ -79,6 +80,7 @@ class ApiSyncData extends Component {
       apiSyncData,
       userRespondentApiUpdated,
       respondentAttachmentsApiUpdated,
+      updateConsentVersionSubmitted,
       userSubjectApiUpdated,
       uploadMilestonesSubmitted,
       uploadMilestoneTriggersSubmitted,
@@ -100,6 +102,12 @@ class ApiSyncData extends Component {
         apiSyncData: true,
         apiRefreshTokenSubmitted: true,
       });
+    }
+
+    if (inStudy && session.fetched && !updateConsentVersionSubmitted) {
+      const study_id = CONSTANTS.STUDY_ID;
+      SyncConsentVersion(study_id, session.consent_updated_at);
+      this.setState({ updateConsentVersionSubmitted: true });
     }
 
     // rebuild respondent and subject on server

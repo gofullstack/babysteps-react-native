@@ -57,6 +57,7 @@ class CheckDataIntegrity extends Component {
     addColumn('attachments', 'size', 'integer');
     addColumn('attachments', 'checksum', 'string');
     addColumn('babybook_entries', 'choice_id', 'integer');
+    addColumn('consents', 'confirmation_type', 'text');
   }
 
   shouldComponentUpdate(nextProps, nextState) {

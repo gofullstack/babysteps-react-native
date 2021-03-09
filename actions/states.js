@@ -17,6 +17,8 @@ const REGISTERING_AS_IN_STUDY = 'registering_as_in_study';
 const REGISTERED_AS_IN_STUDY = 'registered_as_in_study';
 const REGISTERED_AS_NO_STUDY = 'registered_as_no_study';
 
+const REGISTERED_UPDATE_CONSENT = 'registered_update_consent';
+
 export default {
   REGISTERING_ELIGIBILITY,
   REGISTERING_NOT_ELIGIBLE,
@@ -52,4 +54,5 @@ export default {
     REGISTERED_AS_NO_STUDY,
     REGISTERED_AS_IN_STUDY,
   ],
+  REGISTERED_UPDATE_CONSENT,
 };

@@ -12,6 +12,7 @@ import MilestonesScreen from '../screens/MilestonesScreen';
 import MilestoneQuestionsScreen from '../screens/MilestoneQuestionsScreen';
 import MilestonePregnancyHistoryScreen from '../screens/MilestonePregnancyHistoryScreen';
 import MilestoneQuestionConfirmScreen from '../screens/MilestoneQuestionConfirmScreen';
+import UpdateConsentScreen from '../screens/UpdateConsentScreen';
 
 //import TourScreen from '../screens/TourScreen';
 import BabyBookScreen from '../screens/BabyBookScreen';
@@ -61,8 +62,6 @@ const OverviewStack = createStackNavigator(
     Overview: OverviewScreen,
     OverviewBirthForm: OverviewBirthFormScreen,
     MilestonesStack: MilestonesScreen,
-    //MilestoneQuestions: MilestoneQuestionsScreen,
-    // MilestoneQuestionConfirm: MilestoneQuestionConfirmScreen,
   },
   {
     defaultNavigationOptions: headerOptions,
