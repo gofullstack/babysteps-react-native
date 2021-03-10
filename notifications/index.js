@@ -207,7 +207,7 @@ const HandleMomentaryAssessment = data => {
   store.dispatch(showMomentaryAssessment(data));
 };
 
-const HandleNotificatioResponse = ({ tasks, origin, data, remote }) => {
+const HandleNotificationResponse = ({ tasks, origin, data, remote }) => {
   // origin
   // 'received' app is open and foregrounded
   // 'received' app is open but was backgrounded (ios)

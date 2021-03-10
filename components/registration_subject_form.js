@@ -115,7 +115,7 @@ class RegistrationSubjectForm extends Component {
     const subject = this.props.registration.subject;
     const isSubmitting = this.state.isSubmitting;
     if (subject.fetched && !isEmpty(subject.data) && isSubmitting) {
-      this._saveAPISubject(subject);
+      this.saveAPISubject(subject);
     }
   }
 
@@ -158,33 +158,15 @@ class RegistrationSubjectForm extends Component {
     return initialValues;
   };
 
-  _saveAPISubject = subject => {
+  saveAPISubject = subject => {
     const apiSubject = this.props.registration.apiSubject;
     const session = this.props.session;
-    const apiCreateSubjectSubmitted = this.state.apiCreateSubjectSubmitted;
-    //const auth = nextProps.registration.auth;
 
-    if (!apiSubject.fetching) {
-      if (!apiSubject.fetched && !apiCreateSubjectSubmitted) {
-        this.props.apiCreateSubject(session, subject.data);
-        this.setState({ apiCreateSubjectSubmitted: true });
-      } else if (apiSubject.data.id !== undefined) {
-        this.props.updateSubject({ api_id: apiSubject.data.id });
-        if (
-          !session.fetching &&
-          session.registration_state !== States.REGISTERED_AS_IN_STUDY
-        ) {
-          if (!this.state.apiNewMilestoneCalendarSubmitted) {
-            this.props.apiNewMilestoneCalendar({
-              subject_id: apiSubject.data.id,
-            });
-            this.setState({ apiNewMilestoneCalendarSubmitted: true });
-          }
-          this.props.updateSession({
-            registration_state: States.REGISTERED_AS_IN_STUDY,
-          });
-        }
-      } // apiSubject fetched
+    if (!apiSubject.fetching && !apiSubject.fetched) {
+      this.props.apiCreateSubject(session, subject.data);
+      this.props.updateSession({
+        registration_state: States.REGISTERED_AS_IN_STUDY,
+      });
     } // apiSubject fetching
   };
 

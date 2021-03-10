@@ -45,7 +45,6 @@ class CheckDataIntegrity extends PureComponent {
     addColumn('sessions', 'current_group_index', 'integer');
     addColumn('attachments', 'subject_api_id', 'integer');
     addColumn('attachments', 'size', 'integer');
-    //addColumn('attachments', 'uploaded', 'integer');
     addColumn('attachments', 'checksum', 'string');
     addColumn('babybook_entries', 'choice_id', 'integer');
   }

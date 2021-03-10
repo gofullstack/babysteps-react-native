@@ -22,6 +22,7 @@ class RegisterForPushNotifications extends Component {
     super(props);
 
     this.state = {
+      requestedNotificationPermission: false,
       requestedPushToken: false,
     };
 
@@ -31,25 +32,26 @@ class RegisterForPushNotifications extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     const respondent = nextProps.registration.respondent.data;
-    const requestedPushToken = nextState.requestedPushToken;
+    const {
+      requestedPushToken,
+      requestedNotificationPermission,
+    } = nextState;
     if (!Constants.isDevice) return false;
     if (isEmpty(respondent)) return false;
     if ([null, undefined].includes(respondent.api_id)) return false;
+    if (requestedNotificationPermission) return false;
     if (requestedPushToken) return false;
     return true;
   }
 
-  async componentDidUpdate() {
+  componentDidUpdate() {
     // simulator will not generate a token
     if (!Constants.isDevice) return;
 
     const session = this.props.session;
-    const respondent = this.props.registration.respondent.data;
-    const requestedPushToken = this.state.requestedPushToken;
-
     let notifications_permission = session.notifications_permission;
 
-    if (Platform.OS === 'ios' && notifications_permission !== 'granted') {
+    if (Platform.OS === 'ios' && notifications_permission === null) {
       Alert.alert(
         'Permissions',
         "To make sure you don't miss any notifications, please enable 'Persistent' notifications for BabySteps. Click Settings below, open 'Notifications' and set 'Banner Style' to 'Persistent'.",
@@ -61,6 +63,20 @@ class RegisterForPushNotifications extends Component {
       );
     }
 
+    if (notifications_permission === null) {
+      this.getPermissions();
+    }
+    this.setState({ requestedNotificationPermission: true });
+  }
+
+  getPermissions = async () => {
+
+    const session = this.props.session;
+    const api_id = this.props.registration.respondent.data.api_id;
+    const requestedNotificationPermission = this.state.requestedPushToken;
+    if (requestedNotificationPermission) return;
+
+    let notifications_permission = session.notifications_permission;
     // android permissions are given on install and may already exist
     const { status: existingStatus } = await Permissions.getAsync(
       Permissions.NOTIFICATIONS,
@@ -73,10 +89,8 @@ class RegisterForPushNotifications extends Component {
       notifications_permission = status;
     }
 
-    if (notifications_permission !== session.notifications_permission) {
-      this.props.updateSession({ notifications_permission });
-      this.props.apiUpdateRespondent(session, {notifications_permission})
-    }
+    this.props.updateSession({ notifications_permission });
+    this.props.apiUpdateRespondent(session, { api_id, notifications_permission })
 
     if (notifications_permission !== 'granted') {
       Alert.alert(
@@ -88,22 +102,23 @@ class RegisterForPushNotifications extends Component {
       return;
     }
 
-    this._setPushNotificationToken();
+    if (notifications_permission === 'granted') {
+      this.setPushNotificationToken();
+    }
     this.setState({ requestedPushToken: true });
-  }
+  };
 
-  _setPushNotificationToken = async () => {
-    // simulator will not generate a token
-    if (!Constants.isDevice) return null;
+  setPushNotificationToken = async () => {
+
+    const requestedPushToken = this.state.requestedPushToken;
+    if (requestedPushToken) return;
+
     const session = this.props.session;
-    const respondent = this.props.registration.respondent.data;
-    if (
-      session.notifications_permission === 'granted' &&
-      !isEmpty(respondent) && ![null, undefined].includes(respondent.api_id)
-    ) {
-      const result = await Notifications.getExpoPushTokenAsync();
-      const push_token = result.data;
-      const api_id = respondent.api_id;
+    const api_id = this.props.registration.respondent.data.api_id;
+    const result = await Notifications.getExpoPushTokenAsync();
+    const push_token = result.data;
+
+    if (session.push_token !== push_token) {
       this.props.updateSession({ push_token });
       this.props.updateRespondent({ push_token });
       this.props.apiUpdateRespondent(session, { api_id, push_token });

@@ -1,6 +1,5 @@
 import { PureComponent } from 'react';
 import { AppState } from 'react-native';
-import * as FileSystem from 'expo-file-system';
 
 import isEmpty from 'lodash/isEmpty';
 

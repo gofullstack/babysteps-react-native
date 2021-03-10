@@ -605,7 +605,6 @@ const attachmentFields = [
   'checksum',
   'uri',
   'url',
-  'uploaded',
 ];
 
 const parseInsertFields = (object, fields) => {
@@ -914,9 +913,6 @@ export const fetchMilestoneAttachments = (params = {}) => {
     let sql = 'SELECT * FROM attachments';
     if (params.section_id) {
       sql += ` WHERE attachments.section_id = ${params.section_id}`;
-    }
-    if (params.upload) {
-      sql += ' WHERE attachments.uploaded = 0 OR attachments.uploaded IS NULL';
     }
     sql += ' ORDER BY choice_id;';
 

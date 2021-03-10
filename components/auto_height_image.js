@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Image, Platform } from 'react-native';
+import { View, Image, Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 
 class AutoHeightImage extends Component {
   static defaultProps = {
@@ -13,28 +14,32 @@ class AutoHeightImage extends Component {
   };
 
   componentDidMount() {
-    if (this.props.width > 0 && this.props.source !== '') {
-      this.getImageSize();
+    const { source, width } = this.props;
+    if (width > 0 && source !== '') {
+      this.getImageSize(source.uri);
     }
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.width !== prevProps.width && this.props.source !== prevProps.source) {
-      this.getImageSize();
+    const { source, width } = this.props;
+    if (width !== prevProps.width || source !== prevProps.source) {
+      this.getImageSize(source.uri);
     }
   }
 
-  getImageSize = async () => {
-    const source = this.props.source;
-    await Image.getSize(
-      source.uri, 
-      (height, width) => {
-        this.updateDimensionState(width, height);
-      },
-      (error) => {
-        console.log(error);
-      },
-    );
+  getImageSize = async uri => {
+    let resultFile = await FileSystem.getInfoAsync(uri);
+    if (resultFile.exists) {
+      Image.getSize(
+        resultFile.uri,
+        (height, width) => {
+          this.updateDimensionState(width, height);
+        },
+        (error) => {
+          console.log(error);
+        },
+      );
+    }
   };
 
   updateDimensionState = (xWidth, xHeight) => {
@@ -53,17 +58,20 @@ class AutoHeightImage extends Component {
     this.setState({ width, height });
   };
 
-  render = () => {
+  render() {
     const { width, height } = this.state;
     const { source, style } = this.props;
-    //console.log("Autoheight Image", width, height)
+
     return (
-      <Image
-        source={source}
-        style={[style, { width, height }]}
-      />
+      <View>
+        <Image
+          key={source.uri}
+          source={source}
+          style={[style, { width, height }]}
+        />
+      </View>
     );
-  };
+  }
 }
 
 export default AutoHeightImage;

@@ -4,12 +4,12 @@ import * as Notifications from 'expo-notifications';
 
 import { showMessage } from 'react-native-flash-message';
 
-import NavigationService from '../navigation/NavigationService';
+import find from 'lodash/find';
 
 import { connect } from 'react-redux';
 import { fetchSession } from '../actions/session_actions';
 
-import find from 'lodash/find';
+import NavigationService from '../navigation/NavigationService';
 
 import { showMomentaryAssessment } from '../actions/notification_actions';
 
@@ -30,7 +30,7 @@ class HandleNotifications extends PureComponent {
   componentDidMount() {
     responseListener = Notifications.addNotificationResponseReceivedListener(
       response => {
-        this._handleNotificationResponse(response);
+        this.handleNotificationResponse(response);
       },
     );
 
@@ -42,23 +42,23 @@ class HandleNotifications extends PureComponent {
     Notifications.removeNotificationSubscription(responseListener);
   }
 
-  _handleNotificationOnPress = data => {
+  handleNotificationOnPress = data => {
     const tasks = this.props.milestones.tasks.data;
     const task = find(tasks, ['id', data.task_id]);
     NavigationService.navigate('MilestoneQuestions', { task });
   };
 
-  _handleMomentaryAssessment = data => {
+  handleMomentaryAssessment = data => {
     this.props.showMomentaryAssessment(data);
   };
 
-  _handleNotificationResponse = async response => {
+  handleNotificationResponse = async response => {
     const data = response.notification.request.content.data;
 
     if (data.momentary_assessment) {
-      this._handleMomentaryAssessment(data);
+      this.handleMomentaryAssessment(data);
     } else if (data.task_id) {
-      this._handleNotificationOnPress(data);
+      this.handleNotificationOnPress(data);
     } else {
       showMessage({
         type: data.type,
@@ -68,7 +68,7 @@ class HandleNotifications extends PureComponent {
         backgroundColor: Colors.flashMessageBackground,
         autoHide: false,
         icon: data.type,
-        onPress: () => this._handleNotificationOnPress(data),
+        onPress: () => this.handleNotificationOnPress(data),
       });
     }
   };

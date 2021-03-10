@@ -161,7 +161,7 @@ class RegistrationRespondentForm extends Component {
       } else if (apiRespondent.data.id !== undefined) {
         // Upload signature image if we have respondent id
         const api_id = apiRespondent.data.id;
-        this.props.updateRespondent({api_id: api_id});
+        this.props.updateRespondent({ api_id });
         if (!signatureSubmitted) {
           this.saveSignature(api_id);
           this.setState({ signatureSubmitted: true });
@@ -170,12 +170,10 @@ class RegistrationRespondentForm extends Component {
           this._registerForPushNotifications(api_id);
           this.setState({ requestedPushToken: true });
         }
-        const registrationState = respondent.data.pregnant
+        const registration_state = respondent.data.pregnant
           ? ActionStates.REGISTERING_EXPECTED_DOB
           : ActionStates.REGISTERING_SUBJECT;
-        this.props.updateSession({
-          registration_state: registrationState,
-        });
+        this.props.updateSession({ registration_state });
       } // apiRespondent.fetched
     } // apiRespondent.fetching
   };

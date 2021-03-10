@@ -193,22 +193,6 @@ export const getAttachments = async () => {
   return attachments;
 };
 
-export const setAttachmentToUploaded = attachment => {
-  db.transaction(tx => {
-    tx.executeSql(
-      `UPDATE attachments SET uploaded = 1 WHERE id = ${attachment.id}`,
-      [],
-      (_, result) => {
-        console.log('Attachment marked as uploaded');
-      },
-      (_, error) => {
-        console.log({error});
-      },
-    );
-  });
-  return null;
-};
-
 export const delay = async (ms, message = null) => {
   if (message) console.log(message);
   return new Promise(response => setTimeout(response, ms));

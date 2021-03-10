@@ -4,6 +4,7 @@ import thunk from 'redux-thunk';
 import promise from 'redux-promise-middleware';
 
 import api from '../database/api';
+import apiRegistrationFulfilled from '../database/api_registration_fulfilled';
 import apiAnswersFulfilled from '../database/api_answers_fulfilled';
 import apiMilestoneTasksFulfilled from '../database/api_milestone_tasks_fulfilled';
 import notificationsRejected from '../database/notifications_rejected';
@@ -26,8 +27,9 @@ const store = createStore(
       thunk,
       logger,
       api,
-      apiAnswersFulfilled,
+      apiRegistrationFulfilled,
       apiMilestoneTasksFulfilled,
+      apiAnswersFulfilled,
       notificationsRejected,
     ),
   ),

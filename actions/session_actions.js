@@ -113,20 +113,19 @@ export const apiUpdateSession = (dispatch, data) => {
 };
 
 export const apiTokenRefresh = (dispatch, session) => {
+  const { email, password } = session;
+  const url = '/user_session';
+
   return dispatch({
     type: API_TOKEN_REFRESH_PENDING,
     payload: {
-      session,
-      data: {
-        email: session.email,
-        password: session.password,
-      },
-    }, // payload
+      data: { email, password },
+    },
     meta: {
       offline: {
         effect: {
           method: 'POST',
-          url: '/user_session',
+          url,
           fulfilled: API_TOKEN_REFRESH_FULFILLED,
           rejected: API_TOKEN_REFRESH_REJECTED,
         },
@@ -247,6 +246,7 @@ export const apiFetchMilestonesLastUpdated = study_id => {
     dispatch(Pending(API_FETCH_MILESTONES_LAST_UPDATED_PENDING));
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
 
     return new Promise((resolve, reject) => {
       axios({
@@ -254,10 +254,8 @@ export const apiFetchMilestonesLastUpdated = study_id => {
         responseType: 'json',
         baseURL,
         url: '/milestones/last_updated',
+        headers,
         params: { study_id },
-        headers: {
-          "milestone_token": apiToken,
-        },
       })
         .then(response => {
           updateSession({
@@ -278,6 +276,7 @@ export const apiFetchMilestoneCalendarLastUpdated = subject_id => {
     dispatch(Pending(API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_PENDING));
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
 
     return new Promise((resolve, reject) => {
       axios({
@@ -285,10 +284,8 @@ export const apiFetchMilestoneCalendarLastUpdated = subject_id => {
         responseType: 'json',
         baseURL,
         url: '/milestone_calendars/last_updated',
+        headers,
         params: { subject_id },
-        headers: {
-          "milestone_token": apiToken,
-        },
       })
         .then(response => {
           updateSession({

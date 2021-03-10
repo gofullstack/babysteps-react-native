@@ -126,24 +126,24 @@ class MilestoneQuestionsScreen extends Component {
     }
     // need to update sections for new task for remaining functions
     if (task.id !== this.state.task_id) {
-      this._resetDataForTask(task);
+      this.resetDataForTask(task);
       return;
     }
     if (sections.fetched) {
-      this._saveSectionsData(sections);
+      this.saveSectionsData(sections);
     }
     if (questions.fetched ) {
-      this._saveQuestionsData(questions);
+      this.saveQuestionsData(questions);
     }
     if (answers.fetched && !answersFetched) {
-      this._saveAnswersData(answers);
+      this.saveAnswersData(answers);
     }
     if (attachments.fetched && !attachmentsFetched) {
-      this._saveAttachmentsData(attachments);
+      this.saveAttachmentsData(attachments);
     }
   }
 
-  _resetDataForTask = task => {
+  resetDataForTask = task => {
     this.setState({
       task_id: task.id,
       task_name: task.name,
@@ -161,7 +161,7 @@ class MilestoneQuestionsScreen extends Component {
     this.props.fetchMilestoneSections({ task_id: task.id });
   };
 
-  _saveSectionsData = sections => {
+  saveSectionsData = sections => {
     if (!_.isEmpty(sections.data)) {
       // default to first section
       // TODO extend UI to allow for multiple sections
@@ -177,7 +177,7 @@ class MilestoneQuestionsScreen extends Component {
     }
   };
 
-  _saveQuestionsData = questions => {
+  saveQuestionsData = questions => {
     if (!_.isEmpty(questions.data)) {
       const choices = this.props.milestones.choices;
       const firstQuestion = this.state.firstQuestion;
@@ -204,7 +204,7 @@ class MilestoneQuestionsScreen extends Component {
     }
   };
 
-  _saveAnswersData = answers => {
+  saveAnswersData = answers => {
     if (!_.isEmpty(answers) && !_.isEmpty(answers.data)) {
       this.setState({
         answers: _.orderBy(answers.data, ['choice_id', 'id'], ['asc', 'desc']),
@@ -213,7 +213,7 @@ class MilestoneQuestionsScreen extends Component {
     }
   };
 
-  _saveAttachmentsData = attachments => {
+  saveAttachmentsData = attachments => {
     if (!_.isEmpty(attachments) && !_.isEmpty(attachments.data)) {
       this.setState({
         attachments: _.orderBy(attachments.data, ['choice_id', 'id'], ['asc', 'desc']),
@@ -330,7 +330,6 @@ class MilestoneQuestionsScreen extends Component {
     }
 
     await _.map(response.attachments, async att => {
-
       if (answer.id) {
         attachment.answer_id = answer.id;
       }
@@ -392,7 +391,6 @@ class MilestoneQuestionsScreen extends Component {
         width: att.width,
         height: att.height,
         size: resultFile.size,
-        uploaded: 0,
         checksum: resultFile.md5,
       });
 
@@ -445,6 +443,10 @@ class MilestoneQuestionsScreen extends Component {
           cover = true;
         }
 
+        this.props.updateMilestoneAttachment(attachment);
+        if (inStudy) {
+          UploadMilestoneAttachment(attachment);
+        }
         if (
           attachment.content_type &&
           (attachment.content_type.includes('video') ||
@@ -453,11 +455,6 @@ class MilestoneQuestionsScreen extends Component {
           const data = {title: null, detail: null, cover};
           this.props.createBabyBookEntry(data, attachment);
           this.props.apiCreateBabyBookEntry(session, data, attachment);
-        }
-        delete attachment.title;
-        this.props.updateMilestoneAttachment(attachment);
-        if (inStudy) {
-          UploadMilestoneAttachment(attachment);
         }
       });
     }

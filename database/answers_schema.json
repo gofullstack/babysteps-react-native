@@ -51,14 +51,12 @@
       "content_type": "TEXT",
       "uri": "TEXT",
       "url": "TEXT",
-      // "uploaded": "INTEGER",
       "checksum": "STRING",
     },
     "indexes": [
       "attachments_section_id ON attachments (section_id);",
       "attachments_choice_id ON attachments (choice_id);",
       "attachments_answer_id ON attachments (answer_id);",
-      "attachments_uploaded ON attachments (uploaded);",
     ],
   },
 }

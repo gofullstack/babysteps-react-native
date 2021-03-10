@@ -14,8 +14,8 @@ const executeApiCall = async attachment => {
   const headers = {
     'Content-Type': attachment.content_type,
     'Content-File-Name': attachment.filename,
-    'Subject-ID': attachment.subject_api_id,
-    'Choice-ID': attachment.choice_id,
+    'Subject-ID': attachment.subject_api_id.toString(),
+    'Choice-ID': attachment.choice_id.toString(),
     milestone_token: apiToken,
   };
 

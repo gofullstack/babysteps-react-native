@@ -45,17 +45,16 @@ const saveSignature = async id => {
   }
 };
 
-const confirmSignatureFile = async () => {
+const SyncRespondentSignature = async id => {
+  console.log('*** Begin Respondent Signature Sync');
+
   const signatureFile = await FileSystem.getInfoAsync(fileUri, { size: true });
+
   if (!signatureFile.exists) {
     console.log('*** No signature file found');
+    return null;
   }
-  return signatureFile.exists;
-};
 
-const SyncRespondentSignature = id => {
-  console.log('*** Begin Respondent Signature Sync');
-  if (!confirmSignatureFile()) return;
   const url = '/respondents/has_attachment';
 
   return new Promise((resolve, reject) => {
@@ -69,7 +68,7 @@ const SyncRespondentSignature = id => {
     })
       .then(response => {
         const { status, data } = response;
-        if (status != 404 && !data.has_attachment) {
+        if (status !== 404 && !data.has_attachment) {
           saveSignature(id);
         } else if (data.has_attachment) {
           console.log('*** Respondent Signature Exists on Server');
