@@ -393,7 +393,7 @@ export const apiUpdateRespondent = (session, data) => {
         offline: {
           effect: {
             method: 'PUT',
-            url: '/respondents/' + api_id,
+            url: `/respondents/${api_id}`,
             fulfilled: API_UPDATE_RESPONDENT_FULFILLED,
             rejected: API_UPDATE_RESPONDENT_REJECTED,
           },
@@ -419,7 +419,7 @@ export const apiSaveSignature = (api_id, uri) => {
     const baseURL = getApiUrl();
     const url = `/respondents/${api_id}/update_attachment`;
     const apiToken = Constants.manifest.extra.apiToken;
-    const headers = {"milestone_token": apiToken};
+    const headers = { milestone_token: apiToken };
 
     axios({
       method: 'PUT',
@@ -566,7 +566,7 @@ export const updateSubject = data => {
 };
 
 export const apiUpdateSubject = (session, data) => {
-  const id = data.api_id;
+  const api_id = data.api_id;
   delete data.id;
   delete data.api_id;
 
@@ -583,7 +583,7 @@ export const apiUpdateSubject = (session, data) => {
         offline: {
           effect: {
             method: 'PUT',
-            url: `/subjects/${id}`,
+            url: `/subjects/${api_id}`,
             fulfilled: API_UPDATE_SUBJECT_FULFILLED,
             rejected: API_UPDATE_SUBJECT_REJECTED,
           },
@@ -599,6 +599,7 @@ export const apiSyncRegistration = user_id => {
     dispatch(Pending(API_SYNC_REGISTRATION_PENDING));
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
 
     return new Promise((resolve, reject) => {
       axios({
@@ -606,11 +607,9 @@ export const apiSyncRegistration = user_id => {
         responseType: 'json',
         baseURL,
         url: '/sync_registration',
+        headers,
         data: {
           user_id,
-        },
-        headers: {
-          milestone_token: apiToken,
         },
       })
         .then(response => {
@@ -644,6 +643,7 @@ export const apiSyncSignature = user_id => {
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
     const fileUri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
+    const headers = { milestone_token: apiToken };
 
     return new Promise((resolve, reject) => {
       axios({
@@ -651,11 +651,9 @@ export const apiSyncSignature = user_id => {
         responseType: 'json',
         baseURL,
         url: '/sync_signature',
+        headers,
         data: {
           user_id,
-        },
-        headers: {
-          milestone_token: apiToken,
         },
       })
         .then(response => {
