@@ -30,7 +30,7 @@ export const GetCurrentConsentVersion = async study_id => {
         consent.api_id = consent.id;
         delete consent.id;
         console.log({ consent })
-        insertRows('consents', schema['consents'], consent);
+        insertRows('consents', schema['consents'], [consent]);
       })
       .catch(error => {
         console.log(error);
