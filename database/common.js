@@ -193,6 +193,26 @@ export const getAttachments = async () => {
   return attachments;
 };
 
+export const getMilestoneCalendar = async () => {
+  let calendar = [];
+  let sql = `SELECT * FROM milestone_triggers`;
+
+  await new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, result) => resolve((calendar = result.rows._array)),
+        (_, error) => {
+          console.log({error});
+        },
+      );
+    });
+  });
+
+  return calendar;
+};
+
 export const delay = async (ms, message = null) => {
   if (message) console.log(message);
   return new Promise(response => setTimeout(response, ms));

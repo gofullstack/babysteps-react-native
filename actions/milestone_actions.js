@@ -285,7 +285,7 @@ export const updateMilestoneCalendar = (task_id, data) => {
     const values = Object.values(data);
     let updateSQL = [];
 
-    forEach( keys, key => {
+    forEach(keys, key => {
       if (isInteger(data[key])) {
         updateSQL.push(`${key} = ${data[key]}`);
       } else {
@@ -356,15 +356,17 @@ export const apiFetchMilestoneCalendar = params => {
 
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
+    const url = '/milestone_calendars';
 
     return new Promise((resolve, reject) => {
       axios({
         method: 'get',
         responseType: 'json',
         baseURL,
-        url: '/milestone_calendars',
+        url,
+        headers,
         params,
-        headers: { milestone_token: apiToken },
       })
         .then(response => {
           insertRows('milestone_triggers', trigger_schema.milestone_triggers, response.data);
@@ -382,6 +384,8 @@ export const apiCreateMilestoneCalendar = (subject_id, milestone_trigger) => {
     dispatch(Pending(API_CREATE_MILESTONE_CALENDAR_PENDING));
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
+    const url = '/milestone_calendars';
     const data = { subject_id, ...milestone_trigger };
 
     return new Promise((resolve, reject) => {
@@ -389,9 +393,9 @@ export const apiCreateMilestoneCalendar = (subject_id, milestone_trigger) => {
         method: 'post',
         responseType: 'json',
         baseURL,
-        url: '/milestone_calendars',
+        url,
+        headers,
         data,
-        headers: { milestone_token: apiToken },
       })
         .then(response => {
           dispatch(Response(API_CREATE_MILESTONE_CALENDAR_FULFILLED, response));
@@ -408,15 +412,17 @@ export const apiUpdateMilestoneCalendar = (id, data) => {
     dispatch(Pending(API_UPDATE_MILESTONE_CALENDAR_PENDING));
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
+    const url = `/milestone_calendars/${id}`;
 
     return new Promise((resolve, reject) => {
       axios({
         method: 'put',
         responseType: 'json',
         baseURL,
-        url: `/milestone_calendars/${id}`,
+        url,
+        headers,
         data,
-        headers: { milestone_token: apiToken },
       })
         .then(response => {
           dispatch(Response(API_UPDATE_MILESTONE_CALENDAR_FULFILLED, response));

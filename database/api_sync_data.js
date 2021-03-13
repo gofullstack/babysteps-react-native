@@ -15,15 +15,16 @@ import {
   fetchSubject,
 } from '../actions/registration_actions';
 
+import SyncMilestones from './sync_milestones';
 import SyncRespondentByUser from './sync_respondent_by_user';
 import SyncRespondentSignature from './sync_respondent_signature';
 import SyncSubjectByUser from './sync_subject_by_user';
+import SyncMilestoneCalendar from './sync_milestone_calendar';
 import SyncMilestoneAnswers from './sync_milestone_answers';
 import SyncMilestoneAttachments from './sync_milestone_attachments';
 import UploadMilestoneCalendarsCompleted from './upload_milestone_calendars_completed';
 
-import { delay } from './common';
-
+import CONSTANTS from '../constants';
 import States from '../actions/states';
 
 class ApiSyncData extends PureComponent {
@@ -33,6 +34,8 @@ class ApiSyncData extends PureComponent {
     this.state = {
       appState: AppState.currentState,
       apiRefreshTokenSubmitted: false,
+      uploadMilestonesSubmitted: false,
+      uploadMilestoneCalendarSubmitted: false,
       uploadAnswersSubmitted: false,
       uploadAttachmentsSubmitted: false,
       userRespondentApiUpdated: false,
@@ -59,6 +62,8 @@ class ApiSyncData extends PureComponent {
 
     const {
       apiRefreshTokenSubmitted,
+      uploadMilestonesSubmitted,
+      uploadMilestoneCalendarSubmitted,
       userRespondentApiUpdated,
       respondentAttachmentsApiUpdated,
       userSubjectApiUpdated,
@@ -79,56 +84,70 @@ class ApiSyncData extends PureComponent {
     }
 
     // rebuild respondent and subject on server
-    if (inStudy && user.fetched && !isEmpty(user.data) && user.data.api_id) {
-      const user_api_id = user.data.api_id;
+    if (inStudy) {
 
-      if (!userRespondentApiUpdated) {
-        SyncRespondentByUser(user_api_id);
-        this.setState({ userRespondentApiUpdated: true });
+      if (!uploadMilestonesSubmitted) {
+        SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
+        this.setState({ uploadMilestonesSubmitted: true });
       }
 
-      if (
-        userRespondentApiUpdated &&
-        respondent.fetched &&
-        !isEmpty(respondent.data) &&
-        respondent.data.api_id
-      ) {
-        const respondent_api_id = respondent.data.api_id;
+      if (user.fetched && !isEmpty(user.data) && user.data.api_id) {
+        const user_api_id = user.data.api_id;
 
-        if (!respondentAttachmentsApiUpdated) {
-          SyncRespondentSignature(respondent_api_id);
-          this.setState({ respondentAttachmentsApiUpdated: true });
+        if (!userRespondentApiUpdated) {
+          SyncRespondentByUser(user_api_id);
+          this.setState({ userRespondentApiUpdated: true });
         }
 
-        if (subject.fetched && !isEmpty(subject.data) && subject.data.api_id) {
-          const subject_api_id = subject.data.api_id;
+        if (
+          userRespondentApiUpdated &&
+          respondent.fetched &&
+          !isEmpty(respondent.data) &&
+          respondent.data.api_id
+        ) {
+          const respondent_api_id = respondent.data.api_id;
 
-          if (!userSubjectApiUpdated) {
-            SyncSubjectByUser(user_api_id, respondent_api_id, subject_api_id);
-            this.setState({ userSubjectApiUpdated: true });
+          if (!respondentAttachmentsApiUpdated) {
+            SyncRespondentSignature(respondent_api_id);
+            this.setState({ respondentAttachmentsApiUpdated: true });
           }
 
-          if (!uploadAnswersSubmitted) {
-            SyncMilestoneAnswers(subject_api_id);
-            this.setState({ uploadAnswersSubmitted: true });
-          }
+          if (subject.fetched && !isEmpty(subject.data) && subject.data.api_id) {
+            const subject_api_id = subject.data.api_id;
 
-          // upload any attachments not yet uploaded
-          if (
-            !uploadAttachmentsSubmitted &&
-            session.connectionType === 'wifi'
-          ) {
-            SyncMilestoneAttachments();
-            this.setState({ uploadAttachmentsSubmitted: true });
-          }
+            if (!userSubjectApiUpdated) {
+              SyncSubjectByUser(user_api_id, respondent_api_id, subject_api_id);
+              this.setState({ userSubjectApiUpdated: true });
+            }
 
-          // upload completed datestamps for calender entries
-          if (!uploadCalendarsCompletedSubmitted) {
-            UploadMilestoneCalendarsCompleted();
-            this.setState({ uploadCalendarsCompletedSubmitted: true });
-          }
-        } // subject fetched
-      } // respondent fetched
+            if (!uploadMilestoneCalendarSubmitted) {
+              SyncMilestoneCalendar(subject_api_id, session.milestone_calendar_last_updated_at);
+              this.setState({ uploadMilestoneCalendarSubmitted: true });
+            }
+
+            if (!uploadAnswersSubmitted) {
+              SyncMilestoneAnswers(subject_api_id);
+              this.setState({ uploadAnswersSubmitted: true });
+            }
+
+            // upload any attachments not yet uploaded
+            if (
+              !uploadAttachmentsSubmitted &&
+              session.connectionType === 'wifi'
+            ) {
+              SyncMilestoneAttachments();
+              this.setState({ uploadAttachmentsSubmitted: true });
+            }
+
+            // upload completed datestamps for calender entries
+            if (!uploadCalendarsCompletedSubmitted) {
+              UploadMilestoneCalendarsCompleted();
+              this.setState({ uploadCalendarsCompletedSubmitted: true });
+            }
+
+          } // subject fetched
+        } // respondent fetched
+      } // user fetched
     } // inStudy
   }
 
@@ -142,6 +161,8 @@ class ApiSyncData extends PureComponent {
       this.setState({
         appState: nextAppState,
         apiRefreshTokenSubmitted: false,
+        uploadMilestonesSubmitted: false,
+        uploadMilestoneCalendarSubmitted: false,
         uploadAnswersSubmitted: false,
         uploadAttachmentsSubmitted: false,
         userRespondentApiUpdated: false,

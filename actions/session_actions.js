@@ -39,13 +39,6 @@ import {
   API_FETCH_SIGNIN_FULFILLED,
   API_FETCH_SIGNIN_REJECTED,
 
-  API_FETCH_MILESTONES_LAST_UPDATED_PENDING,
-  API_FETCH_MILESTONES_LAST_UPDATED_FULFILLED,
-  API_FETCH_MILESTONES_LAST_UPDATED_REJECTED,
-
-  API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_PENDING,
-  API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_FULFILLED,
-  API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_REJECTED,
 } from './types';
 
 const db = SQLite.openDatabase('babysteps.db');
@@ -240,62 +233,3 @@ export const apiFetchSignin = (email, password) => {
   }; // return dispatch
 };
 
-export const apiFetchMilestonesLastUpdated = study_id => {
-
-  return dispatch => {
-    dispatch(Pending(API_FETCH_MILESTONES_LAST_UPDATED_PENDING));
-    const baseURL = getApiUrl();
-    const apiToken = Constants.manifest.extra.apiToken;
-    const headers = { milestone_token: apiToken };
-
-    return new Promise((resolve, reject) => {
-      axios({
-        method: 'get',
-        responseType: 'json',
-        baseURL,
-        url: '/milestones/last_updated',
-        headers,
-        params: { study_id },
-      })
-        .then(response => {
-          updateSession({
-            milestones_last_updated_at: response.data.last_updated_at,
-          });
-          dispatch(Response(API_FETCH_MILESTONES_LAST_UPDATED_FULFILLED, response));
-        })
-        .catch(error => {
-          dispatch(Response(API_FETCH_MILESTONES_LAST_UPDATED_REJECTED, error));
-        });
-    }); // return Promise
-  }; // return dispatch
-};
-
-export const apiFetchMilestoneCalendarLastUpdated = subject_id => {
-
-  return dispatch => {
-    dispatch(Pending(API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_PENDING));
-    const baseURL = getApiUrl();
-    const apiToken = Constants.manifest.extra.apiToken;
-    const headers = { milestone_token: apiToken };
-
-    return new Promise((resolve, reject) => {
-      axios({
-        method: 'get',
-        responseType: 'json',
-        baseURL,
-        url: '/milestone_calendars/last_updated',
-        headers,
-        params: { subject_id },
-      })
-        .then(response => {
-          updateSession({
-            milestone_calendar_updated_at: response.data.last_updated_at,
-          });
-          dispatch(Response(API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_FULFILLED, response));
-        })
-        .catch(error => {
-          dispatch(Response(API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_REJECTED, error));
-        });
-    }); // return Promise
-  }; // return dispatch
-}; 

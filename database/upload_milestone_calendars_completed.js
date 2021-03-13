@@ -34,7 +34,7 @@ const UploadMilestoneCalendarsCompleted = async () => {
         });
 
         if (isEmpty(data.triggers)) {
-          console.log('*** No triggers to update');
+          console.log('*** No triggers to Update as Completed');
           return;
         }
 
@@ -47,7 +47,7 @@ const UploadMilestoneCalendarsCompleted = async () => {
           headers,
         })
           .then(response => {
-            console.log(`*** Triggers Updated: ${response.data.triggers_updated}`);
+            console.log(`*** Triggers Updated as Completed: ${response.data.triggers_updated}`);
           })
           .catch(error => {
             console.log(error);
