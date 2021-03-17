@@ -22,7 +22,6 @@ import {
   updateSubject,
   apiCreateSubject,
 } from '../actions/registration_actions';
-import { apiNewMilestoneCalendar } from '../actions/milestone_actions';
 import { fetchSession, updateSession } from '../actions/session_actions';
 
 import TextFieldWithLabel from './textFieldWithLabel';
@@ -83,7 +82,6 @@ class RegistrationSubjectForm extends Component {
       isSubmitting: false,
       dobError: null,
       apiCreateSubjectSubmitted: false,
-      apiNewMilestoneCalendarSubmitted: false,
     };
 
     this.props.resetSubject();
@@ -306,7 +304,6 @@ const mapDispatchToProps = {
   createSubject,
   updateSubject,
   apiCreateSubject,
-  apiNewMilestoneCalendar,
   fetchSession,
   updateSession,
 };

@@ -21,7 +21,6 @@ import { connect } from 'react-redux';
 
 import memoize from "memoize-one";
 
-import { apiNewMilestoneCalendar } from '../actions/milestone_actions';
 import { updateSession } from '../actions/session_actions';
 
 import Colors from '../constants/Colors';
@@ -72,7 +71,6 @@ class OverviewScreen extends React.Component {
     this.state = {
       currentIndexScreening: 0,
       sliderLoading: true,
-      apiCreateCalendarSubmitted: false,
     };
   }
 
@@ -80,35 +78,16 @@ class OverviewScreen extends React.Component {
     const session = this.props.session;
     const subject = this.props.registration.subject;
     const { calendar, api_calendar } = this.props.milestones;
-    const { apiCreateCalendarSubmitted, sliderLoading } = this.state;
+    const { sliderLoading } = this.state;
 
-    if (!subject.fetching && subject.fetched && !isEmpty(subject.data)) {
-      if (!calendar.fetching && calendar.fetched) {
-
-        if (isEmpty(calendar.data)) {
-          // populate from API
-          if (!api_calendar.fetching && !api_calendar.fetched && !apiCreateCalendarSubmitted) {
-            // creates calendar on server, but only returns visible tasks
-            let fetchCalendarParams = {};
-            if (session.registration_state === States.REGISTERED_AS_IN_STUDY) {
-              fetchCalendarParams = { subject_id: subject.data.api_id };
-            } else {
-              fetchCalendarParams = { base_date: subject.data.expected_date_of_birth };
-              if (subject.data.date_of_birth) {
-                fetchCalendarParams = { base_date: subject.data.date_of_birth };
-              }
-            }
-            this.props.apiNewMilestoneCalendar(fetchCalendarParams);
-            this.setState({ apiCreateCalendarSubmitted: true });
-            // reset last updated date to rebuild notifications
-            this.props.updateSession({ notifications_updated_at: null });
-          } // !api_calendar.fetched
-        } else if (sliderLoading) {
-          this.setState({ sliderLoading: false });
-        } // isEmpty(calendar.data
-
-      } // calendar.fetched
-    } // subject.fetched
+    if (
+      subject.fetched && 
+      !isEmpty(subject.data) &&
+      calendar.fetched &&
+      sliderLoading
+    ) {
+      this.setState({ sliderLoading: false });
+    } 
   }
 
   handleOnPress = task => {
@@ -301,7 +280,6 @@ const mapStateToProps = ({ session, milestones, registration }) => ({
 
 const mapDispatchToProps = {
   updateSession,
-  apiNewMilestoneCalendar,
 };
 
 export default connect(

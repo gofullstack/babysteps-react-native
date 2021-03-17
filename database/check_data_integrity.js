@@ -38,11 +38,13 @@ class CheckDataIntegrity extends PureComponent {
 
     // temporary code for backward compatibility
     addColumn('sessions', 'push_token', 'text');
+    addColumn('sessions', 'last_registration_state', 'text');
     addColumn('sessions', 'milestones_updated_at', 'text');
     addColumn('sessions', 'milestones_last_updated_at', 'text');
     addColumn('sessions', 'milestone_calendar_updated_at', 'text');
     addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
     addColumn('sessions', 'current_group_index', 'integer');
+    addColumn('attachments', 'user_api_id', 'integer');
     addColumn('attachments', 'subject_api_id', 'integer');
     addColumn('attachments', 'size', 'integer');
     addColumn('attachments', 'checksum', 'string');
@@ -72,7 +74,7 @@ class CheckDataIntegrity extends PureComponent {
       return;
     }
 
-    if(
+    if (
       cleanDuplicateAnswersSubmitted &&
       answers.fetched &&
       !_.isEmpty(answers.data) &&
@@ -97,6 +99,9 @@ class CheckDataIntegrity extends PureComponent {
           uid: data.email,
           password: data.password,
         });
+      }
+      if (!session.last_registration_state) {
+        this.props.updateSession({ last_registration_state: session.registration_state })
       }
       // temp fix for lane's phone
       if (user.api_id === 562 && !userPasswordUpdated) {

@@ -40,6 +40,7 @@
     "columns": {
       "id": "INTEGER PRIMARY KEY",
       "api_id": "INTEGER",
+      "user_api_id": "INTEGER",
       "subject_api_id": "INTEGER",
       "section_id": "INTEGER",
       "choice_id": "INTEGER",

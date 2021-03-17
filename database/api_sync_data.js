@@ -19,9 +19,10 @@ import SyncMilestones from './sync_milestones';
 import SyncRespondentByUser from './sync_respondent_by_user';
 import SyncRespondentSignature from './sync_respondent_signature';
 import SyncSubjectByUser from './sync_subject_by_user';
-import SyncMilestoneCalendar from './sync_milestone_calendar';
+import SyncMilestoneTriggers from './sync_milestone_triggers';
 import SyncMilestoneAnswers from './sync_milestone_answers';
 import SyncMilestoneAttachments from './sync_milestone_attachments';
+import SyncBabybookEntryAttachments from './sync_babybook_entries';
 import UploadMilestoneCalendarsCompleted from './upload_milestone_calendars_completed';
 
 import CONSTANTS from '../constants';
@@ -33,15 +34,17 @@ class ApiSyncData extends PureComponent {
 
     this.state = {
       appState: AppState.currentState,
+      apiSyncData: true,
       apiRefreshTokenSubmitted: false,
-      uploadMilestonesSubmitted: false,
-      uploadMilestoneCalendarSubmitted: false,
-      uploadAnswersSubmitted: false,
-      uploadAttachmentsSubmitted: false,
       userRespondentApiUpdated: false,
       respondentAttachmentsApiUpdated: false,
       userSubjectApiUpdated: false,
+      uploadMilestonesSubmitted: false,
+      uploadMilestoneTriggersSubmitted: false,
+      uploadAnswersSubmitted: false,
+      uploadAttachmentsSubmitted: false,
       uploadCalendarsCompletedSubmitted: false,
+      uploadBabybookEntriesSubmitted: false,
     };
 
     this.props.fetchSession();
@@ -62,13 +65,15 @@ class ApiSyncData extends PureComponent {
 
     const {
       apiRefreshTokenSubmitted,
-      uploadMilestonesSubmitted,
-      uploadMilestoneCalendarSubmitted,
+      apiSyncData,
       userRespondentApiUpdated,
       respondentAttachmentsApiUpdated,
       userSubjectApiUpdated,
+      uploadMilestonesSubmitted,
+      uploadMilestoneTriggersSubmitted,
       uploadAnswersSubmitted,
       uploadAttachmentsSubmitted,
+      uploadBabybookEntriesSubmitted,
       uploadCalendarsCompletedSubmitted,
     } = this.state;
 
@@ -80,11 +85,14 @@ class ApiSyncData extends PureComponent {
       !apiRefreshTokenSubmitted
     ) {
       this.props.apiDisptachTokenRefresh(session);
-      this.setState({ apiRefreshTokenSubmitted: true });
+      this.setState({
+        apiSyncData: true,
+        apiRefreshTokenSubmitted: true,
+      });
     }
 
     // rebuild respondent and subject on server
-    if (inStudy) {
+    if (inStudy && apiSyncData) {
 
       if (!uploadMilestonesSubmitted) {
         SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
@@ -107,7 +115,10 @@ class ApiSyncData extends PureComponent {
         ) {
           const respondent_api_id = respondent.data.api_id;
 
-          if (!respondentAttachmentsApiUpdated) {
+          if (
+            !respondentAttachmentsApiUpdated && 
+            session.connectionType === 'wifi'
+          ) {
             SyncRespondentSignature(respondent_api_id);
             this.setState({ respondentAttachmentsApiUpdated: true });
           }
@@ -120,9 +131,9 @@ class ApiSyncData extends PureComponent {
               this.setState({ userSubjectApiUpdated: true });
             }
 
-            if (!uploadMilestoneCalendarSubmitted) {
-              SyncMilestoneCalendar(subject_api_id, session.milestone_calendar_last_updated_at);
-              this.setState({ uploadMilestoneCalendarSubmitted: true });
+            if (!uploadMilestoneTriggersSubmitted) {
+              SyncMilestoneTriggers(subject_api_id, session.milestone_calendar_last_updated_at);
+              this.setState({ uploadMilestoneTriggersSubmitted: true });
             }
 
             if (!uploadAnswersSubmitted) {
@@ -148,7 +159,13 @@ class ApiSyncData extends PureComponent {
           } // subject fetched
         } // respondent fetched
       } // user fetched
-    } // inStudy
+      if (!uploadBabybookEntriesSubmitted) {
+        // disabled
+        // need to accomodate where answer attachment is updated
+        //SyncBabybookEntryAttachments();
+        this.setState({ uploadBabybookEntriesSubmitted: true })
+      }
+    } // inStudy && apiSyncData
   }
 
   componentWillUnmount() {
@@ -160,15 +177,9 @@ class ApiSyncData extends PureComponent {
     if (appState.match(/inactive|background/) && nextAppState === 'active') {
       this.setState({
         appState: nextAppState,
-        apiRefreshTokenSubmitted: false,
-        uploadMilestonesSubmitted: false,
-        uploadMilestoneCalendarSubmitted: false,
+        apiSyncData: true,
         uploadAnswersSubmitted: false,
         uploadAttachmentsSubmitted: false,
-        userRespondentApiUpdated: false,
-        respondentAttachmentsApiUpdated: false,
-        userSubjectApiUpdated: false,
-        uploadCalendarsCompletedSubmitted: false,
       });
     } else {
       this.setState({ appState: nextAppState });

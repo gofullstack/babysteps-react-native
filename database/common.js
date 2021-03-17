@@ -213,6 +213,26 @@ export const getMilestoneCalendar = async () => {
   return calendar;
 };
 
+export const getBabybookEntries = async () => {
+  let entries = [];
+  let sql = `SELECT * FROM babybook_entries`;
+
+  await new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, result) => resolve((entries = result.rows._array)),
+        (_, error) => {
+          console.log({error});
+        },
+      );
+    });
+  });
+
+  return entries;
+};
+
 export const delay = async (ms, message = null) => {
   if (message) console.log(message);
   return new Promise(response => setTimeout(response, ms));

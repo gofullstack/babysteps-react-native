@@ -35,7 +35,7 @@ const executeApiCall = async attachment => {
 };
 
 export const UploadMilestoneAttachment = async attachment => {
-  console.log('*** Begin Milestone Attachment Update');
+  console.log('*** Begin Milestone Attachment Upload');
 
   const response = await executeApiCall(attachment);
   if (response && response.status === 202) {
@@ -111,6 +111,8 @@ const SyncMilestoneAttachments = async () => {
     const has_attachment = await ConfirmAPIAttachment(attachment);
     if (!has_attachment) {
       await UploadMilestoneAttachment(attachment);
+    } else {
+      console.log(`*** Attachment ${attachment.filename} confirmed`);
     }
   }
   return null;

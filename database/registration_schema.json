@@ -3,6 +3,7 @@
     "columns": {
       "id": "INTEGER PRIMARY KEY",
       "registration_state": "TEXT",
+      "last_registration_state": "TEXT",
       "access_token": "TEXT",
       "client": "TEXT",
       "uid": "TEXT",

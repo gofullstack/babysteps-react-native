@@ -4,6 +4,8 @@ import Constants from 'expo-constants';
 import axios from 'axios';
 import { _ } from 'lodash';
 
+import store from '../store';
+
 import { insertRows, getApiUrl } from '../database/common';
 
 import schema from '../database/registration_schema.json';
@@ -60,6 +62,7 @@ export const resetSession = () => {
 export const fetchSession = () => {
   return function(dispatch) {
     dispatch(Pending(FETCH_SESSION_PENDING));
+
     return db.transaction(tx => {
       tx.executeSql(
         'SELECT * FROM sessions LIMIT 1;',
@@ -73,6 +76,11 @@ export const fetchSession = () => {
 
 const sendSessionUpdate = (dispatch, data) => {
   dispatch(Pending(UPDATE_SESSION_PENDING));
+
+  if (data.registration_state) {
+    const registration_state = store.getState().session.registration_state;
+    data.last_registration_state = registration_state;
+  }
 
   const keys = _.keys(data);
   const updateSQL = [];

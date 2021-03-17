@@ -25,7 +25,6 @@ import {
   updateRespondent,
   apiUpdateRespondent,
 } from '../actions/registration_actions';
-import { apiNewMilestoneCalendar } from '../actions/milestone_actions';
 import { fetchSession, updateSession } from '../actions/session_actions';
 
 import DatePicker from './datePickerInput';
@@ -49,7 +48,6 @@ class RegistrationExpectedDOB extends Component {
       isSubmitting: false,
       dobError: null,
       apiCreateSubjectSubmitted: false,
-      apiMilestoneCalendarSubmitted: false,
     };
 
     this.props.resetSubject();
@@ -99,13 +97,6 @@ class RegistrationExpectedDOB extends Component {
           !session.fetching &&
           session.registration_state !== States.REGISTERED_AS_IN_STUDY
         ) {
-          if (!this.state.apiMilestoneCalendarSubmitted) {
-            this.props.apiNewMilestoneCalendar({
-              subject_id: apiSubject.data.id,
-            });
-            this.setState({ apiMilestoneCalendarSubmitted: true });
-          }
-          
           this.props.updateSession({
             registration_state: States.REGISTERED_AS_IN_STUDY,
           });
@@ -220,7 +211,6 @@ const mapDispatchToProps = {
   fetchRespondent,
   updateRespondent,
   apiUpdateRespondent,
-  apiNewMilestoneCalendar,
   fetchSession,
   updateSession,
 };

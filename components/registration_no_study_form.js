@@ -15,10 +15,7 @@ import {
   createRespondent,
   createSubject,
 } from '../actions/registration_actions';
-import {
-  apiFetchMilestones,
-  apiNewMilestoneCalendar,
-} from '../actions/milestone_actions';
+import { apiFetchMilestones } from '../actions/milestone_actions';
 import { updateSession } from '../actions/session_actions';
 
 import TextFieldWithLabel from '../components/textFieldWithLabel';
@@ -68,8 +65,7 @@ class RegistrationNoStudyForm extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const respondent = this.props.registration.respondent;
-    const subject = this.props.registration.subject;
+    const { respondent, subject } = this.props.registration;
     const isSubmitting = this.state.isSubmitting;
     if (respondent.fetched && subject.fetched && isSubmitting) {
       this._fetchAPIMilestoneCalendar(subject);
@@ -77,13 +73,10 @@ class RegistrationNoStudyForm extends Component {
   }
 
   _fetchAPIMilestoneCalendar = subject => {
-    const apiMilestoneCalendarSubmitted = this.state.apiMilestoneCalendarSubmitted;
+    const { apiMilestoneCalendarSubmitted } = this.state;
     if (!apiMilestoneCalendarSubmitted) {
       this.setState({ apiMilestoneCalendarSubmitted: true });
       this.props.apiFetchMilestones();
-      this.props.apiNewMilestoneCalendar({
-        base_date: subject.data.expected_date_of_birth,
-      });
     }
     this.props.updateSession({
       registration_state: States.REGISTERED_AS_NO_STUDY,
@@ -237,7 +230,6 @@ const mapDispatchToProps = {
   createRespondent,
   createSubject,
   apiFetchMilestones,
-  apiNewMilestoneCalendar,
   updateSession,
 };
 

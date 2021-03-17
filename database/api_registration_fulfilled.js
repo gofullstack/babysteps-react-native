@@ -5,6 +5,8 @@ import {
   API_CREATE_SUBJECT_FULFILLED,
 } from '../actions/types';
 
+import { UploadMilestoneTriggers } from './sync_milestone_triggers';
+
 const db = SQLite.openDatabase('babysteps.db');
 
 export default store => next => action => {
@@ -34,7 +36,10 @@ export default store => next => action => {
       tx.executeSql(
         sql,
         [],
-        (_, response) => console.log(`Subject API_ID updated from api`),
+        (_, response) => {
+          console.log(`Subject API_ID updated from api`);
+          UploadMilestoneTriggers(data.id);
+        },
         (_, error) => console.log(`ERROR - Subject API_ID not updated from api: ${error}`),
       );
     });

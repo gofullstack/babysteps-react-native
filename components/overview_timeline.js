@@ -21,7 +21,10 @@ import isEmpty from 'lodash/isEmpty';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
-import { fetchOverViewTimeline } from '../actions/milestone_actions';
+import {
+  fetchOverViewTimeline,
+  fetchMilestoneCalendar,
+} from '../actions/milestone_actions';
 
 import Colors from '../constants/Colors';
 import CONSTANTS from '../constants';
@@ -59,27 +62,31 @@ class OverviewTimeline extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const subject = this.props.registration.subject;
-    const overviewTimelinesLoaded = this.state.overviewTimelinesLoaded;
+    const { subject } = this.props.registration;
+    const { overviewTimelinesLoaded } = this.state;
     if (subject.fetched && !isEmpty(subject.data) && !overviewTimelinesLoaded) {
-      this._fetchOverviewTimeline(subject);
+      this._fetchOverviewTimeline();
     }
   }
 
-  _fetchOverviewTimeline = async subject => {
+  _fetchOverviewTimeline = async () => {
+    const { date_of_birth, expected_date_of_birth } = this.props.registration.subject.data;
+    const { calendar, overview_timeline } = this.props.milestones;
     let baseDate = '';
     let postBirth = false;
-    if (subject.data.date_of_birth) {
-      baseDate = moment(subject.data.date_of_birth, 'YYYY-MM-DD');
+    if (date_of_birth) {
+      baseDate = moment(date_of_birth, 'YYYY-MM-DD');
       postBirth = true;
     } else {
-      baseDate = moment(subject.data.expected_date_of_birth, 'YYYY-MM-DD');
+      baseDate = moment(expected_date_of_birth, 'YYYY-MM-DD');
     }
 
-    const calendar = this.props.milestones.calendar;
-    const overview_timeline = this.props.milestones.overview_timeline;
     if (!calendar.fetching && calendar.fetched) {
-      if (!isEmpty(calendar.data) && !overview_timeline.fetching && overview_timeline.fetched) {
+      if (isEmpty(calendar.data)) {
+        this.props.fetchMilestoneCalendar();
+        return;
+      }
+      if (overview_timeline.fetched) {
         if (isEmpty(overview_timeline.data)) {
           this.props.fetchOverViewTimeline();
         } else {
@@ -405,7 +412,10 @@ const mapStateToProps = ({ milestones, registration }) => ({
   registration,
 });
 
-const mapDispatchToProps = {fetchOverViewTimeline};
+const mapDispatchToProps = {
+  fetchMilestoneCalendar,
+  fetchOverViewTimeline,
+};
 
 export default connect(
   mapStateToProps,

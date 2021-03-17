@@ -27,8 +27,8 @@ const saveTriggerData = async newTriggers => {
   return null;
 };
 
-export const UploadMilestoneCalendar = async subject_id => {
-  console.log('*** Begin Upload Milestone Calendar');
+export const UploadMilestoneTriggers = async subject_id => {
+  console.log('*** Begin Upload Milestone Triggers');
   const url = '/milestone_calendars';
 
   return new Promise((resolve, reject) => {
@@ -43,7 +43,7 @@ export const UploadMilestoneCalendar = async subject_id => {
       .then(response => {
         const newTriggers = response.data;
         saveTriggerData(newTriggers);
-        console.log('*** Milestone Calendar Uploaded Successfully');
+        console.log('*** Milestone Triggers Uploaded Successfully');
       })
       .catch(error => {
         console.log(error);
@@ -62,8 +62,8 @@ const UpdateMilestoneCalendarLastUpdated = async last_updated_at => {
   });
 }
 
-const SyncMilestoneCalendar = (subject_id, milestone_calendar_last_updated_at) => {
-  console.log('*** Begin Milestone Calendar Sync');
+const SyncMilestoneTriggers = (subject_id, milestone_calendar_last_updated_at) => {
+  console.log('*** Begin Milestone Trigger Sync');
   const url = '/milestone_calendars/last_updated';
 
   return new Promise((resolve, reject) => {
@@ -77,11 +77,11 @@ const SyncMilestoneCalendar = (subject_id, milestone_calendar_last_updated_at) =
     })
       .then(response => {
         const last_updated_at = response.data.last_updated_at;
-        if (milestone_calendar_last_updated_at === last_updated_at) {
-          UploadMilestoneCalendar(subject_id);
+        if (milestone_calendar_last_updated_at !== last_updated_at) {
+          UploadMilestoneTriggers(subject_id);
           UpdateMilestoneCalendarLastUpdated(last_updated_at);
         } else {
-          console.log('*** Milestone Calendar up to date');
+          console.log('*** Milestone Triggers up to date');
         }
       })
       .catch(error => {
@@ -90,4 +90,4 @@ const SyncMilestoneCalendar = (subject_id, milestone_calendar_last_updated_at) =
   }); // return Promise
 };
 
-export default SyncMilestoneCalendar;
+export default SyncMilestoneTriggers;

@@ -23,7 +23,7 @@ import moment from 'moment';
 
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
-import { apiFetchMilestones } from '../actions/milestone_actions';
+import { fetchMilestoneGroups } from '../actions/milestone_actions';
 
 import milestoneGroupImages from '../constants/MilestoneGroupImages';
 import Colors from '../constants/Colors';
@@ -59,51 +59,57 @@ class OverviewScreen extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     const subject = this.props.registration.subject;
     const milestoneGroupsLoaded = this.state.milestoneGroupsLoaded;
-    if (subject.fetched && !isEmpty(subject.data) && !milestoneGroupsLoaded) {
-      this._fetchMilestones(subject);
+    if (
+      subject.fetched &&
+      !isEmpty(subject.data) &&
+      !milestoneGroupsLoaded
+    ) {
+      this.getMilestoneGroups();
     }
   }
 
-  _fetchMilestones = subject => {
+  getMilestoneGroups = () => {
+    const { groups } = this.props.milestones;
+    const {
+      date_of_birth,
+      expected_date_of_birth,
+    } = this.props.registration.subject.data;
     let baseDate = '';
-    if (subject.data.date_of_birth) {
-      baseDate = moment(subject.data.date_of_birth, 'YYYY-MM-DD');
+    if (date_of_birth) {
+      baseDate = moment(date_of_birth, 'YYYY-MM-DD');
     } else {
-      baseDate = moment(subject.data.expected_date_of_birth, 'YYYY-MM-DD');
+      baseDate = moment(expected_date_of_birth, 'YYYY-MM-DD');
     }
-
     const currentWeek = moment().diff(baseDate, 'weeks');
 
-    const groups = this.props.milestones.groups;
     if (!groups.fetching && groups.fetched) {
+
       if (isEmpty(groups.data)) {
-        const api_milestones = this.props.milestones.api_milestones;
-        if (!api_milestones.fetching && !api_milestones.fetched) {
-          this.props.apiFetchMilestones();
-        }
-      } else {
-        let milestoneGroups = filter(groups.data, { visible: 1 });
-        milestoneGroups = sortBy(milestoneGroups, ['position']);
-        milestoneGroups.forEach((group, index) => {
-          group.uri = milestoneGroupImages[index];
-        });
-        // locate index of current milestone group
-        let currentGroupIndex = findIndex(milestoneGroups, group => {
-          return (
-            group.week_start_at <= currentWeek &&
-            currentWeek <= group.week_end_at
-          );
-        });
+        this.props.fetchMilestoneGroups();
+        return;
+      }
 
-        this.props.updateSession({ current_group_index: currentGroupIndex });
+      let milestoneGroups = filter(groups.data, { visible: 1 });
+      milestoneGroups = sortBy(milestoneGroups, ['position']);
+      milestoneGroups.forEach((group, index) => {
+        group.uri = milestoneGroupImages[index];
+      });
+      // locate index of current milestone group
+      let currentGroupIndex = findIndex(milestoneGroups, group => {
+        return (
+          group.week_start_at <= currentWeek &&
+          currentWeek <= group.week_end_at
+        );
+      });
 
-        this.setState({
-          currentGroupIndex,
-          milestoneGroups,
-          milestoneGroupsLoaded: true,
-          sliderLoading: false,
-        });
-      } // isEmpty groups
+      this.props.updateSession({ current_group_index: currentGroupIndex });
+
+      this.setState({
+        currentGroupIndex,
+        milestoneGroups,
+        milestoneGroupsLoaded: true,
+        sliderLoading: false,
+      });
     } // if groups fetched
   };
 
@@ -250,6 +256,9 @@ const mapStateToProps = ({ session, milestones, registration }) => ({
   registration,
 });
 
-const mapDispatchToProps = { updateSession, apiFetchMilestones };
+const mapDispatchToProps = { updateSession, fetchMilestoneGroups };
 
-export default connect(mapStateToProps, mapDispatchToProps)(OverviewScreen);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(OverviewScreen);

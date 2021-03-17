@@ -18,7 +18,6 @@ import {
   fetchUser,
   apiCreateUser,
 } from '../actions/registration_actions';
-import { apiFetchMilestones } from '../actions/milestone_actions';
 import { updateSession } from '../actions/session_actions';
 
 import TextFieldWithLabel from './textFieldWithLabel';
@@ -55,7 +54,6 @@ class RegistrationUserForm extends Component {
       user_registration_complete: false,
     };
 
-    this.props.apiFetchMilestones();
   }
 
   componentDidMount() {
@@ -268,7 +266,6 @@ const mapDispatchToProps = {
   createUser,
   fetchUser,
   apiCreateUser,
-  apiFetchMilestones,
   updateSession,
 };
 
