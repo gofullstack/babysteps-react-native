@@ -213,10 +213,6 @@ export const API_UPDATE_RESPONDENT_PENDING = 'api_update_respondent_pending';
 export const API_UPDATE_RESPONDENT_FULFILLED = 'api_update_respondent_fulfilled';
 export const API_UPDATE_RESPONDENT_REJECTED = 'api_update_respondent_rejected';
 
-export const API_SAVE_SIGNATURE_PENDING = 'api_save_signature_pending';
-export const API_SAVE_SIGNATURE_FULFILLED = 'api_save_signature_fulfilled';
-export const API_SAVE_SIGNATURE_REJECTED = 'api_save_signature_rejected';
-
 export const RESET_SUBJECT = 'reset_subject';
 
 export const FETCH_SUBJECT_PENDING = 'fetch_subject_pending';

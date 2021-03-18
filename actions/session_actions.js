@@ -135,7 +135,7 @@ export const apiTokenRefresh = (dispatch, session) => {
   });
 };
 
-export const apiDisptachTokenRefresh = session => {
+export const apiDispatchTokenRefresh = session => {
   return function(dispatch) {
     apiTokenRefresh(dispatch, session);
   };

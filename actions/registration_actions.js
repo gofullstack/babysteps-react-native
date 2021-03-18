@@ -60,10 +60,6 @@ import {
   API_FETCH_RESPONDENT_ATTACHMENTS_FULFILLED,
   API_FETCH_RESPONDENT_ATTACHMENTS_REJECTED,
 
-  API_SAVE_SIGNATURE_PENDING,
-  API_SAVE_SIGNATURE_FULFILLED,
-  API_SAVE_SIGNATURE_REJECTED,
-
   RESET_SUBJECT,
 
   FETCH_SUBJECT_PENDING,
@@ -168,10 +164,11 @@ export const createUser = user => {
         (_, error) => console.log('*** Error in clearing users table'),
       );
       tx.executeSql(
-        'INSERT INTO users (api_id, email, password, first_name, last_name) VALUES (?, ?, ?, ?, ?);',
+        'INSERT INTO users (api_id, email, uid, password, first_name, last_name) VALUES (?, ?, ?, ?, ?, ?);',
         [
           user.api_id,
           user.email,
+          user.uid,
           user.password,
           user.first_name,
           user.last_name,
@@ -213,12 +210,13 @@ export const apiCreateUser = user => {
   return function(dispatch) {
     dispatch(Pending(API_CREATE_USER_PENDING));
     const baseURL = getApiUrl();
+    const url = '/user_registration';
 
     return axios({
       method: 'POST',
       responseType: 'json',
       baseURL,
-      url: '/user_registration',
+      url,
       data: user,
     })
       .then(response => {
@@ -404,40 +402,6 @@ export const apiUpdateRespondent = (session, data) => {
   }; // return dispatch
 };
 
-export const apiSaveSignature = (api_id, uri) => {
-  return function(dispatch) {
-
-    dispatch(Pending(API_SAVE_SIGNATURE_PENDING));
-
-    const formData = new FormData();
-    formData.append('respondent[attachments][]', {
-      uri,
-      name: 'signature.png',
-      type: 'image/png',
-    });
-
-    const baseURL = getApiUrl();
-    const url = `/respondents/${api_id}/update_attachment`;
-    const apiToken = Constants.manifest.extra.apiToken;
-    const headers = { milestone_token: apiToken };
-
-    axios({
-      method: 'PUT',
-      responseType: 'json',
-      baseURL,
-      url,
-      headers,
-      data: formData,
-    })
-      .then(response => {
-        dispatch(Response(API_SAVE_SIGNATURE_FULFILLED, response));
-      })
-      .catch(error => {
-        dispatch(Response(API_SAVE_SIGNATURE_REJECTED, error));
-      });
-  }; // return dispatch
-};
-
 export const resetSubject = () => {
   return function(dispatch) {
     dispatch(Pending(RESET_SUBJECT));
@@ -517,7 +481,7 @@ export const createSubject = subject => {
   };
 };
 
-export const apiCreateSubject = (session, data) => {
+export const apiCreateSubject = data => {
   //delete data.id;
   delete data.api_id;
 
@@ -528,7 +492,6 @@ export const apiCreateSubject = (session, data) => {
         data: {
           subject: data,
         },
-        session,
       },
       meta: {
         offline: {

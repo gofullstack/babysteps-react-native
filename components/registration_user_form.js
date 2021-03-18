@@ -57,79 +57,61 @@ class RegistrationUserForm extends Component {
   }
 
   componentDidMount() {
-    if (['none', 'unknown'].includes(this.props.session.connectionType)) {
+    const session = this.props.session;
+    if (['none', 'unknown'].includes(session.connectionType)) {
       this.setState({
         isSubmitting: true,
         apiErrorMessage: 'The internet is not currently available',
+        sessionSubmitted: false,
+        userSubmitted: false,
       });
     }
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const registration = nextProps.registration;
-    const nextRegistrationState = nextProps.session.registration_state;
-    const thisRegistrationState = this.props.session.registration_state;
-    const userRegistrationComplete = nextState.user_registration_complete;
-    if (registration.apiUser.fetching || registration.user.fetching) {
-      return false;
-    }
-    if (
-      nextRegistrationState !== thisRegistrationState ||
-      userRegistrationComplete
-    ) {
-      return false;
-    }
-    return true;
+    const session = nextProps.session;
+    const { user, apiUser } = nextProps.registration;
+
+    return !session.fetching && !apiUser.fetching && !user.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const apiUser = this.props.registration.apiUser;
-    const isSubmitting = this.state.isSubmitting;
-    if (!apiUser.fetching && isSubmitting) {
-      this._saveUser(apiUser);
-    }
-  }
-
-  _saveUser = apiUser => {
-    const auth = this.props.registration.auth;
-    const user = this.props.registration.user;
-
-    if (apiUser.error) {
-      const apiErrorMessage = apiUser.error;
-      //get(
-      //  apiUser.error,
-      //  'response.data.errors.full_messages',
-      //  [],
-      //).join('\n');
-      this.setState({ isSubmitting: false, apiErrorMessage });
-    }
-    if (apiUser.fetched) {
-      this.props.updateSession({
-        access_token: auth.accessToken,
-        client: auth.client,
-        uid: auth.uid,
-        user_id: auth.user_id,
-        email: apiUser.data.email,
-        password: apiUser.data.password,
-      });
-
-      if (!user.fetching) {
-        if (!user.fetched && !this.state.createUserSubmitted) {
+    const session = this.props.session;
+    const { auth, user, apiUser } = this.props.registration;
+    const { isSubmitting, sessionSubmitted, userSubmitted } = this.state;
+    if (isSubmitting) {
+      if (apiUser.error) {
+        const apiErrorMessage = apiUser.error;
+        this.setState({ isSubmitting: false, apiErrorMessage });
+        return;
+      }
+      if (apiUser.fetched) {
+        if (!session.fetched && !sessionSubmitted) {
+          this.props.updateSession({
+            access_token: auth.accessToken,
+            client: auth.client,
+            uid: auth.uid,
+            user_id: auth.user_id,
+            email: apiUser.data.email,
+            password: apiUser.data.password,
+            uid: apiUser.data.email,
+          });
+          this.setState({ sessionSubmitted: true });
+        }
+        if (!user.fetched && !userSubmitted) {
           this.props.createUser({
             ...apiUser.data,
             api_id: auth.user_id,
           });
-          this.setState({ createUserSubmitted: true });
-          return null;
+          this.setState({ userSubmitted: true });
         }
-        if (user.fetched && !this.state.user_registration_complete ) {
-          this.setState({ user_registration_complete: true });
+        if (userSubmitted) {
           const registration_state = States.REGISTERING_RESPONDENT;
           this.props.updateSession({ registration_state });
         }
-      }
-    }
-  };
+      } // apiUser.fetched
+    } // isSubmitting
+  }
 
   _getInitialValues = () => {
     //return {};
@@ -162,16 +144,13 @@ class RegistrationUserForm extends Component {
     navigate('SignIn');
   };
 
-  _onSubmit = values => {
-    this.props.apiCreateUser(values);
-  };
-
   render() {
     const apiUser = this.props.registration.apiUser;
     return (
       <Formik
         onSubmit={values => {
-          this._onSubmit(values);
+          values.uid = values.email;
+          this.props.apiCreateUser(values);
         }}
         initialValues={this._getInitialValues()}
         validationSchema={validationSchema}

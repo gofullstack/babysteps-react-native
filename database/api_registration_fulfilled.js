@@ -5,6 +5,7 @@ import {
   API_CREATE_SUBJECT_FULFILLED,
 } from '../actions/types';
 
+import { SaveSignature } from './sync_respondent_signature';
 import { UploadMilestoneTriggers } from './sync_milestone_triggers';
 
 const db = SQLite.openDatabase('babysteps.db');
@@ -22,8 +23,13 @@ export default store => next => action => {
       tx.executeSql(
         sql,
         [],
-        (_, response) => console.log(`Respondent API_ID updated from api`),
-        (_, error) => console.log(`ERROR - Respondent API_ID not updated from api: ${error}`),
+        (_, response) => {
+          console.log(`Respondent API_ID updated from api`);
+          SaveSignature(data.id);
+        },
+        (_, error) => {
+          console.log(`ERROR - Respondent API_ID not updated from api: ${error}`);
+        },
       );
     });
   }
@@ -40,7 +46,9 @@ export default store => next => action => {
           console.log(`Subject API_ID updated from api`);
           UploadMilestoneTriggers(data.id);
         },
-        (_, error) => console.log(`ERROR - Subject API_ID not updated from api: ${error}`),
+        (_, error) => {
+          console.log(`ERROR - Subject API_ID not updated from api: ${error}`);
+        },
       );
     });
   }

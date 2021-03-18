@@ -20,7 +20,6 @@ import { isIphoneX } from 'react-native-iphone-x-helper';
 
 import { connect } from 'react-redux';
 
-import { apiDisptachTokenRefresh } from '../actions/session_actions';
 import {
   fetchMilestoneSections,
   resetMilestoneQuestions,
@@ -100,17 +99,8 @@ class MilestoneQuestionsScreen extends Component {
     this.saveResponse = this.saveResponse.bind(this);
   }
 
-  componentDidMount() {
-    const session = this.props.session;
-    if (session.email) {
-      this.props.apiDisptachTokenRefresh(session);
-    }
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
-    const sections = nextProps.milestones.sections;
-    const questions = nextProps.milestones.questions;
-    const choices = nextProps.milestones.choices;
+    const { sections, questions, choices } = nextProps.milestones;
     return !questions.fetching && !choices.fetching;
   }
 
@@ -720,7 +710,6 @@ const mapDispatchToProps = {
   apiUpdateMilestoneCalendar,
   fetchMilestoneCalendar,
   apiCreateBabyBookEntry,
-  apiDisptachTokenRefresh,
 };
 
 export default connect(

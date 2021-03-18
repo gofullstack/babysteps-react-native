@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import {
   updateSession,
   fetchSession,
-  apiDisptachTokenRefresh,
+  apiDispatchTokenRefresh,
 } from '../actions/session_actions';
 import {
   fetchUser,
@@ -84,7 +84,7 @@ class ApiSyncData extends PureComponent {
       session.password &&
       !apiRefreshTokenSubmitted
     ) {
-      this.props.apiDisptachTokenRefresh(session);
+      this.props.apiDispatchTokenRefresh(session);
       this.setState({
         apiSyncData: true,
         apiRefreshTokenSubmitted: true,
@@ -203,7 +203,7 @@ const mapStateToProps = ({
 const mapDispatchToProps = {
   updateSession,
   fetchSession,
-  apiDisptachTokenRefresh,
+  apiDispatchTokenRefresh,
   fetchUser,
   fetchRespondent,
   fetchSubject,

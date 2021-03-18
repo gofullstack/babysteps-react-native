@@ -113,10 +113,8 @@ class RegistrationRespondentForm extends Component {
 
     this.state = {
       isSubmitting: false,
-      signatureSubmitted: false,
-      respondentSubmitted: false,
-      requestedPushToken: false,
       apiErrorMessage: '',
+      apiRespondentSubmitted: false,
     };
 
     this.props.fetchUser();
@@ -124,72 +122,40 @@ class RegistrationRespondentForm extends Component {
   }
 
   componentDidMount() {
-    //this.scrollView.scrollTo({ y: 0 });
-    if (['none', 'unknown'].includes(this.props.session.connectionType)) {
+    const session = this.props.session;
+    if (['none', 'unknown'].includes(session.connectionType)) {
       this.setState({apiErrorMessage: 'The internet is not currently available'});
     }
   }
 
   shouldComponentUpdate(nextProps) {
-    const user = nextProps.registration.user;
-    const respondent = nextProps.registration.respondent;
-    const apiRespondent = nextProps.registration.apiRespondent;
-    return !user.fetching && !respondent.fetching && !apiRespondent.fetching;
+    const session = nextProps.session;
+    const { user, respondent, apiRespondent } = nextProps.registration;
+    return (
+      !session.fetching &&
+      !user.fetching &&
+      !respondent.fetching &&
+      !apiRespondent.fetching
+    );
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const respondent = this.props.registration.respondent;
-    const isSubmitting = this.state.isSubmitting;
-    if (respondent.fetched && !isEmpty(respondent.data) && isSubmitting) {
-      this._saveAPIRespondent(respondent);
-    }
-  }
-
-  _saveAPIRespondent = respondent => {
-    const apiRespondent = this.props.registration.apiRespondent;
     const session = this.props.session;
-    const {
-      respondentSubmitted,
-      signatureSubmitted,
-      requestedPushToken,
-    } = this.state;
-
-    if (!apiRespondent.fetching) {
-      if (!apiRespondent.fetched && !respondentSubmitted) {
+    const { respondent, apiRespondent } = this.props.registration;
+    const { isSubmitting, apiRespondentSubmitted } = this.state;
+    if (isSubmitting && respondent.fetched && !isEmpty(respondent.data)) {
+      if (!apiRespondent.fetched && !apiRespondentSubmitted) {
         this.props.apiCreateRespondent(session, respondent.data);
-        this.setState({ respondentSubmitted: true });
-      } else if (apiRespondent.data.id !== undefined) {
-        // Upload signature image if we have respondent id
-        const api_id = apiRespondent.data.id;
-        this.props.updateRespondent({ api_id });
-        if (!signatureSubmitted) {
-          this.saveSignature(api_id);
-          this.setState({ signatureSubmitted: true });
-        }
-        if (!requestedPushToken) {
-          this._registerForPushNotifications(api_id);
-          this.setState({ requestedPushToken: true });
-        }
+        this.setState({ apiRespondentSubmitted: true });
+      } 
+      if (apiRespondentSubmitted) {
         const registration_state = respondent.data.pregnant
           ? ActionStates.REGISTERING_EXPECTED_DOB
           : ActionStates.REGISTERING_SUBJECT;
         this.props.updateSession({ registration_state });
-      } // apiRespondent.fetched
-    } // apiRespondent.fetching
-  };
-
-  _registerForPushNotifications = async api_id => {
-    // simulator will not generate a token
-    if (!Constants.isDevice) return null;
-    const session = this.props.session;
-    if (session.notifications_permission === 'granted') {
-      const result = await Notifications.getExpoPushTokenAsync();
-      const push_token = result.data;
-      this.props.updateSession({ push_token });
-      this.props.updateRespondent({ push_token });
-      this.props.apiUpdateRespondent(session, { api_id, push_token });
+      }
     }
-  };
+  }
 
   getInitialValues = () => {
     let initialValues = {
@@ -219,26 +185,16 @@ class RegistrationRespondentForm extends Component {
     return initialValues;
   };
 
-  saveSignature = async api_id => {
-    const uri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
-    const signatureFile = await FileSystem.getInfoAsync(uri, {size: true});
-    if (signatureFile.exists) {
-      this.props.apiSaveSignature(api_id, uri);
-    } else {
-      console.log('no signature available');
-    } // signatureFile exists
-  };
-
-  _handleOnSubmit = values => {
-    const user = this.props.registration.user;
+  handleOnSubmit = values => {
+    const user = this.props.registration.user.data;
     const tos_id = Object.keys(IRBInformation)[0];
     const irb = IRBInformation[tos_id];
     const respondent = {
       ...values,
-      user_id: user.data.api_id,
-      email: user.data.email,
-      first_name: user.data.first_name,
-      last_name: user.data.last_name,
+      user_id: user.api_id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
       tos_id: tos_id,
       irb_id: irb.irb_id,
       accepted_tos_at: new Date().toISOString(),
@@ -251,7 +207,7 @@ class RegistrationRespondentForm extends Component {
     return (
       <ScrollView>
         <Formik
-          onSubmit={() => this._handleOnSubmit()}
+          onSubmit={() => this.handleOnSubmit()}
           validationSchema={validationSchema}
           initialValues={this.getInitialValues()}
           render={props => {

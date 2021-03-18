@@ -52,6 +52,7 @@ class OverviewTimeline extends React.Component {
       overviewTimelines: [],
       overviewTimelinesLoaded: false,
       currentTimeline: {},
+      reRenderCount: 1,
     };
     // returning from other screen
     this.props.navigation.addListener('willFocus', () => {
@@ -72,6 +73,7 @@ class OverviewTimeline extends React.Component {
   _fetchOverviewTimeline = async () => {
     const { date_of_birth, expected_date_of_birth } = this.props.registration.subject.data;
     const { calendar, overview_timeline } = this.props.milestones;
+    const { reRenderCount } = this.state;
     let baseDate = '';
     let postBirth = false;
     if (date_of_birth) {
@@ -82,110 +84,113 @@ class OverviewTimeline extends React.Component {
     }
 
     if (!calendar.fetching && calendar.fetched) {
-      if (isEmpty(calendar.data)) {
+      if (isEmpty(calendar.data) && reRenderCount <= 15) {
         this.props.fetchMilestoneCalendar();
+        console.log({ reRenderCount });
+        this.setState({ reRenderCount: reRenderCount + 1 });
         return;
       }
       if (overview_timeline.fetched) {
         if (isEmpty(overview_timeline.data)) {
-          this.props.fetchOverViewTimeline();
-        } else {
-          const overviewTimelines = [ ...overview_timeline.data ];
-          // leave verbose so it's easier to understand
-          remove(overviewTimelines, item => {
-            if (item.overview_timeline === 'birth') {
-              if (!postBirth) return false;
-            }
-            // remove if not complete and after available_end_at
-            if (!item.uri && moment().isAfter(item.available_end_at)) {
-              return true;
-            }
-            // tasks for pre-birth period
-            if (item.overview_timeline === 'during_pregnancy') {
-              // return all if during pre-birth or birth period
-              if (!postBirth) return false;
-              // only completed pre-birth tasks after birth
-              if (postBirth && item.uri) return false;
-            }
-            // all post-birth tasks only if post-birth
-            if (item.overview_timeline === 'post_birth') {
-              if (postBirth) return false;
-            }
-            // otherwise remove
-            return true;
-          });
-
-          // confirm image exists
-          for (const item of overviewTimelines) {
-            if (item.uri) {
-              await Image.getSize(
-                item.uri,
-                response => {},
-                error => {
-                  item.uri = null;
-                },
-              )
-            }
+          if (reRenderCount <= 18) {
+            this.props.fetchOverViewTimeline();
+            this.setState({ reRenderCount: reRenderCount + 1 });
           }
+          return;
+        }
+        const overviewTimelines = [ ...overview_timeline.data ];
+        // leave verbose so it's easier to understand
+        remove(overviewTimelines, item => {
+          if (item.overview_timeline === 'birth') {
+            if (!postBirth) return false;
+          }
+          // remove if not complete and after available_end_at
+          if (!item.uri && moment().isAfter(item.available_end_at)) {
+            return true;
+          }
+          // tasks for pre-birth period
+          if (item.overview_timeline === 'during_pregnancy') {
+            // return all if during pre-birth or birth period
+            if (!postBirth) return false;
+            // only completed pre-birth tasks after birth
+            if (postBirth && item.uri) return false;
+          }
+          // all post-birth tasks only if post-birth
+          if (item.overview_timeline === 'post_birth') {
+            if (postBirth) return false;
+          }
+          // otherwise remove
+          return true;
+        });
 
-          // calculate weeks
-          forEach(overviewTimelines, item => {
-            const notify_at = moment(item.notify_at, moment.ISO_8601);
-            if (item.overview_timeline === 'during_pregnancy') {
-              item.weeks = 40 - moment(baseDate).diff(item.notify_at, 'weeks');
-            }
-            if (item.overview_timeline === 'birth') {
-              item.weeks = 40;
-            }
-            if (item.overview_timeline === 'post_birth') {
-              item.weeks = Math.abs(
-                moment(baseDate).diff(notify_at, 'weeks'),
-              );
-            }
-          });
+        // confirm image exists
+        for (const item of overviewTimelines) {
+          if (item.uri) {
+            await Image.getSize(
+              item.uri,
+              response => {},
+              error => {
+                item.uri = null;
+              },
+            )
+          }
+        }
 
-          // move birth to end
-          const birth = remove(overviewTimelines, ['overview_timeline', 'birth']);
-          if (!isEmpty(birth)) overviewTimelines.push(birth[0]);
+        // calculate weeks
+        forEach(overviewTimelines, item => {
+          const notify_at = moment(item.notify_at, moment.ISO_8601);
+          if (item.overview_timeline === 'during_pregnancy') {
+            item.weeks = 40 - moment(baseDate).diff(notify_at, 'weeks');
+          }
+          if (item.overview_timeline === 'birth') {
+            item.weeks = 40;
+          }
+          if (item.overview_timeline === 'post_birth') {
+            item.weeks = Math.abs(moment(baseDate).diff(notify_at, 'weeks'));
+          }
+        });
 
-          // find current incomplete task
-          let currentIndexTimeline = findIndex(overviewTimelines, item => {
+        // move birth to end
+        const birth = remove(overviewTimelines, ['overview_timeline', 'birth']);
+        if (!isEmpty(birth)) overviewTimelines.push(birth[0]);
+
+        // find current incomplete task
+        let currentIndexTimeline = findIndex(overviewTimelines, item => {
+          return (
+            !item.uri &&
+            moment().isAfter(item.available_start_at) &&
+            moment().isBefore(item.available_end_at)
+          );
+        });
+        // if none, find current task
+        if (currentIndexTimeline === -1) {
+          currentIndexTimeline = findIndex(overviewTimelines, item => {
             return (
-              !item.uri &&
               moment().isAfter(item.available_start_at) &&
               moment().isBefore(item.available_end_at)
             );
           });
-          // if none, find current task
-          if (currentIndexTimeline === -1) {
-            currentIndexTimeline = findIndex(overviewTimelines, item => {
-              return (
-                moment().isAfter(item.available_start_at) &&
-                moment().isBefore(item.available_end_at)
-              );
-            });
-          }
-          // if none, find first incomplete
-          if (currentIndexTimeline === -1) {
-            currentIndexTimeline = findIndex(overviewTimelines, item => {
-              return !item.uri;
-            });
-          }
-          // if none, return last
-          if (currentIndexTimeline === -1) {
-            currentIndexTimeline = overviewTimelines.length - 1;
-          }
-          const currentTimeline = overviewTimelines[currentIndexTimeline];
-
-          this.setState({
-            overviewTimelines,
-            overviewTimelinesLoaded: true,
-            currentTimeline,
-            currentIndexTimeline,
-            sliderLoading: false,
+        }
+        // if none, find first incomplete
+        if (currentIndexTimeline === -1) {
+          currentIndexTimeline = findIndex(overviewTimelines, item => {
+            return !item.uri;
           });
-        } // isEmpty overview data
-      } // if overview fetched
+        }
+        // if none, return last
+        if (currentIndexTimeline === -1) {
+          currentIndexTimeline = overviewTimelines.length - 1;
+        }
+        const currentTimeline = overviewTimelines[currentIndexTimeline];
+
+        this.setState({
+          overviewTimelines,
+          overviewTimelinesLoaded: true,
+          currentTimeline,
+          currentIndexTimeline,
+          sliderLoading: false,
+        });
+      } // overViewTimeline.fetched
     } // if calendar fetching
   };
 
@@ -214,14 +219,15 @@ class OverviewTimeline extends React.Component {
   };
 
   renderContent = item => {
+    const tasks = this.props.milestones.tasks.data;
     const currentTimeline = this.state.currentTimeline.choice_id === item.choice_id;
     const currentStyle = currentTimeline ? styles.timelineCurrentItem : {};
     const available_start_at = moment(item.available_start_at, moment.ISO_8601);
     const available_end_at = moment(item.available_end_at, moment.ISO_8601);
-    const available = 
-      moment().isAfter(available_start_at) && 
+    const available =
+      moment().isAfter(available_start_at) &&
       moment().isBefore(available_end_at);
-    const task = find(this.props.milestones.tasks.data, ['id', item.task_id]);
+    const task = find(tasks, ['id', item.task_id]);
 
     if (item.uri) {
       return (

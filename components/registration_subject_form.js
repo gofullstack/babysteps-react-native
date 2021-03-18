@@ -15,6 +15,8 @@ import moment from 'moment';
 import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
+
+import { fetchSession, updateSession } from '../actions/session_actions';
 import {
   fetchRespondent,
   resetSubject,
@@ -22,7 +24,7 @@ import {
   updateSubject,
   apiCreateSubject,
 } from '../actions/registration_actions';
-import { fetchSession, updateSession } from '../actions/session_actions';
+import { fetchMilestoneCalendar } from '../actions/milestone_actions';
 
 import TextFieldWithLabel from './textFieldWithLabel';
 import DatePicker from './datePickerInput';
@@ -81,39 +83,54 @@ class RegistrationSubjectForm extends Component {
     this.state = {
       isSubmitting: false,
       dobError: null,
-      apiCreateSubjectSubmitted: false,
+      apiSubjectSubmitted: false,
+      reRenderCount: 1,
     };
 
     this.props.resetSubject();
     this.props.fetchRespondent();
-    this.props.fetchSession();
   }
 
   componentDidMount() {
-    if (['none', 'unknown'].includes(this.props.session.connectionType)) {
+    const session = this.props.session;
+    if (['none', 'unknown'].includes(session.connectionType)) {
       this.setState({ isSubmitting: true, dobError: 'The internet is not currently available' });
     }
   }
 
   shouldComponentUpdate(nextProps) {
-    const respondent = nextProps.registration.respondent;
-    const subject = nextProps.registration.subject;
-    const apiSubject = nextProps.registration.apiSubject;
     const session = nextProps.session;
+    const { respondent, subject, apiSubject } = nextProps.registration;
+    const { calendar } = nextProps.milestones;
 
     return (
-      !subject.fetching &&
+      !session.fetching &&
       !respondent.fetching &&
+      !subject.fetching &&
       !apiSubject.fetching &&
-      !session.fetching
+      !calendar.fetching
     );
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const subject = this.props.registration.subject;
-    const isSubmitting = this.state.isSubmitting;
-    if (subject.fetched && !isEmpty(subject.data) && isSubmitting) {
-      this.saveAPISubject(subject);
+    const session = this.props.session;
+    const { subject, apiSubject } = this.props.registration;
+    const { calendar } = this.props.milestones;
+    const { isSubmitting, apiSubjectSubmitted, reRenderCount } = this.state;
+    if (isSubmitting && subject.fetched && !isEmpty(subject.data)) {
+      if (!apiSubject.fetched && !apiSubjectSubmitted) {
+        this.props.apiCreateSubject(subject.data);
+        this.setState({ apiSubjectSubmitted: true });
+      }
+      if (apiSubjectSubmitted) {
+        this.props.fetchMilestoneCalendar();
+        console.log({ reRenderCount });
+        this.setState({ reRenderCount: reRenderCount + 1 });
+      }
+      if (!isEmpty(calendar.data) || reRenderCount > 15) {
+        const registration_state = States.REGISTERED_AS_IN_STUDY;
+        this.props.updateSession({ registration_state });
+      }
     }
   }
 
@@ -154,18 +171,6 @@ class RegistrationSubjectForm extends Component {
       video_sharing,
     };
     return initialValues;
-  };
-
-  saveAPISubject = subject => {
-    const apiSubject = this.props.registration.apiSubject;
-    const session = this.props.session;
-
-    if (!apiSubject.fetching && !apiSubject.fetched) {
-      this.props.apiCreateSubject(session, subject.data);
-      this.props.updateSession({
-        registration_state: States.REGISTERED_AS_IN_STUDY,
-      });
-    } // apiSubject fetching
   };
 
   render() {
@@ -294,18 +299,21 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = ({ session, registration }) => ({
+const mapStateToProps = ({ session, registration, milestones }) => ({
   session,
   registration,
+  milestones,
 });
+
 const mapDispatchToProps = {
+  fetchSession,
+  updateSession,
   fetchRespondent,
   resetSubject,
   createSubject,
   updateSubject,
   apiCreateSubject,
-  fetchSession,
-  updateSession,
+  fetchMilestoneCalendar,
 };
 
 export default connect(

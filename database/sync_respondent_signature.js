@@ -36,7 +36,16 @@ const executeApiCall = async id => {
   return response;
 };
 
-const saveSignature = async id => {
+const confirmSignatureFile = async () => {
+  const signatureFile = await FileSystem.getInfoAsync(fileUri);
+  if (!signatureFile.exists) console.log('*** No signature file found');
+  return signatureFile.exists;
+};
+
+export const SaveSignature = async id => {
+  const signatureFileExists = await confirmSignatureFile();
+  if (!signatureFileExists) return null;
+
   const response = await executeApiCall(id);
   if (response && response.status === 202) {
     console.log('***** Respondent signature uploaded successfully');
@@ -48,12 +57,8 @@ const saveSignature = async id => {
 const SyncRespondentSignature = async id => {
   console.log('*** Begin Respondent Signature Sync');
 
-  const signatureFile = await FileSystem.getInfoAsync(fileUri, { size: true });
-
-  if (!signatureFile.exists) {
-    console.log('*** No signature file found');
-    return null;
-  }
+  const signatureFileExists = await confirmSignatureFile();
+  if (!signatureFileExists) return null;
 
   const url = '/respondents/has_attachment';
 
@@ -69,7 +74,7 @@ const SyncRespondentSignature = async id => {
       .then(response => {
         const { status, data } = response;
         if (status !== 404 && !data.has_attachment) {
-          saveSignature(id);
+          SaveSignature(id);
         } else if (data.has_attachment) {
           console.log('*** Respondent Signature Exists on Server');
         }

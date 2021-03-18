@@ -46,10 +46,6 @@ import {
   API_UPDATE_RESPONDENT_FULFILLED,
   API_UPDATE_RESPONDENT_REJECTED,
 
-  API_SAVE_SIGNATURE_PENDING,
-  API_SAVE_SIGNATURE_FULFILLED,
-  API_SAVE_SIGNATURE_REJECTED,
-
   FETCH_SUBJECT_PENDING,
   FETCH_SUBJECT_FULFILLED,
   FETCH_SUBJECT_REJECTED,
@@ -518,40 +514,6 @@ const reducer = (state = initialState, action, formData = {}) => {
         ...state,
         apiRespondent: {
           ...state.apiRespondent,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
-        },
-      };
-    }
-
-    // API_SAVE_SIGNATURE
-    case API_SAVE_SIGNATURE_PENDING: {
-      return {
-        ...state,
-        apiSignature: {
-          ...state.apiSignature,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
-    case API_SAVE_SIGNATURE_FULFILLED: {
-      return {
-        ...state,
-        apiSignature: {
-          ...state.apiSignature,
-          fetching: false,
-          fetched: true,
-        }
-      };
-    }
-    case API_SAVE_SIGNATURE_REJECTED: {
-      return {
-        ...state,
-        apiSignature: {
-          ...state.apiSignature,
           fetching: false,
           fetched: false,
           error: action.payload,
