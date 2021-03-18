@@ -103,6 +103,7 @@ class RootNavigator extends Component {
 
   render() {
     const { registration_state } = this.props.session;
+
     if (States.REGISTRATION_COMPLETE.includes(registration_state)) {
       return (
         <AppNavigator

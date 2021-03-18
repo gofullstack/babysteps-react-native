@@ -145,9 +145,9 @@ class RegistrationRespondentForm extends Component {
     const { isSubmitting, apiRespondentSubmitted } = this.state;
     if (isSubmitting && respondent.fetched && !isEmpty(respondent.data)) {
       if (!apiRespondent.fetched && !apiRespondentSubmitted) {
-        this.props.apiCreateRespondent(session, respondent.data);
+        this.props.apiCreateRespondent(respondent.data);
         this.setState({ apiRespondentSubmitted: true });
-      } 
+      }
       if (apiRespondentSubmitted) {
         const registration_state = respondent.data.pregnant
           ? ActionStates.REGISTERING_EXPECTED_DOB

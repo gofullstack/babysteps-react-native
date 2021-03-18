@@ -117,7 +117,7 @@ class RegistrationSubjectForm extends Component {
     const { subject, apiSubject } = this.props.registration;
     const { calendar } = this.props.milestones;
     const { isSubmitting, apiSubjectSubmitted, reRenderCount } = this.state;
-    if (isSubmitting && subject.fetched && !isEmpty(subject.data)) {
+    if (isSubmitting && !isEmpty(subject.data)) {
       if (!apiSubject.fetched && !apiSubjectSubmitted) {
         this.props.apiCreateSubject(subject.data);
         this.setState({ apiSubjectSubmitted: true });
@@ -174,7 +174,9 @@ class RegistrationSubjectForm extends Component {
   };
 
   render() {
-    const respondent = this.props.registration.respondent;
+    const { respondent, apiRespondent } = this.props.registration;
+    const respondent_id = apiRespondent.id || respondent.api_id;
+    const respondent_ids = [respondent_id];
     const {
       screening_blood,
       screening_blood_other,
@@ -190,7 +192,7 @@ class RegistrationSubjectForm extends Component {
           if (values.date_of_birth) {
             const newSubject = {
               ...values,
-              respondent_ids: [respondent.data.api_id],
+              respondent_ids,
               screening_blood,
               screening_blood_other,
               screening_blood_notification,

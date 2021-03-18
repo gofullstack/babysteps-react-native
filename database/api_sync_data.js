@@ -1,4 +1,4 @@
-import { PureComponent } from 'react';
+import { Component } from 'react';
 import { AppState } from 'react-native';
 
 import isEmpty from 'lodash/isEmpty';
@@ -28,13 +28,13 @@ import UploadMilestoneCalendarsCompleted from './upload_milestone_calendars_comp
 import CONSTANTS from '../constants';
 import States from '../actions/states';
 
-class ApiSyncData extends PureComponent {
+class ApiSyncData extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       appState: AppState.currentState,
-      apiSyncData: true,
+      apiSyncData: false,
       apiRefreshTokenSubmitted: false,
       userRespondentApiUpdated: false,
       respondentAttachmentsApiUpdated: false,
@@ -58,6 +58,17 @@ class ApiSyncData extends PureComponent {
     AppState.addEventListener('change', this._handleAppStateChange);
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    const session = this.props.session;
+    const { user, respondent, subject } = this.props.registration;
+    return (
+      !session.fetching &&
+      !user.fetching &&
+      !respondent.fetching &&
+      !subject.fetching
+    );
+  }
+
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
     const { user, respondent, subject } = this.props.registration;
@@ -78,7 +89,7 @@ class ApiSyncData extends PureComponent {
     } = this.state;
 
     if (
-      !session.fetching &&
+      session.fetched &&
       !session.fetching_token &&
       session.email &&
       session.password &&
@@ -99,7 +110,7 @@ class ApiSyncData extends PureComponent {
         this.setState({ uploadMilestonesSubmitted: true });
       }
 
-      if (user.fetched && !isEmpty(user.data) && user.data.api_id) {
+      if (!isEmpty(user.data) && user.data.api_id) {
         const user_api_id = user.data.api_id;
 
         if (!userRespondentApiUpdated) {
@@ -108,22 +119,21 @@ class ApiSyncData extends PureComponent {
         }
 
         if (
-          userRespondentApiUpdated &&
-          respondent.fetched &&
           !isEmpty(respondent.data) &&
-          respondent.data.api_id
+          respondent.data.api_id &&
+          userRespondentApiUpdated
         ) {
           const respondent_api_id = respondent.data.api_id;
 
           if (
-            !respondentAttachmentsApiUpdated && 
-            session.connectionType === 'wifi'
+            !respondentAttachmentsApiUpdated // &&
+            //session.connectionType === 'wifi'
           ) {
             SyncRespondentSignature(respondent_api_id);
             this.setState({ respondentAttachmentsApiUpdated: true });
           }
 
-          if (subject.fetched && !isEmpty(subject.data) && subject.data.api_id) {
+          if (!isEmpty(subject.data) && subject.data.api_id) {
             const subject_api_id = subject.data.api_id;
 
             if (!userSubjectApiUpdated) {
@@ -143,8 +153,8 @@ class ApiSyncData extends PureComponent {
 
             // upload any attachments not yet uploaded
             if (
-              !uploadAttachmentsSubmitted &&
-              session.connectionType === 'wifi'
+              !uploadAttachmentsSubmitted // &&
+              // session.connectionType === 'wifi'
             ) {
               SyncMilestoneAttachments();
               this.setState({ uploadAttachmentsSubmitted: true });
@@ -163,7 +173,7 @@ class ApiSyncData extends PureComponent {
         // disabled
         // need to accomodate where answer attachment is updated
         //SyncBabybookEntryAttachments();
-        this.setState({ uploadBabybookEntriesSubmitted: true })
+        this.setState({ uploadBabybookEntriesSubmitted: true });
       }
     } // inStudy && apiSyncData
   }
@@ -180,6 +190,7 @@ class ApiSyncData extends PureComponent {
         apiSyncData: true,
         uploadAnswersSubmitted: false,
         uploadAttachmentsSubmitted: false,
+        uploadMilestoneTriggersSubmitted: false,
       });
     } else {
       this.setState({ appState: nextAppState });

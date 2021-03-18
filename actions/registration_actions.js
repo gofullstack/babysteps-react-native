@@ -102,8 +102,8 @@ const Pending = type => {
   return { type };
 };
 
-const Response = (type, payload, formData={}) => {
-  return { type, payload, formData }
+const Response = (type, payload, formData = {}) => {
+  return { type, payload, formData };
 };
 
 const getUpdateSQL = data => {
@@ -325,7 +325,7 @@ export const createRespondent = respondent => {
   };
 };
 
-export const apiCreateRespondent = (session, data) => {
+export const apiCreateRespondent = data => {
   //delete data.id;
   delete data.api_id;
 
@@ -336,7 +336,6 @@ export const apiCreateRespondent = (session, data) => {
         data: {
           respondent: data,
         },
-        session,
       },
       meta: {
         offline: {
