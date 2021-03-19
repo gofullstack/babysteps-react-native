@@ -56,10 +56,18 @@ class OverviewTimeline extends React.Component {
     });
   }
 
+  componentDidMount() {
+    const { overview_timeline } = this.props.milestones;
+    const { overviewTimelines } = this.state;
+    // hack to catch weird failure to rerender on ios
+    if (!isEmpty(overview_timeline.data) && isEmpty(overviewTimelines)) {
+      this.setState({ overviewTimelinesLoaded: false });
+    }
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const { subject } = nextProps.registration;
     const { overview_timeline } = nextProps.milestones;
-
     return !subject.fetching && !overview_timeline.fetching;
   }
 
@@ -74,27 +82,27 @@ class OverviewTimeline extends React.Component {
         return;
       }
       if (!overviewTimelinesLoaded) {
-        this.fetchOverviewTimeline();
+        this.constructOverviewTimeline();
       }
     }
   }
 
-  fetchOverviewTimeline = async () => {
-    const { subject } = this.props.registration;
+  constructOverviewTimeline = () => {
     const { date_of_birth, expected_date_of_birth } = this.props.registration.subject.data;
     const { overview_timeline } = this.props.milestones;
     const overviewTimelines = [...overview_timeline.data];
 
-    let baseDate = '';
+    // leave verbose so it's easier to understand
     let postBirth = false;
+    let baseDate = moment();
+
     if (date_of_birth) {
       baseDate = moment(date_of_birth, 'YYYY-MM-DD');
       postBirth = true;
-    } else {
+    } else if (expected_date_of_birth) {
       baseDate = moment(expected_date_of_birth, 'YYYY-MM-DD');
     }
 
-    // leave verbose so it's easier to understand
     remove(overviewTimelines, item => {
       if (item.overview_timeline === 'birth') {
         if (!postBirth) return false;
@@ -117,19 +125,6 @@ class OverviewTimeline extends React.Component {
       // otherwise remove
       return true;
     });
-
-    // confirm image exists
-    for (const item of overviewTimelines) {
-      if (item.uri) {
-        await Image.getSize(
-          item.uri,
-          response => {},
-          error => {
-            item.uri = null;
-          },
-        );
-      }
-    }
 
     // calculate weeks
     forEach(overviewTimelines, item => {
@@ -188,6 +183,7 @@ class OverviewTimeline extends React.Component {
   };
 
   handleOnPress = (item, task) => {
+    const { navigate } = this.props.navigation;
     if (!CONSTANTS.TESTING_ENABLE_ALL_TASKS) {
       if (moment().isBefore(item.available_start_at)) {
         const available = moment(item.available_start_at).format('MM/DD/YYYY');
@@ -208,10 +204,11 @@ class OverviewTimeline extends React.Component {
         return null;
       }
     }
-    this.props.navigation.navigate('MilestoneQuestions', { task });
+    navigate('MilestoneQuestions', { task });
   };
 
   renderContent = item => {
+    const { navigate } = this.props.navigation;
     const tasks = this.props.milestones.tasks.data;
     const currentTimeline = this.state.currentTimeline.choice_id === item.choice_id;
     const currentStyle = currentTimeline ? styles.timelineCurrentItem : {};
@@ -239,7 +236,7 @@ class OverviewTimeline extends React.Component {
     }
     if (item.overview_timeline === 'birth') {
       return (
-        <TouchableOpacity onPress={() => this.props.navigation.navigate('OverviewBirthForm')}>
+        <TouchableOpacity onPress={() => navigate('OverviewBirthForm')}>
           <View style={styles.timelineIconContainer}>
             <Image
               source={require('../assets/images/overview_baby_icon.png')}
@@ -293,9 +290,6 @@ class OverviewTimeline extends React.Component {
 
   renderOverviewTimeline = data => {
     const item = data.item;
-    const navigate = this.props.navigation.navigate;
-    let timelineTitle = '';
-
     return (
       <View key={data.itemIndex} style={styles.timelineItemContainer}>
         {this.renderContent(item)}
@@ -305,8 +299,8 @@ class OverviewTimeline extends React.Component {
   };
 
   render() {
-    const data = this.state.overviewTimelines;
-    // refresh on update of images 
+    const { overviewTimelines } = this.state;
+    // refresh on update of images
     return (
       <View style={styles.timeline}>
         {this.state.sliderLoading && (
@@ -315,8 +309,8 @@ class OverviewTimeline extends React.Component {
         <Text style={styles.timelineHeader}>My Baby's Progress</Text>
         <SideSwipe
           //index={this.state.currentIndexTimeline}
-          data={data}
-          renderItem={item => this.renderOverviewTimeline(item)}
+          data={overviewTimelines}
+          renderItem={this.renderOverviewTimeline}
           itemWidth={tlCardWidth + tlCardMargin}
           //contentOffset={tlCardMargin}\
           useVelocityForIndex={false}
