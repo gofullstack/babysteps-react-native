@@ -32,15 +32,16 @@ class RegisterForPushNotifications extends Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     const respondent = nextProps.registration.respondent.data;
-    const {
-      requestedPushToken,
-      requestedNotificationPermission,
-    } = nextState;
-    if (!Constants.isDevice) return false;
-    if (isEmpty(respondent)) return false;
-    if ([null, undefined].includes(respondent.api_id)) return false;
-    if (requestedNotificationPermission) return false;
-    if (requestedPushToken) return false;
+    const { requestedPushToken, requestedNotificationPermission } = nextState;
+
+    if (
+      isEmpty(respondent) ||
+      [null, undefined].includes(respondent.api_id) ||
+      requestedNotificationPermission ||
+      requestedPushToken
+    ) {
+      return false;
+    }
     return true;
   }
 
@@ -49,7 +50,7 @@ class RegisterForPushNotifications extends Component {
     if (!Constants.isDevice) return;
 
     const session = this.props.session;
-    let notifications_permission = session.notifications_permission;
+    let { notifications_permission } = session;
 
     if (Platform.OS === 'ios' && notifications_permission === null) {
       Alert.alert(
@@ -73,7 +74,7 @@ class RegisterForPushNotifications extends Component {
 
     const session = this.props.session;
     const api_id = this.props.registration.respondent.data.api_id;
-    const requestedNotificationPermission = this.state.requestedPushToken;
+    const { requestedNotificationPermission } = this.state;
     if (requestedNotificationPermission) return;
 
     let notifications_permission = session.notifications_permission;
@@ -110,7 +111,7 @@ class RegisterForPushNotifications extends Component {
 
   setPushNotificationToken = async () => {
 
-    const requestedPushToken = this.state.requestedPushToken;
+    const { requestedPushToken } = this.state;
     if (requestedPushToken) return;
 
     const session = this.props.session;

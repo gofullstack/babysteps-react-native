@@ -498,6 +498,7 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case API_UPDATE_RESPONDENT_FULFILLED: {
+      const data = action.payload.data;
       return {
         ...state,
         apiRespondent: {
@@ -505,7 +506,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           fetching: false,
           fetched: true,
           error: null,
-          data: action.payload.data,
+          data,
         },
       };
     }
@@ -588,13 +589,15 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case CREATE_SUBJECT_FULFILLED: {
+      const data = action.formData;
       return {
         ...state,
         subject: {
           ...state.subject,
           fetching: false,
           fetched: true,
-          data: action.formData,
+          error: null,
+          data,
         },
       };
     }
@@ -737,7 +740,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           fetching: false,
           fetched: true,
           error: null,
-          data: {},
+          data,
         },
       };
     }
