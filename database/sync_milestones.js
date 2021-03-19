@@ -41,7 +41,7 @@ const UpdateMilestoneLastUpdated = async last_updated_at => {
     tx.executeSql(
       `UPDATE sessions SET milestones_last_updated_at='${last_updated_at}';`,
       [],
-      (_, response) => console.log('*** Session milestones_last_updated_at updated'),
+      (_, response) => console.log(`*** Session milestones_last_updated_at ${last_updated_at}`),
       (_, error) => console.log(error),
     );
   });

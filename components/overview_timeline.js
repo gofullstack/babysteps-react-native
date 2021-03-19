@@ -85,12 +85,10 @@ class OverviewTimeline extends React.Component {
       baseDate = moment(expected_date_of_birth, 'YYYY-MM-DD');
     }
 
-    if (overview_timeline.fetched) {
-      if (isEmpty(overview_timeline.data)) {
-        this.props.fetchOverViewTimeline();
-        return;
-      }
-      const overviewTimelines = [ ...overview_timeline.data ];
+    if (isEmpty(overview_timeline.data)) {
+      this.props.fetchOverViewTimeline();
+    } else {
+      const overviewTimelines = [...overview_timeline.data];
       // leave verbose so it's easier to understand
       remove(overviewTimelines, item => {
         if (item.overview_timeline === 'birth') {

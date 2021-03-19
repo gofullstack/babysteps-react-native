@@ -238,7 +238,7 @@ class SettingsScreen extends React.Component {
     UploadMilestoneAttachment(attachment);
     missingAPIAttachments = filter(missingAPIAttachments, missingAttachment => {
       return missingAttachment.id !== attachment.id;
-    })
+    });
     this.setState({ missingAPIAttachments });
   };
 
@@ -408,7 +408,11 @@ class SettingsScreen extends React.Component {
             onPress={this.handleUploadDatabasePress}
             disabled={uploadDatabaseSelected}
           >
-            <Text style={styles.linkText}>Upload Answers Database</Text>
+            <Text
+              style={uploadDatabaseSelected ? styles.linkTextDisabled : styles.linkText}
+            >
+              Upload Answers Database
+            </Text>
             <Ionicons
               name="ios-arrow-forward"
               size={28}
@@ -420,7 +424,6 @@ class SettingsScreen extends React.Component {
           <TouchableOpacity
             style={styles.linkContainer}
             onPress={this.handleUploadMediaFilesPress}
-            disabled={uploadDatabaseSelected}
           >
             <Text style={styles.linkText}>Upload Media Files</Text>
             <Ionicons
@@ -467,6 +470,11 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 16,
     color: Colors.darkGreen,
+    marginLeft: 10,
+  },
+  linkTextDisabled: {
+    fontSize: 16,
+    color: Colors.darkGrey,
     marginLeft: 10,
   },
   linkIcon: {

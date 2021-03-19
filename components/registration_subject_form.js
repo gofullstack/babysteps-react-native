@@ -134,7 +134,7 @@ class RegistrationSubjectForm extends Component {
     }
   }
 
-  _getInitialValues = () => {
+  getInitialValues = () => {
     const {
       screening_blood,
       screening_blood_other,
@@ -173,10 +173,9 @@ class RegistrationSubjectForm extends Component {
     return initialValues;
   };
 
-  render() {
+  handleOnSubmit = values => {
     const { respondent, apiRespondent } = this.props.registration;
-    const respondent_id = apiRespondent.id || respondent.api_id;
-    const respondent_ids = [respondent_id];
+    const respondent_id = apiRespondent.data.id || respondent.data.api_id;
     const {
       screening_blood,
       screening_blood_other,
@@ -184,29 +183,31 @@ class RegistrationSubjectForm extends Component {
       video_presentation,
       video_sharing,
     } = this.props.session;
+    if (values.date_of_birth) {
+      const newSubject = {
+        ...values,
+        respondent_ids: [respondent_id],
+        screening_blood,
+        screening_blood_other,
+        screening_blood_notification,
+        video_presentation,
+        video_sharing,
+      };
+      this.props.createSubject(newSubject);
+      this.setState({ isSubmitting: true });
+    } else {
+      this.setState({ dobError: 'You must provide the Date of Birth' });
+    }
+  };
+
+  render() {
     const dobError = this.state.dobError;
 
     return (
       <Formik
-        onSubmit={values => {
-          if (values.date_of_birth) {
-            const newSubject = {
-              ...values,
-              respondent_ids,
-              screening_blood,
-              screening_blood_other,
-              screening_blood_notification,
-              video_presentation,
-              video_sharing,
-            };
-            this.setState({ isSubmitting: true });
-            this.props.createSubject(newSubject);
-          } else {
-            this.setState({ dobError: 'You must provide the Date of Birth' });
-          }
-        }}
+        onSubmit={this.handleOnSubmit}
         validationSchema={validationSchema}
-        initialValues={this._getInitialValues()}
+        initialValues={this.getInitialValues()}
         render={props => {
           return (
             <Form>

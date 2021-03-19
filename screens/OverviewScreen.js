@@ -51,39 +51,6 @@ class OverviewScreen extends React.Component {
     this.props.fetchOverViewTimeline();
   }
 
-  testNotification(noticeType = null) {
-    const tasks = this.props.milestones.tasks;
-    const milestones = this.props.milestones.milestones;
-    if (!tasks.fetching && isEmpty(tasks.data)) {
-      this.props.fetchMilestoneTasks();
-      return;
-    }
-    let task, milestone = {};
-    let filteredMilestones = filter(milestones.data, {
-      momentary_assessment: noticeType.momentary_assessment,
-    });
-    let index = Math.floor(Math.random() * filteredMilestones.length);
-    milestone = filteredMilestones[index];
-
-    task = find(tasks.data, {milestone_id: milestone.id});
-
-    if (milestone && task) {
-      Notifications.presentLocalNotificationAsync({
-        title: milestone.title,
-        body: task.name,
-        data: {
-          task_id: task.id,
-          title: milestone.title,
-          body: task.name,
-          momentary_assessment: task.momentary_assessment,
-          response_scale: task.response_scale,
-          type: 'info',
-        },
-      });
-      this.setState({ testNotificationCreated: true });
-    } // task
-  }
-
   render() {
     return (
       <View style={styles.container}>

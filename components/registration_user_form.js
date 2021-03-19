@@ -21,6 +21,10 @@ import {
 import { updateSession } from '../actions/session_actions';
 
 import TextFieldWithLabel from './textFieldWithLabel';
+
+import SyncMilestones from '../database/sync_milestones';
+
+import CONSTANTS from '../constants';
 import Colors from '../constants/Colors';
 import States from '../actions/states';
 import AppStyles from '../constants/Styles';
@@ -53,7 +57,6 @@ class RegistrationUserForm extends Component {
       apiErrorMessage: '',
       user_registration_complete: false,
     };
-
   }
 
   componentDidMount() {
@@ -108,6 +111,7 @@ class RegistrationUserForm extends Component {
         if (userSubmitted) {
           const registration_state = States.REGISTERING_RESPONDENT;
           this.props.updateSession({ registration_state });
+          SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
         }
       } // apiUser.fetched
     } // isSubmitting

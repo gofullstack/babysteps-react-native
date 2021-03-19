@@ -93,10 +93,9 @@ class RegistrationExpectedDOB extends Component {
     }
   }
 
-  _handleOnSubmit = values => {
+  handleOnSubmit = values => {
     const { respondent, apiRespondent } = this.props.registration;
-    const respondent_id = apiRespondent.id || respondent.api_id;
-    const respondent_ids = [respondent_id];
+    const respondent_id = apiRespondent.data.id || respondent.data.api_id;
     const {
       screening_blood,
       screening_blood_other,
@@ -108,15 +107,15 @@ class RegistrationExpectedDOB extends Component {
     if (values.expected_date_of_birth) {
       const newSubject = {
         ...values,
-        respondent_ids,
+        respondent_ids: [respondent_id],
         screening_blood,
         screening_blood_other,
         screening_blood_notification,
         video_presentation,
         video_sharing,
       };
-      this.setState({ isSubmitting: true });
       this.props.createSubject(newSubject);
+      this.setState({ isSubmitting: true });
     } else {
       this.setState({ dobError: 'You must provide the Expected Date of Birth' });
     }
@@ -126,7 +125,7 @@ class RegistrationExpectedDOB extends Component {
     const dobError = this.state.dobError;
     return (
       <Formik
-        onSubmit={this._handleOnSubmit}
+        onSubmit={this.handleOnSubmit}
         //validationSchema={validationSchema}
         initialValues={{
           respondent_ids: null,
