@@ -44,7 +44,6 @@ export default store => next => action => {
         [],
         (_, response) => {
           console.log(`Subject API_ID updated from api`);
-          UploadMilestoneTriggers(data.id);
         },
         (_, error) => {
           console.log(`ERROR - Subject API_ID not updated from api: ${error}`);

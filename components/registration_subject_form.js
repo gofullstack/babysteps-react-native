@@ -16,15 +16,13 @@ import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
 
-import { fetchSession, updateSession } from '../actions/session_actions';
+import { updateSession } from '../actions/session_actions';
 import {
-  fetchRespondent,
   resetSubject,
   createSubject,
-  updateSubject,
   apiCreateSubject,
 } from '../actions/registration_actions';
-import { fetchMilestoneCalendar } from '../actions/milestone_actions';
+import { apiFetchMilestoneCalendar } from '../actions/milestone_actions';
 
 import TextFieldWithLabel from './textFieldWithLabel';
 import DatePicker from './datePickerInput';
@@ -84,11 +82,10 @@ class RegistrationSubjectForm extends Component {
       isSubmitting: false,
       dobError: null,
       apiSubjectSubmitted: false,
-      reRenderCount: 1,
+      apiFetchCalendarSubmitted: false,
     };
 
     this.props.resetSubject();
-    this.props.fetchRespondent();
   }
 
   componentDidMount() {
@@ -101,14 +98,12 @@ class RegistrationSubjectForm extends Component {
   shouldComponentUpdate(nextProps) {
     const session = nextProps.session;
     const { respondent, subject, apiSubject } = nextProps.registration;
-    const { calendar } = nextProps.milestones;
 
     return (
       !session.fetching &&
       !respondent.fetching &&
       !subject.fetching &&
-      !apiSubject.fetching &&
-      !calendar.fetching
+      !apiSubject.fetching
     );
   }
 
@@ -116,18 +111,23 @@ class RegistrationSubjectForm extends Component {
     const session = this.props.session;
     const { subject, apiSubject } = this.props.registration;
     const { calendar } = this.props.milestones;
-    const { isSubmitting, apiSubjectSubmitted, reRenderCount } = this.state;
+    const {
+      isSubmitting,
+      apiSubjectSubmitted,
+      apiFetchCalendarSubmitted,
+    } = this.state;
+
     if (isSubmitting && !isEmpty(subject.data)) {
       if (!apiSubject.fetched && !apiSubjectSubmitted) {
         this.props.apiCreateSubject(subject.data);
         this.setState({ apiSubjectSubmitted: true });
       }
-      if (apiSubjectSubmitted) {
-        this.props.fetchMilestoneCalendar();
-        console.log({ reRenderCount });
-        this.setState({ reRenderCount: reRenderCount + 1 });
+      if (!isEmpty(apiSubject.data) && !apiFetchCalendarSubmitted) {
+        const subject_id = apiSubject.data.id;
+        this.props.apiFetchMilestoneCalendar({ subject_id });
+        this.setState({ apiFetchCalendarSubmitted: true });
       }
-      if (!isEmpty(calendar.data) || reRenderCount > 15) {
+      if (!isEmpty(calendar.data)) {
         const registration_state = States.REGISTERED_AS_IN_STUDY;
         this.props.updateSession({ registration_state });
       }
@@ -142,7 +142,7 @@ class RegistrationSubjectForm extends Component {
       video_presentation,
       video_sharing,
     } = this.props.session;
-    let defValues = {}
+    let defValues = {};
     if (__DEV__) {
       defValues = {
         date_of_birth: moment().subtract(1, 'years').format("YYYY/MM/DD"),
@@ -308,14 +308,11 @@ const mapStateToProps = ({ session, registration, milestones }) => ({
 });
 
 const mapDispatchToProps = {
-  fetchSession,
   updateSession,
-  fetchRespondent,
   resetSubject,
   createSubject,
-  updateSubject,
   apiCreateSubject,
-  fetchMilestoneCalendar,
+  apiFetchMilestoneCalendar,
 };
 
 export default connect(

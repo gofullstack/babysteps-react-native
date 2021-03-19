@@ -15,18 +15,13 @@ import isEmpty from 'lodash/isEmpty';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
-import { fetchSession, updateSession } from '../actions/session_actions';
+import { updateSession } from '../actions/session_actions';
 import {
   resetSubject,
   createSubject,
-  updateSubject,
   apiCreateSubject,
-  resetRespondent,
-  fetchRespondent,
-  updateRespondent,
-  apiUpdateRespondent,
 } from '../actions/registration_actions';
-import { fetchMilestoneCalendar } from '../actions/milestone_actions';
+import { apiFetchMilestoneCalendar } from '../actions/milestone_actions';
 
 import DatePicker from './datePickerInput';
 
@@ -49,13 +44,9 @@ class RegistrationExpectedDOB extends Component {
       isSubmitting: false,
       dobError: null,
       apiSubjectSubmitted: false,
-      reRenderCount: 1,
     };
 
     this.props.resetSubject();
-    this.props.resetRespondent();
-    this.props.fetchRespondent();
-    this.props.fetchSession();
   }
 
   componentDidMount() {
@@ -67,13 +58,11 @@ class RegistrationExpectedDOB extends Component {
   shouldComponentUpdate(nextProps) {
     const session = nextProps.session;
     const { respondent, subject, apiSubject } = nextProps.registration;
-    const { calendar } = nextProps.milestones;
     return (
       !session.fetching &&
       !respondent.fetching &&
       !subject.fetching &&
-      !apiSubject.fetching &&
-      !calendar.fetching
+      !apiSubject.fetching
     );
   }
 
@@ -81,19 +70,23 @@ class RegistrationExpectedDOB extends Component {
     const session = this.props.session;
     const { subject, apiSubject } = this.props.registration;
     const { calendar } = this.props.milestones;
-    const { isSubmitting, apiSubjectSubmitted } = this.state;
+    const {
+      isSubmitting,
+      apiSubjectSubmitted,
+      apiFetchCalendarSubmitted,
+    } = this.state;
 
-    if (isSubmitting && subject.fetched && !isEmpty(subject.data)) {
+    if (isSubmitting && !isEmpty(subject.data)) {
       if (!apiSubject.fetched && !apiSubjectSubmitted) {
-        this.props.apiCreateSubject(session, subject.data);
+        this.props.apiCreateSubject(subject.data);
         this.setState({ apiSubjectSubmitted: true });
       }
-      if (apiSubjectSubmitted) {
-        this.props.fetchMilestoneCalendar();
-        console.log({ reRenderCount });
-        this.setState({ reRenderCount: reRenderCount + 1 });
+      if (!isEmpty(apiSubject.data) && !apiFetchCalendarSubmitted) {
+        const subject_id = apiSubject.data.id;
+        this.props.apiFetchMilestoneCalendar({ subject_id });
+        this.setState({ apiFetchCalendarSubmitted: true });
       }
-      if (!isEmpty(calendar.data) || reRenderCount > 15) {
+      if (!isEmpty(calendar.data)) {
         const registration_state = States.REGISTERED_AS_IN_STUDY;
         this.props.updateSession({ registration_state });
       }
@@ -101,7 +94,9 @@ class RegistrationExpectedDOB extends Component {
   }
 
   _handleOnSubmit = values => {
-    const respondent = this.props.registration.respondent;
+    const { respondent, apiRespondent } = this.props.registration;
+    const respondent_id = apiRespondent.id || respondent.api_id;
+    const respondent_ids = [respondent_id];
     const {
       screening_blood,
       screening_blood_other,
@@ -109,10 +104,11 @@ class RegistrationExpectedDOB extends Component {
       video_presentation,
       video_sharing,
     } = this.props.session;
+
     if (values.expected_date_of_birth) {
       const newSubject = {
         ...values,
-        respondent_ids: [respondent.data.api_id],
+        respondent_ids,
         screening_blood,
         screening_blood_other,
         screening_blood_notification,
@@ -199,17 +195,11 @@ const mapStateToProps = ({ session, registration, milestones }) => ({
 });
 
 const mapDispatchToProps = {
-  fetchSession,
   updateSession,
   resetSubject,
   createSubject,
-  updateSubject,
   apiCreateSubject,
-  resetRespondent,
-  fetchRespondent,
-  updateRespondent,
-  apiUpdateRespondent,
-  fetchMilestoneCalendar,
+  apiFetchMilestoneCalendar,
 };
 
 export default connect(

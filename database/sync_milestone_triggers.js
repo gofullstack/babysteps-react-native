@@ -77,7 +77,8 @@ const SyncMilestoneTriggers = (subject_id, milestone_calendar_last_updated_at) =
     })
       .then(response => {
         const last_updated_at = response.data.last_updated_at;
-        if (milestone_calendar_last_updated_at === null ||
+        if (
+          milestone_calendar_last_updated_at === null ||
           milestone_calendar_last_updated_at !== last_updated_at
         ) {
           UploadMilestoneTriggers(subject_id);

@@ -143,7 +143,7 @@ class RegistrationRespondentForm extends Component {
     const session = this.props.session;
     const { respondent, apiRespondent } = this.props.registration;
     const { isSubmitting, apiRespondentSubmitted } = this.state;
-    if (isSubmitting && respondent.fetched && !isEmpty(respondent.data)) {
+    if (isSubmitting && !isEmpty(respondent.data)) {
       if (!apiRespondent.fetched && !apiRespondentSubmitted) {
         this.props.apiCreateRespondent(respondent.data);
         this.setState({ apiRespondentSubmitted: true });
@@ -199,15 +199,16 @@ class RegistrationRespondentForm extends Component {
       irb_id: irb.irb_id,
       accepted_tos_at: new Date().toISOString(),
     };
-    this.setState({ isSubmitting: true });
+
     this.props.createRespondent(respondent);
+    this.setState({ isSubmitting: true });
   };
 
   render() {
     return (
       <ScrollView>
         <Formik
-          onSubmit={() => this.handleOnSubmit()}
+          onSubmit={this.handleOnSubmit}
           validationSchema={validationSchema}
           initialValues={this.getInitialValues()}
           render={props => {
