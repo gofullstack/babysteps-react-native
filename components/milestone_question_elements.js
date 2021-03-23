@@ -248,10 +248,7 @@ export class RenderDate extends React.PureComponent {
     const collection = _.map(this.props.choices, choice => {
       let value = new Date();
       const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
-      console.log("Date Answer", answer.answer_text)
-      //if (answer) value = Date.parse(answer.answer_text);
-      value = answer.answer_text
-      console.log("Date Parsed", value)
+      value = answer ? answer.answer_text : null;
       return (
         <View key={choice.id}>
         <DatePicker
