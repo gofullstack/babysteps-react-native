@@ -170,7 +170,7 @@ const getUpdateSQL = data => {
 export const fetchMilestones = () => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONES_PENDING));
-    
+
     return (
       db.transaction(tx => {
         tx.executeSql(
@@ -369,8 +369,12 @@ export const apiFetchMilestoneCalendar = params => {
         params,
       })
         .then(response => {
-          insertRows('milestone_triggers', trigger_schema.milestone_triggers, response.data);
-          dispatch(Response(API_FETCH_MILESTONE_CALENDAR_FULFILLED, response));
+          insertRows('milestone_triggers', trigger_schema.milestone_triggers, response.data).then(() => {
+            console.log("Inserting Milestone Triggers", response, success)
+            dispatch(Response(API_FETCH_MILESTONE_CALENDAR_FULFILLED, response));
+          }).catch(error => {
+            dispatch(Response(API_FETCH_MILESTONE_CALENDAR_REJECTED, error));
+          });
         })
         .catch(error => {
           dispatch(Response(API_FETCH_MILESTONE_CALENDAR_REJECTED, error));
@@ -466,7 +470,7 @@ export const fetchMilestoneSections = (params = {}) => {
 
     return (
       db.transaction(tx => {
-        tx.executeSql( 
+        tx.executeSql(
           sql, [],
           (_, response) => {dispatch(Response(FETCH_MILESTONE_SECTIONS_FULFILLED, response))},
           (_, error) => { dispatch( Response(FETCH_MILESTONE_SECTIONS_REJECTED, error))}
@@ -494,7 +498,7 @@ export const fetchMilestoneQuestions = (params = {}) => {
 
     return (
       db.transaction(tx => {
-        tx.executeSql( 
+        tx.executeSql(
           sql, [],
           (_, response) => {dispatch(Response(FETCH_MILESTONE_QUESTIONS_FULFILLED, response))},
           (_, error) => {dispatch(Response(FETCH_MILESTONE_QUESTIONS_REJECTED, error))}
