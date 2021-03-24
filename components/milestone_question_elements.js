@@ -19,7 +19,7 @@ import * as Permissions from 'expo-permissions';
 import * as WebBrowser from 'expo-web-browser';
 import { Video } from 'expo-av';
 import * as ImagePicker from 'expo-image-picker';
-import DatePicker from 'react-native-datepicker';;
+import DatePicker from './datePickerInput';
 
 import _ from 'lodash';
 
@@ -228,7 +228,7 @@ export class RenderTextNumeric extends React.PureComponent {
             inputStyle={styles.textInput}
             defaultValue={text}
             keyboardType="numeric"
-            onChangeText={ value => 
+            onChangeText={ value =>
               this.props.saveResponse(choice, { answer_text: value })
             }
             containerStyle={{ borderBottomColor: Colors.lightGrey }}
@@ -246,29 +246,26 @@ export class RenderDate extends React.PureComponent {
     const collection = _.map(this.props.choices, choice => {
       let value = new Date();
       const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
-      if (answer) value = Date.parse(answer.answer_text);
+      value = answer ? answer.answer_text : null;
       return (
         <View key={choice.id}>
-          <DatePicker
-            label={choice.body}
-            date={value}
-            style={styles.dateInput}
-            mode="date"
-            androidMode="spinner"
-            format="YYYY-MM-DD"
-            confirmBtnText="Confirm"
-            cancelBtnText="Cancel"
-            customStyles={{
-              dateInput: {
-                borderWidth: 0,
-                borderBottomWidth: 1,
-                borderBottomColor: Colors.lightGrey,
-              },
-            }}
-            onDateChange={value =>
-              this.props.saveResponse(choice, { answer_text: value })
+        <DatePicker
+          label={choice.body}
+          date={value}
+          style={styles.dateInput}
+          handleChange={ value => {
+            console.log("Choosen Date", value)
+            this.props.saveResponse(choice, { answer_text: value })
+          }}
+          showIcon={false}
+          customStyles={{
+            dateInput: {
+              borderWidth: 0,
+              borderBottomWidth: 1,
+              borderBottomColor: Colors.lightGrey,
             }
-          />
+          }}
+        />
         </View>
       );
     });
