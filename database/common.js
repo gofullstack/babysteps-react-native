@@ -44,47 +44,52 @@ export function createTable(name, schema) {
 }
 
 export function insertRows(name, schema, data) {
-  if (typeof data !== 'object') {
-    console.log('*** Insert Failed: data is improper format: ', data);
-    return;
-  };
-  db.transaction(tx => {
-    // Clear table
-    tx.executeSql(
-      `DELETE FROM ${name}`,
-      [],
-      (_, rows) => console.log('** Delete rows from table ' + name),
-      (_, error) => console.log('*** Error in deleting rows from table ' + name),
-    );
+  return new Promise((resolve, reject) => {
+    if (typeof data !== 'object') {
+      console.log('*** Insert Failed: data is improper format: ', data);
+      return;
+    };
+    db.transaction(tx => {
+        // Clear table
+        tx.executeSql(
+          `DELETE FROM ${name}`,
+          [],
+          (_, rows) => console.log('** Delete rows from table ' + name),
+          (_, error) => console.log('*** Error in deleting rows from table ' + name),
+        );
 
-    //Construct SQL
-    let prefix = `INSERT INTO ${name} ( `;
-    Object.keys(schema.columns).forEach(column => {
-      prefix += `${column}, `;
-    });
-    prefix = `${prefix.slice(0, -2)} ) VALUES `;
-    forEach(data, row => {
-      const values = [];
-      let sql = `${prefix} (`;
-      Object.keys(schema.columns).forEach(column => {
-        sql += ' ?,';
-        // need to trap booleans
-        if (typeof row[column] === typeof true) {
-          values.push(row[column] ? 1 : 0);
-        } else {
-          values.push(row[column]);
-        }
-      });
-      sql = sql.slice(0, -1);
-      sql += ' )';
-      tx.executeSql(
-        sql,
-        values,
-        (_, rows) => console.log('** Execute ' + sql),
-        (_, error) => console.log('*** Error in executing ' + error),
-      );
-    });
-  });
+        //Construct SQL
+        let prefix = `INSERT INTO ${name} ( `;
+        Object.keys(schema.columns).forEach(column => {
+          prefix += `${column}, `;
+        });
+        prefix = `${prefix.slice(0, -2)} ) VALUES `;
+        forEach(data, row => {
+          const values = [];
+          let sql = `${prefix} (`;
+          Object.keys(schema.columns).forEach(column => {
+            sql += ' ?,';
+            // need to trap booleans
+            if (typeof row[column] === typeof true) {
+              values.push(row[column] ? 1 : 0);
+            } else {
+              values.push(row[column]);
+            }
+          });
+          sql = sql.slice(0, -1);
+          sql += ' )';
+          tx.executeSql(
+            sql,
+            values,
+            (_, rows) => console.log('** Execute ' + sql),
+            (_, error) => console.log('*** Error in executing ' + error),
+          );
+        });
+      },
+      (error) => reject(error),
+      () => resolve(),
+    );
+  })
 }
 
 export function dropTable(name) {
