@@ -47,7 +47,6 @@
     "react": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-40.0.1.tar.gz",
     "react-native-appearance": "~0.3.3",
-    "react-native-datepicker": "^1.7.2",
     "react-native-device-info": "^0.21.5",
     "react-native-elements": "^0.19.1",
     "react-native-flash-message": "^0.1.9",
