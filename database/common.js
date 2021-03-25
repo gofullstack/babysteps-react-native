@@ -43,13 +43,16 @@ export function createTable(name, schema) {
   });
 }
 
-export function insertRows(name, schema, data) {
-  return new Promise((resolve, reject) => {
-    if (typeof data !== 'object') {
-      console.log('*** Insert Failed: data is improper format: ', data);
-      return;
-    };
-    db.transaction(tx => {
+export const insertRows = async (name, schema, data) => {
+  if (typeof data !== 'object') {
+    console.log('*** Insert Failed: data is improper format: ', data);
+    return;
+  }
+  let count = 0;
+
+  await new Promise((resolve, reject) => {
+    db.transaction(
+      tx => {
         // Clear table
         tx.executeSql(
           `DELETE FROM ${name}`,
@@ -64,6 +67,7 @@ export function insertRows(name, schema, data) {
           prefix += `${column}, `;
         });
         prefix = `${prefix.slice(0, -2)} ) VALUES `;
+
         forEach(data, row => {
           const values = [];
           let sql = `${prefix} (`;
@@ -84,13 +88,16 @@ export function insertRows(name, schema, data) {
             (_, rows) => console.log('** Execute ' + sql),
             (_, error) => console.log('*** Error in executing ' + error),
           );
+          count += 1;
         });
-      },
-      (error) => reject(error),
-      () => resolve(),
+      }, // db.transaction
+      result => resolve(console.log(`Inserted ${count} records in ${name}`)),
+      error => reject(console.log(error)),
     );
-  })
-}
+  }); // await Promise
+
+  return null;
+};
 
 export function dropTable(name) {
   db.transaction(tx => {

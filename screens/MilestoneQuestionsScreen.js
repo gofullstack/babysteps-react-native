@@ -126,10 +126,10 @@ class MilestoneQuestionsScreen extends Component {
       this.saveQuestionsData(questions);
     }
     if (answers.fetched && !answersFetched) {
-      this.saveAnswersData(answers);
+      this.saveAnswersData();
     }
     if (attachments.fetched && !attachmentsFetched) {
-      this.saveAttachmentsData(attachments);
+      this.saveAttachmentsData();
     }
   }
 
@@ -194,19 +194,21 @@ class MilestoneQuestionsScreen extends Component {
     }
   };
 
-  saveAnswersData = answers => {
-    if (!_.isEmpty(answers) && !_.isEmpty(answers.data)) {
+  saveAnswersData = () => {
+    const answers = this.props.milestones.answers.data;
+    if (!_.isEmpty(answers)) {
       this.setState({
-        answers: _.orderBy(answers.data, ['choice_id', 'id'], ['asc', 'desc']),
+        answers: _.orderBy(answers, ['choice_id', 'id'], ['asc', 'desc']),
         answersFetched: true,
       });
     }
   };
 
-  saveAttachmentsData = attachments => {
-    if (!_.isEmpty(attachments) && !_.isEmpty(attachments.data)) {
+  saveAttachmentsData = () => {
+    const attachments = this.props.milestones.attachments.data;
+    if (!_.isEmpty(attachments)) {
       this.setState({
-        attachments: _.orderBy(attachments.data, ['choice_id', 'id'], ['asc', 'desc']),
+        attachments: _.orderBy(attachments, ['choice_id', 'id'], ['asc', 'desc']),
         attachmentsFetched: true,
       });
     }
@@ -513,8 +515,14 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   render() {
-    const section = this.state.section;
-    const data = this.state.data;
+    const navigation = this.props.navigation;
+    const {
+      dataReady,
+      confirmed,
+      section,
+      task_name,
+      data,
+    } = this.state;
     return (
       <View style={{ height }}>
         <KeyboardAwareScrollView
@@ -526,10 +534,12 @@ class MilestoneQuestionsScreen extends Component {
           innerRef={ref => {this.scroll = ref}}
         >
           <View style={styles.listContainer}>
-            <Text style={styles.taskHeader}>{this.state.task_name}</Text>
+            <Text style={styles.taskHeader}>{task_name}</Text>
             {!!section && !!section.body && (
               <View style={styles.instructions}>
-                <Text style={styles.instructionsLabel}>Instructions: &nbsp;</Text>
+                <Text style={styles.instructionsLabel}>
+                  Instructions: &nbsp;
+                </Text>
                 <Text>{section.body}</Text>
               </View>
             )}
@@ -542,7 +552,7 @@ class MilestoneQuestionsScreen extends Component {
           </View>
         </KeyboardAwareScrollView>
 
-        {this.state.dataReady && (
+        {dataReady && (
           <View
             style={[
               styles.buttonContainer,
@@ -555,16 +565,18 @@ class MilestoneQuestionsScreen extends Component {
               color={Colors.grey}
               buttonStyle={styles.buttonOneStyle}
               titleStyle={styles.buttonTitleStyle}
-              onPress={() => this.props.navigation.dispatch(StackActions.popToTop())}
+              onPress={() => {
+                navigation.dispatch(StackActions.popToTop());
+              }}
               title="Cancel"
             />
             <Button
               color={Colors.pink}
               buttonStyle={styles.buttonTwoStyle}
               titleStyle={styles.buttonTitleStyle}
-              onPress={() => this.handleConfirm()}
+              onPress={this.handleConfirm}
               title="Mark Completed"
-              disabled={this.state.confirmed}
+              disabled={confirmed}
             />
           </View>
         )}
