@@ -52,6 +52,7 @@ class CheckDataIntegrity extends Component {
     addColumn('sessions', 'milestone_calendar_updated_at', 'text');
     addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
     addColumn('sessions', 'current_group_index', 'integer');
+    addColumn('sessions', 'screening_blood_physician_notification', 'integer');
     addColumn('attachments', 'user_api_id', 'integer');
     addColumn('attachments', 'subject_api_id', 'integer');
     addColumn('attachments', 'size', 'integer');

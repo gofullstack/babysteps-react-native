@@ -29,6 +29,8 @@ class ConsentSignatureForm extends Component {
       yet_undefined.includes(session.screening_blood_other) ? true : !!session.screening_blood_other;
     const screening_blood_notification =
       yet_undefined.includes(session.screening_blood_notification) ? true : !!session.screening_blood_notification;
+    const screening_blood_physician_notification =
+      yet_undefined.includes(session.screening_blood_physician_notification) ? true : !!session.screening_blood_physician_notification;
     const video_presentation = 
       yet_undefined.includes(session.video_presentation) ? 'yes_study_presentations' : !!session.video_presentation;
     const video_sharing = 
@@ -40,6 +42,7 @@ class ConsentSignatureForm extends Component {
       screening_blood,
       screening_blood_other,
       screening_blood_notification,
+      screening_blood_physician_notification,
       video_presentation,
       video_sharing,
       errorMessage: null,
@@ -91,6 +94,7 @@ class ConsentSignatureForm extends Component {
         const {
           screening_blood,
           screening_blood_notification,
+          screening_blood_physician_notification,
           screening_blood_other,
           video_sharing,
           video_presentation,
@@ -99,6 +103,7 @@ class ConsentSignatureForm extends Component {
           [
             screening_blood,
             screening_blood_notification,
+            screening_blood_physician_notification,
             screening_blood_other,
             video_sharing,
             video_presentation,
@@ -120,6 +125,7 @@ class ConsentSignatureForm extends Component {
           screening_blood,
           screening_blood_other,
           screening_blood_notification,
+          screening_blood_physician_notification,
           video_sharing,
           video_presentation,
           registration_state,
@@ -140,6 +146,7 @@ class ConsentSignatureForm extends Component {
     const {
       screening_blood,
       screening_blood_notification,
+      screening_blood_physician_notification,
       screening_blood_other,
       video_presentation,
       video_sharing,
@@ -235,6 +242,33 @@ class ConsentSignatureForm extends Component {
             checked={screening_blood_notification === false}
             onPress={() =>
               this.handleConsentPermissions('screening_blood_notification', false)
+            }
+          />
+        </View>
+
+        <View style={styles.checkboxView}>
+          <Text style={styles.header}>
+            In the event of these unexpected findings, to speed up referring
+            your child for further assessment, we would like to have permission
+            to share these findings with your child’s primary care provider.
+            Please select one of the following options:
+          </Text>
+
+          <CheckBox
+            title="Yes, I want this information to be provided to my child’s primary care provider."
+            textStyle={styles.checkboxText}
+            checked={screening_blood_physician_notification === true}
+            onPress={() =>
+              this.handleConsentPermissions('screening_blood_physician_notification', true)
+            }
+          />
+
+          <CheckBox
+            title="No, I do NOT want this information to be provided to my child’s primary care provider."
+            textStyle={styles.checkboxText}
+            checked={screening_blood_physician_notification === false}
+            onPress={() =>
+              this.handleConsentPermissions('screening_blood_physician_notification', false)
             }
           />
         </View>
