@@ -27,7 +27,7 @@ class ConsentDisclosureVersion extends Component {
   constructor(props) {
     super(props);
 
-    const remoteDebug = (typeof DedicatedWorkerGlobalScope) !== 'undefined';
+    const remoteDebug = typeof DedicatedWorkerGlobalScope !== 'undefined';
 
     this.state = {
       remoteDebug,
@@ -36,6 +36,11 @@ class ConsentDisclosureVersion extends Component {
     };
 
     this.props.fetchConsent();
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    const { consent } = nextProps.registration;
+    return !consent.fetching;
   }
 
   handleSubmit = () => {
@@ -70,8 +75,8 @@ class ConsentDisclosureVersion extends Component {
     const consent = this.props.registration.consent.data;
     const hideButton = this.props.hideButton || false;
     let webViewHeight = height * 0.6;
-    let content = '';
-    if (!isEmpty(consent)) content = consent.content;
+    let html = '';
+    if (!isEmpty(consent)) html = consent.version_content;
     if (hideButton) webViewHeight = height * 0.8;
 
     return (
@@ -79,9 +84,12 @@ class ConsentDisclosureVersion extends Component {
         contentContainerStyle={styles.scrollView}
         ref={this._scrollView}
       >
+        <Text style={styles.header}>
+          IRB ID: {consent.irb_id}.V{consent.version_id}
+        </Text>
         <WebView
           originWhitelist={['*']}
-          source={{ html: content }}
+          source={{ html }}
           style={[styles.webView, {height: webViewHeight}]}
           scalesPageToFit={false}
           useWebKit

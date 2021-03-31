@@ -1,4 +1,4 @@
-import { tableNames, createTable, dropTable } from './common';
+import { confirmTables, dropTable } from './common';
 import CONSTANTS from '../constants';
 import schema from './milestones_schema.json';
 
@@ -10,28 +10,14 @@ const checkMilestonesSchema = () => {
 
   // drop tables for testing
   if (CONSTANTS.DROP_MILESTONE_TABLES) {
-    tables.forEach(name => {
-      dropTable(name);
+    tables.forEach(tableName => {
+      dropTable(tableName);
     });
   }
 
-  return new Promise((resolve, reject) => {
-    tableNames().then(result => {
-      return new Promise((resolve, reject) => {
-        // list of tables in SQLite
-        const existing_tables = eval(result).map( a => a.name );
-        // create for missing tables
-        tables.forEach(name => {
-          if (!existing_tables.includes(name)) {
-            createTable(name, schema[name]);
-          }
-        });
-        resolve(true);
-      }); // return Promise
-    });
+  confirmTables(schema);
 
-    resolve(true);
-  }); // return Promise
+  return null;
 };
 
 export default checkMilestonesSchema;

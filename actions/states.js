@@ -4,6 +4,7 @@ const REGISTERING_ELIGIBILITY = 'registering_eligibility';
 const REGISTERING_NOT_ELIGIBLE = 'registering_not_eligible';
 const REGISTERING_AS_ELIGIBLE = 'registering_as_eligible';
 const REGISTERING_FULL_CONSENT = 'registering_full_consent';
+const REGISTERING_UPDATE_CONSENT = 'registering_update_consent';
 const REGISTERING_SIGNATURE = 'registering_signature';
 
 const REGISTERING_USER = 'registering_user';
@@ -37,6 +38,7 @@ export default {
     REGISTERING_FULL_CONSENT,
     REGISTERING_SIGNATURE,
   ],
+  REGISTERING_UPDATE_CONSENT,
   REGISTERING_USER,
   REGISTERING_RESPONDENT,
   REGISTERING_EXPECTED_DOB,

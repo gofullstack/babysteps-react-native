@@ -21,6 +21,14 @@ import {
   deleteMilestoneAttachment,
 } from '../actions/milestone_actions';
 
+import checkRegistrationSchema from './check_registration_schema';
+import checkMilestonesSchema from './check_milestones_schema';
+import checkMilestoneTriggersSchema from './check_milestone_triggers_schema';
+import checkAnswersSchema from './check_answers_schema';
+import checkNotificationsSchema from './check_notifications_schema';
+import checkBabyBookSchema from './check_babybook_schema';
+import checkCustomDirectories from './check_custom_directories';
+
 import { addColumn } from './common';
 
 class CheckDataIntegrity extends Component {
@@ -41,25 +49,18 @@ class CheckDataIntegrity extends Component {
     this.props.fetchMilestoneAttachments();
   }
 
-  componentDidMount() {
+  componentDidMount = async () => {
     console.log('*** Checking Data Integrity');
 
-    // temporary code for backward compatibility
-    addColumn('sessions', 'push_token', 'text');
-    addColumn('sessions', 'last_registration_state', 'text');
-    addColumn('sessions', 'milestones_updated_at', 'text');
-    addColumn('sessions', 'milestones_last_updated_at', 'text');
-    addColumn('sessions', 'milestone_calendar_updated_at', 'text');
-    addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
-    addColumn('sessions', 'current_group_index', 'integer');
-    addColumn('sessions', 'screening_blood_physician_notification', 'integer');
-    addColumn('attachments', 'user_api_id', 'integer');
-    addColumn('attachments', 'subject_api_id', 'integer');
-    addColumn('attachments', 'size', 'integer');
-    addColumn('attachments', 'checksum', 'string');
-    addColumn('babybook_entries', 'choice_id', 'integer');
-    addColumn('consents', 'confirmation_type', 'text');
-  }
+    // async check of schemas
+    await checkRegistrationSchema();
+    await checkMilestonesSchema();
+    await checkMilestoneTriggersSchema();
+    await checkAnswersSchema();
+    await checkNotificationsSchema();
+    await checkBabyBookSchema();
+    await checkCustomDirectories();
+  };
 
   shouldComponentUpdate(nextProps, nextState) {
     const session = this.props.session;

@@ -11,21 +11,76 @@ import CONSTANTS from '../constants';
 
 const db = SQLite.openDatabase('babysteps.db');
 
-export function tableNames() {
+export const tableNames = () => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        `SELECT name FROM sqlite_master WHERE type="table";`, [],
+        `SELECT name FROM sqlite_master WHERE type="table";`,
+        [],
         (_, result) => resolve(result.rows._array),
         (_, error) => reject(console.log(`*** Error retrieving table names: ${error}`)),
       );
     });
   });
-}
+};
 
-export function createTable(name, schema) {
+export const columnNames = tableName => {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `PRAGMA table_info('${tableName}');`,
+        [],
+        (_, result) => resolve(result.rows._array),
+        (_, error) => reject(`Error retrieving table columns: ${error}`),
+      );
+    });
+  });
+};
+
+export const addColumn = async (table, name, type) => {
   db.transaction(tx => {
-    let sql = `CREATE TABLE IF NOT EXISTS ${name} (`;
+    tx.executeSql(
+      `ALTER TABLE ${table} ADD COLUMN ${name} ${type};`,
+      [],
+      (_, rows) => console.log('** Add Column successful'),
+      (_, error) => console.log(`column ${name} exists`),
+    );
+  });
+  return null;
+};
+
+export const confirmColumns = async (schema, tableName) => {
+  const schemaColumns = Object.keys(schema).sort();
+  // list of columns in SQLite
+  const result = await columnNames(tableName);
+  const existingColumns = result.map(c => c.name).sort();
+  schemaColumns.forEach(columnName => {
+    if (!existingColumns.includes(columnName)) {
+      addColumn(tableName, columnName, schema[columnName]);
+    }
+  });
+};
+
+export const confirmTables = async schema => {
+  const schemaTables = Object.keys(schema);
+  // list of tables in SQLite
+  const result = await tableNames(); 
+  const existingTables = result.map(a => a.name).sort();
+  schemaTables.forEach(tableName => {
+    if (!existingTables.includes(tableName)) {
+      createTable(tableName, schema[tableName]);
+      // need a session record to initialize app
+      if (tableName === 'sessions') createSessionRecord();
+    } else {
+      confirmColumns(schema[tableName].columns, tableName);
+    }
+  });
+  return null;
+};
+
+export const createTable = async (tableName, schema) => {
+  db.transaction(tx => {
+    let sql = `CREATE TABLE IF NOT EXISTS ${tableName} (`;
     Object.keys(schema.columns).forEach(column => {
       sql += `${column} ${schema.columns[column]}, `;
     });
@@ -39,37 +94,39 @@ export function createTable(name, schema) {
     );
     schema.indexes.forEach(sql => {
       tx.executeSql(
-        'CREATE INDEX IF NOT EXISTS ' + sql, [],
+        'CREATE INDEX IF NOT EXISTS ' + sql,
+        [],
         (_, rows) => console.log('** Execute CREATE INDEX ' + sql),
         (_, error) => console.log('*** Error in executing CREATE INDEX ' + sql),
       );
     });
   });
-}
+  return null;
+};
 
-export const insertRows = async (name, schema, data) => {
+export const insertRows = async (tableName, schema, data) => {
   if (typeof data !== 'object') {
     console.log('*** Insert Failed: data is improper format: ', data);
     return;
   }
 
-  await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     db.transaction(
       tx => {
         // Clear table
         tx.executeSql(
-          `DELETE FROM ${name}`,
+          `DELETE FROM ${tableName}`,
           [],
           (_, rows) => {
-            console.log(`*** Delete rows from table ${name}: ${rows.rowsAffected} records affected`);
+            console.log(`*** Delete rows from table ${tableName}: ${rows.rowsAffected} records affected`);
           },
           (_, error) => {
-            console.log('*** Error in deleting rows from table ' + name);
+            console.log('*** Error in deleting rows from table ' + tableName);
           },
         );
 
         //Construct SQL
-        let prefix = `INSERT INTO ${name} ( `;
+        let prefix = `INSERT INTO ${tableName} ( `;
         Object.keys(schema.columns).forEach(column => {
           prefix += `${column}, `;
         });
@@ -106,18 +163,18 @@ export const insertRows = async (name, schema, data) => {
   return null;
 };
 
-export function dropTable(name) {
+export const dropTable = async tableName => {
   db.transaction(tx => {
     tx.executeSql(
-      'DROP TABLE IF EXISTS ' + name,
+      'DROP TABLE IF EXISTS ' + tableName,
       [],
-      (_, rows) => console.log('** Drop table ' + name),
-      (_, error) => console.log('*** Error in dropping table ' + name),
+      (_, rows) => console.log('** Drop table ' + tableName),
+      (_, error) => console.log('*** Error in dropping table ' + tableName),
     );
   });
-}
+};
 
-export function createSessionRecord() {
+export const createSessionRecord = async () => {
   db.transaction(tx => {
     tx.executeSql(
       'INSERT INTO sessions (registration_state) VALUES (?);',
@@ -126,9 +183,10 @@ export function createSessionRecord() {
       (_, error) => console.log('*** Error in creating session record '),
     );
   });
-}
+  return null;
+};
 
-export function getApiUrl() {
+export const getApiUrl = () => {
   // https://docs.expo.io/versions/latest/distribution/release-channels
   if (__DEV__ || Constants.manifest === undefined) {
     return `${CONSTANTS.BASE_DEVELOPMENT_URL}/api`;
@@ -136,16 +194,16 @@ export function getApiUrl() {
   return `${Constants.manifest.extra.baseUrl}/api`;
 }
 
-export function addColumn(table, name, type) {
+export function addColumn(tableName, columnName, type) {
   db.transaction(tx => {
     tx.executeSql(
-      `ALTER TABLE ${table} ADD COLUMN ${name} ${type};`,
+      `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${type};`,
       [],
-      (_, rows) => console.log(`*** Add Column ${name} successful`),
-      (_, error) => console.log(`*** Column ${name} exists`),
+      (_, rows) => console.log(`*** Add Column ${columnName} successful`),
+      (_, error) => console.log(`*** Column ${columnName} exists`),
     );
   });
-}
+};
 
 export const getAnswer = async (id, method = 'answer') => {
   let answer = {};

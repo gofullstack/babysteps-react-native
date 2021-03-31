@@ -35,7 +35,7 @@ class UpdateConsentScreen extends Component {
   constructor(props) {
     super(props);
 
-    const remoteDebug = (typeof DedicatedWorkerGlobalScope) !== 'undefined';
+    const remoteDebug = typeof DedicatedWorkerGlobalScope !== 'undefined';
 
     this.state = {
       remoteDebug,
@@ -55,13 +55,10 @@ class UpdateConsentScreen extends Component {
   };
 
   setConsentModalVisible = (visible) => {
-    this.setState({consentModalVisible: visible});
+    this.setState({ consentModalVisible: visible });
   };
 
   renderConsentModal = () => {
-    const respondent = this.props.registration.respondent.data;
-    const subject = this.props.registration.subject.data;
-
     return (
       <View style={{ marginTop: 22 }}>
         <Modal
@@ -91,8 +88,8 @@ class UpdateConsentScreen extends Component {
     return (
       <View>
         <Text style={styles.signatureHeader}>
-          Your signature indicates your and your child's acceptance and continued
-          participation.
+          Your signature indicates your and your child's acceptance and
+          continued participation.
         </Text>
         <View style={styles.sketchContainer}>
           {!remoteDebug && (
@@ -141,7 +138,10 @@ class UpdateConsentScreen extends Component {
   };
 
   handleResetSignature = () => {
-    this.signature.clear();
+    const remoteDebug = this.state.remoteDebug;
+    if (!remoteDebug) {
+      this.signature.clear();
+    }
   };
 
   handleSubmitSignature = async () => {
@@ -162,19 +162,18 @@ class UpdateConsentScreen extends Component {
     const resultDir = await FileSystem.getInfoAsync(signatureDir);
 
     if (resultDir.exists) {
-      const uri = signatureDir + '/signature.png';
+      const uri = signatureDir + `/signature-${consent.version_id}.png`;
       if (!remoteDebug) {
-        await FileSystem.deleteAsync(uri, { idempotent: true });
         await FileSystem.copyAsync({ from: image.uri, to: uri });
       }
       const resultFile = await FileSystem.getInfoAsync(uri, {size: true});
 
       if (resultFile.exists) {
         if (!remoteDebug) {
-          this.props.apiSaveSignature(session, respondent.api_id, uri, consent.version_id);
+          //this.props.apiSaveSignature(session, respondent.api_id, uri, consent.version_id);
         }
         const registration_state = States.REGISTERED_AS_IN_STUDY;
-        this.props.updateSession({ 
+        this.props.updateSession({
           registration_state,
           consent_last_version_id: consent.version_id,
         });
@@ -191,7 +190,7 @@ class UpdateConsentScreen extends Component {
   render() {
     const consent = this.props.registration.consent.data;
     const { scrollEnabled } = this.state;
-    const webViewHeight = height * 0.25;
+    const webViewHeight = height * 0.35;
     return (
       <View>
         <Text style={styles.header}>
@@ -206,7 +205,7 @@ class UpdateConsentScreen extends Component {
         >
           <WebView
             originWhitelist={['*']}
-            source={{ html: consent.summary }}
+            source={{ html: consent.summary_of_changes }}
             style={[styles.webView, {height: webViewHeight}]}
             scalesPageToFit={false}
             useWebKit

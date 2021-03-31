@@ -1,4 +1,4 @@
-import { tableNames, createTable, dropTable } from './common';
+import { confirmTables, dropTable } from './common';
 import CONSTANTS from '../constants';
 import schema from './answers_schema.json';
 
@@ -10,27 +10,14 @@ const checkAnswersSchema = () => {
 
   // drop tables for testing
   if (CONSTANTS.DROP_ANSWER_TABLE) {
-    tables.forEach(name => {
-      dropTable(name);
+    tables.forEach(TableName => {
+      dropTable(TableName);
     });
   }
 
-  return new Promise((resolve, reject) => {
-    tableNames().then(result => {
-      return new Promise((resolve, reject) => {
-        // list of tables in SQLite
-        const existing_tables = eval(result).map( a => a.name );
-        // create for missing tables
-        tables.forEach(name => {
-          if (!existing_tables.includes(name)) {
-            createTable(name, schema[name]);
-          }
-        });
-        resolve(true);
-      }); // return Promise
-    });
-    resolve(true);
-  }); // return Promise
+  confirmTables(schema);
+
+  return null;
 };
 
 export default checkAnswersSchema;

@@ -35,10 +35,10 @@
   "consents": {
     "columns": {
       "id": "INTEGER PRIMARY KEY",
-      "api_id": "INTEGER",
       "study_id": "INTEGER",
       "version_id": "INTEGER",
       "irb_id": "TEXT",
+      "summary": "TEXT",
       "title": "TEXT",
       "confirmation_type": "TEXT",
       "tos_approved_by": "TEXT",
@@ -46,8 +46,9 @@
       "tos_expires_on": "TEXT",
       "created_at": "TEXT",
       "updated_at": "TEXT",
-      "summary": "TEXT",
-      "content": "TEXT",
+      "update_confirmation_type": "TEXT",
+      "summary_of_changes": "TEXT",
+      "version_content": "TEXT",
     },
     "indexes": [],
   },

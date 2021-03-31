@@ -1,39 +1,40 @@
 import React, { Component } from 'react';
-import { Platform, StatusBar, StyleSheet, View, AppState, LogBox } from 'react-native';
+import {
+  Platform,
+  StatusBar,
+  StyleSheet,
+  View,
+  AppState,
+  LogBox,
+} from 'react-native';
+import FlashMessage from 'react-native-flash-message';
+
 import { Provider } from 'react-redux';
+
 import AppLoading from 'expo-app-loading';
 import * as Font from 'expo-font';
 import { Asset } from 'expo-asset';
 import * as Notifications from 'expo-notifications';
-import FlashMessage from 'react-native-flash-message';
+import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+
 import * as Sentry from 'sentry-expo';
 
-import { Ionicons } from '@expo/vector-icons';
-
-import Constants from 'expo-constants';
 import RootNavigator from './navigation/RootNavigator';
-
-import checkMilestonesSchema from './database/check_milestones_schema';
-import checkMilestoneTriggersSchema from './database/check_milestone_triggers_schema';
-import checkRegistrationSchema from './database/check_registration_schema';
-import checkAnswersSchema from './database/check_answers_schema';
-import checkNotificationsSchema from './database/check_notifications_schema';
-import checkBabyBookSchema from './database/check_babybook_schema';
-import checkCustomDirectories from './components/check_custom_directories';
-//import moveDataToMainDirectory from './components/move_data_to_main_directory';
 
 import RegisterForPushNotifications from './notifications/registerForPushNotifications';
 import HandleNotifications from './notifications/handleNotifications';
 
 import MomentaryAssessment from './components/momentary_assessment_modal';
+import ConfirmConsentVersion from './components/confirm_consent_version';
 
-import CheckDataIntegrity from './database/check_data_integrity.js';
+import CheckDataIntegrity from './database/check_data_integrity';
 import ApiSyncData from './database/api_sync_data';
 import ApiOfflineListener from './database/api_offline_listener';
 
 import store from './store';
 
-import Player from './components/Player.js';
+import Player from './components/Player';
 
 import Colors from './constants/Colors';
 import soundLibrary from './constants/SoundLibrary';
@@ -127,14 +128,6 @@ export default class App extends Component {
       'Material Icons': require('./assets/fonts/MaterialIcons.ttf'),
     });
 
-    // async check of schemas
-    await checkRegistrationSchema();
-    await checkMilestonesSchema();
-    await checkMilestoneTriggersSchema();
-    await checkAnswersSchema();
-    await checkNotificationsSchema();
-    await checkBabyBookSchema();
-    await checkCustomDirectories();
   };
 
   render() {
@@ -162,6 +155,7 @@ export default class App extends Component {
           <RegisterForPushNotifications />
           <HandleNotifications />
           <MomentaryAssessment />
+          <ConfirmConsentVersion />
         </View>
       </Provider>
     );

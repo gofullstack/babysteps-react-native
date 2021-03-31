@@ -15,6 +15,7 @@ import {
   fetchSubject,
 } from '../actions/registration_actions';
 
+import SyncConsentVersion from './sync_consent_version';
 import SyncMilestones from './sync_milestones';
 import SyncRespondentByUser from './sync_respondent_by_user';
 import SyncRespondentSignature from './sync_respondent_signature';
@@ -106,7 +107,7 @@ class ApiSyncData extends Component {
 
     if (inStudy && session.fetched && !updateConsentVersionSubmitted) {
       const study_id = CONSTANTS.STUDY_ID;
-      SyncConsentVersion(study_id, session.consent_updated_at);
+      SyncConsentVersion(study_id, session.consent_last_updated_at);
       this.setState({ updateConsentVersionSubmitted: true });
     }
 

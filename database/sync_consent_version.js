@@ -27,15 +27,23 @@ export const GetCurrentConsentVersion = async study_id => {
     })
       .then(response => {
         const consent = response.data;
-        consent.api_id = consent.id;
-        delete consent.id;
-        console.log({ consent })
         insertRows('consents', schema['consents'], [consent]);
       })
       .catch(error => {
         console.log(error);
       });
   }); // return Promise
+};
+
+const UpdateConsentLastUpdated = async last_updated_at => {
+  return db.transaction(tx => {
+    tx.executeSql(
+      `UPDATE sessions SET consent_last_updated_at='${last_updated_at}';`,
+      [],
+      (_, response) => console.log('*** Session consent_last_updated_at updated'),
+      (_, error) => console.log(error),
+    );
+  });
 };
 
 const SyncConsentVersion = async (study_id, consent_updated_at) => {
@@ -56,8 +64,9 @@ const SyncConsentVersion = async (study_id, consent_updated_at) => {
 
         if (consent_updated_at !== last_updated_at) {
           GetCurrentConsentVersion(study_id);
+          UpdateConsentLastUpdated(last_updated_at);
         } else {
-          console.log('*** Consent Version is the most recent...');
+          console.log('*** Consent Version is the most recent');
         }
       })
       .catch(error => {
