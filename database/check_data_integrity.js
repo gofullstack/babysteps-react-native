@@ -31,6 +31,8 @@ import checkCustomDirectories from './check_custom_directories';
 
 import { addColumn } from './common';
 
+import CONSTANTS from '../constants';
+
 class CheckDataIntegrity extends Component {
   constructor(props) {
     super(props);
@@ -38,7 +40,7 @@ class CheckDataIntegrity extends Component {
     this.state = {
       cleanDuplicateAnswersSubmitted: false,
       cleanDuplicateAttachmentsSubmitted: false,
-      userPasswordUpdated: false,
+      signatureFileUpdated: false,
     };
 
     this.props.fetchSession();
@@ -82,10 +84,18 @@ class CheckDataIntegrity extends Component {
     const {
       cleanDuplicateAnswersSubmitted,
       cleanDuplicateAttachmentsSubmitted,
+      signatureFileUpdated,
     } = this.state;
 
     if (!session.fetching && session.fetched) {
       this.confirmSessionAttributes();
+    }
+
+    if (!signatureFileUpdated) {
+      // backward compatibility
+      // create copy to migrate to consent versions
+      this.copySignatureFile();
+      this.setState({ signatureFileUpdated: true });
     }
 
     if (
@@ -111,6 +121,18 @@ class CheckDataIntegrity extends Component {
       this.setState({ cleanDuplicateAttachmentsSubmitted: true });
     }
   }
+
+  copySignatureFile = async () => {
+    const fileUri =
+      FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
+    const copyUri =
+      FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature_1.png';
+    try {
+      await FileSystem.copyAsync({ from: fileUri, to: copyUri });
+    } catch (error) {
+      console.log({ error });
+    }
+  };
 
   confirmSessionAttributes = () => {
     const session = this.props.session;
@@ -239,11 +261,7 @@ class CheckDataIntegrity extends Component {
   }
 }
 
-const mapStateToProps = ({
-  session,
-  registration,
-  milestones,
-}) => ({
+const mapStateToProps = ({ session, registration, milestones }) => ({
   session,
   registration,
   milestones,

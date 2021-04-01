@@ -16,7 +16,9 @@ import ExpoPixi from 'expo-pixi';
 import { connect } from 'react-redux';
 
 import { updateSession } from '../actions/session_actions';
-import { fetchConsent, apiSaveSignature } from '../actions/registration_actions';
+import { fetchConsent } from '../actions/registration_actions';
+
+import { SaveConsentSignature } from '../database/sync_consent_signature';
 
 import ConsentDisclosureVersion from '../components/consent_disclosure_version';
 
@@ -162,15 +164,14 @@ class UpdateConsentScreen extends Component {
     const resultDir = await FileSystem.getInfoAsync(signatureDir);
 
     if (resultDir.exists) {
-      const uri = signatureDir + `/signature-${consent.version_id}.png`;
+      const uri = signatureDir + `/signature_${consent.version_id}.png`;
       if (!remoteDebug) {
         await FileSystem.copyAsync({ from: image.uri, to: uri });
       }
-      const resultFile = await FileSystem.getInfoAsync(uri, {size: true});
-
+      const resultFile = await FileSystem.getInfoAsync(uri, { size: true });
       if (resultFile.exists) {
         if (!remoteDebug) {
-          //this.props.apiSaveSignature(session, respondent.api_id, uri, consent.version_id);
+          SaveConsentSignature(consent.version_id, respondent.id);
         }
         const registration_state = States.REGISTERED_AS_IN_STUDY;
         this.props.updateSession({
@@ -178,7 +179,7 @@ class UpdateConsentScreen extends Component {
           consent_last_version_id: consent.version_id,
         });
       } else {
-        const errorMessage = 'Error: file not saved - ' + resultFile;
+        const errorMessage = 'Error: file not saved. No file.';
         this.setState({ errorMessage });
       }
     } else {
@@ -338,7 +339,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   textErrorContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   textError: {
     textAlign: 'center',
@@ -356,7 +357,6 @@ const mapStateToProps = ({ session, registration }) => ({
 const mapDispatchToProps = {
   fetchConsent,
   updateSession,
-  apiSaveSignature,
 };
 
 export default connect(
