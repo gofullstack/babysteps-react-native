@@ -6,7 +6,9 @@ import {
   FlatList,
   Dimensions,
   Platform,
+  AppState,
 } from 'react-native';
+
 import { Video } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { Text, Button } from 'react-native-elements';
@@ -31,6 +33,7 @@ import {
   updateMilestoneAnswers,
   apiCreateMilestoneAnswer,
   apiUpdateMilestoneAnswers,
+  resetMilestoneAttachments,
   fetchMilestoneAttachments,
   updateMilestoneAttachment,
   fetchOverViewTimeline,
@@ -67,7 +70,6 @@ const twoButtonWidth = (width / 2) - 30;
 
 class MilestoneQuestionsScreen extends Component {
   static navigationOptions = ({ navigation }) => {
-    const section = navigation.getParam('section', { title: '' });
     return { title: 'Screening Event' };
   };
 
@@ -79,9 +81,12 @@ class MilestoneQuestionsScreen extends Component {
 
   constructor(props) {
     super(props);
+
+    const task = this.props.navigation.state.params.task;
+
     this.state = {
-      task_id: null,
-      task_name: '',
+      appState: AppState.currentState,
+      task,
       section: {},
       answersFetched: false,
       attachmentsFetched: false,
@@ -96,34 +101,52 @@ class MilestoneQuestionsScreen extends Component {
     this.props.fetchUser();
     this.props.fetchRespondent();
     this.props.fetchSubject();
+
+    this.resetDataForTask(task);
+
     this.saveResponse = this.saveResponse.bind(this);
   }
 
+  componentDidMount() {
+    AppState.addEventListener('change', this.handleAppStateChange);
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
-    const { sections, questions, choices } = nextProps.milestones;
-    return !questions.fetching && !choices.fetching;
+    const { user, respondent, subject } = nextProps.registration;
+    const { sections, questions, choices, answers, attachments } = nextProps.milestones;
+    return (
+      !user.fetching &&
+      !respondent.fetching &&
+      !subject.fetching &&
+      !sections.fetching &&
+      !questions.fetching &&
+      !choices.fetching &&
+      !answers.fetching &&
+      !attachments.fetching
+    );
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const task = this.props.navigation.state.params.task;
     const { sections, questions, answers, attachments } = this.props.milestones;
-    const { answersFetched, attachmentsFetched } = this.state;
+    const { task, answersFetched, attachmentsFetched } = this.state;
+
+    const navTask = this.props.navigation.state.params.task;
 
     // capture notification links with incorrect task
-    if (typeof(task) !== 'object' || task === null) {
+    if (typeof(navTask) !== 'object' || navTask === null) {
       this.props.navigation.navigate('Milestones');
       return;
     }
     // need to update sections for new task for remaining functions
-    if (task.id !== this.state.task_id) {
-      this.resetDataForTask(task);
+    if (navTask.id !== task.id) {
+      this.resetDataForTask(navTask);
       return;
     }
     if (sections.fetched) {
-      this.saveSectionsData(sections);
+      this.saveSectionsData();
     }
     if (questions.fetched ) {
-      this.saveQuestionsData(questions);
+      this.saveQuestionsData();
     }
     if (answers.fetched && !answersFetched) {
       this.saveAnswersData();
@@ -133,11 +156,22 @@ class MilestoneQuestionsScreen extends Component {
     }
   }
 
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this.handleAppStateChange);
+  }
+
+  handleAppStateChange = nextAppState => {
+    const { appState, task } = this.state;
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.resetDataForTask(task);
+    }
+    this.setState({ appState: nextAppState });
+  };
+
   resetDataForTask = task => {
     this.setState({
-      task_id: task.id,
-      task_name: task.name,
-      section: {},
+      task,
+      section: { id: null },
       answersFetched: false,
       attachmentsFetched: false,
       answers: [],
@@ -148,30 +182,30 @@ class MilestoneQuestionsScreen extends Component {
     });
     this.props.resetMilestoneQuestions();
     this.props.resetMilestoneChoices();
+    this.props.resetMilestoneAnswers();
+    this.props.resetMilestoneAttachments();
     this.props.fetchMilestoneSections({ task_id: task.id });
   };
 
-  saveSectionsData = sections => {
-    if (!_.isEmpty(sections.data)) {
+  saveSectionsData = () => {
+    const sections = this.props.milestones.sections.data;
+    if (!_.isEmpty(sections)) {
       // default to first section
       // TODO extend UI to allow for multiple sections
-      const section = sections.data[0];
-      const section_id = section.id;
-      if (section_id !== this.state.section.id) {
+      const section = sections[0];
+      if (section.id !== this.state.section.id) {
         this.setState({ section });
-        this.props.navigation.setParams({ section });
-        this.props.fetchMilestoneQuestions({ section_id });
-        this.props.fetchMilestoneAnswers({ section_id });
-        this.props.fetchMilestoneAttachments({ section_id });
+        this.props.fetchMilestoneQuestions({ section_id: section.id });
+        this.props.fetchMilestoneAnswers({  section_id: section.id });
+        this.props.fetchMilestoneAttachments({ section_id: section.id });
       }
     }
   };
 
-  saveQuestionsData = questions => {
+  saveQuestionsData = () => {
+    const { questions, choices } = this.props.milestones;
+    const { firstQuestion, dataReady } = this.state;
     if (!_.isEmpty(questions.data)) {
-      const choices = this.props.milestones.choices;
-      const firstQuestion = this.state.firstQuestion;
-      const dataReady = this.state.dataReady;
 
       if (_.isEmpty(firstQuestion)) {
         this.setState({ firstQuestion: questions.data[0] });
@@ -195,20 +229,22 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   saveAnswersData = () => {
-    const answers = this.props.milestones.answers.data;
+    let answers = this.props.milestones.answers.data;
+    answers = _.orderBy(answers, ['choice_id', 'id'], ['asc', 'desc']);
     if (!_.isEmpty(answers)) {
       this.setState({
-        answers: _.orderBy(answers, ['choice_id', 'id'], ['asc', 'desc']),
+        answers,
         answersFetched: true,
       });
     }
   };
 
   saveAttachmentsData = () => {
-    const attachments = this.props.milestones.attachments.data;
+    let attachments = this.props.milestones.attachments.data;
+    attachments = _.orderBy(attachments, ['choice_id', 'id'], ['asc', 'desc']);
     if (!_.isEmpty(attachments)) {
       this.setState({
-        attachments: _.orderBy(attachments, ['choice_id', 'id'], ['asc', 'desc']),
+        attachments,
         attachmentsFetched: true,
       });
     }
@@ -244,59 +280,77 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   saveResponse = async (choice, response, options = {}) => {
+    const { user, respondent, subject } = this.props.registration;
+    const { task, section } = this.state;
+    const attachments = response.attachments;
 
-    let answers = [...this.state.answers];
+    delete response.attachments;
+
+    // all answers for this section
+    const answers = [...this.state.answers];
+    const newAnswers = [];
+
     const format = options.format;
 
-    const user = this.props.registration.user;
-    const subject = this.props.registration.subject;
-    const respondent = this.props.registration.respondent;
-
     if (format === 'single') {
+      // reset all answers to false for this question
       _.map(answers, answer => {
-        if (answer.question_id === choice.question_id) {
+        if (
+          answer.question_id === choice.question_id &&
+          answer.choice_id !== choice.id
+        ) {
           answer.answer_boolean = false;
+          // include answers in update
+          newAnswers.push(answer);
         }
-        return answer;
       });
     }
 
-    let answer = _.find(answers, ['choice_id', choice.id]);
+    // check for response in this session
+    let answer = _.find(answers, {choice_id: choice.id});
 
-    if (!answer) {
-      answer = {
-        section_id: this.state.section.id,
-        question_id: choice.question_id,
-        choice_id: choice.id,
-        score: choice.score,
-        pregnancy: 0,
-      };
-    } else {
-      answers = _.reject(answers, ['choice_id', choice.id]);
-    }
+    // update object with data
+    answer = {
+      ...answer,
+      answer_boolean: null,
+      answer_datetime: null,
+      answer_numeric: null,
+      answer_text: null,
+      user_id: user.data.id,
+      user_api_id: user.data.api_id,
+      respondent_id: respondent.data.id,
+      respondent_api_id: respondent.data.api_id,
+      subject_id: subject.data.id,
+      subject_api_id: subject.data.api_id,
+      milestone_id: task.milestone_id,
+      task_id: task.id,
+      section_id: section.id,
+      question_id: choice.question_id,
+      choice_id: choice.id,
+      score: choice.score,
+      pregnancy: 0,
+      ...response,
+    };
 
-    if (!_.isEmpty(user.data)) {
-      answer.user_id = user.data.id;
-      answer.user_api_id = user.data.api_id;
-    }
-    if (!_.isEmpty(respondent.data)) {
-      answer.respondent_id = respondent.data.id;
-      answer.respondent_api_id = respondent.data.api_id;
-    }
-    if (!_.isEmpty(subject.data)) {
-      answer.subject_id = subject.data.id;
-      answer.subject_api_id = subject.data.api_id;
-    }
-
-    _.assign(answer, response);
-
-    if (response.attachments) {
+    if (attachments) {
       answer.answer_boolean = true;
       // answer.attachments = await
-      this.mapAttachmentsAsync(answer, choice, response);
+      this.mapAttachmentsAsync(answer, choice, attachments);
     } // response.attachments
 
-    answers.push(answer);
+    newAnswers.push(answer);
+
+    // update answers
+    _.map(newAnswers, newAnswer => {
+      const index = _.findIndex(answers, {choice_id: newAnswer.choice_id});
+      if (index === -1) {
+        // not in answers yet
+        answers.push(newAnswer);
+      } else {
+        // replace in answers
+        answers.splice(index, 1, newAnswer);
+      }
+    });
 
     this.updateAnswersState(answers);
   };
@@ -305,93 +359,95 @@ class MilestoneQuestionsScreen extends Component {
     this.setState({ answers });
   };
 
-  mapAttachmentsAsync = async (answer, choice, response) => {
-    let new_attachments = [...this.state.attachments];
-    //_.remove(new_attachments, ['choice_id', choice.id]);
-    let attachment = _.find(new_attachments, {answer_id: answer.id})
-    if (!attachment) {
-      attachment = _.find(new_attachments, {choice_id: choice.id})
-    }
-    if (!attachment) {
-      attachment = {};
-    } else {
-      // remove from collecton
-      new_attachments = _.reject(new_attachments, {id: attachment.id})
-      // delete old file
-      // await FileSystem.deleteAsync(attachment.uri, { idempotent: true });
-    }
+  mapAttachmentsAsync = async (answer, choice, newAttachments) => {
+    const { user, subject } = this.props.registration;
+    const { section } = this.state;
+    let attachments = [...this.state.attachments];
+    // sort with highest id first
+    attachments = _.reverse(_.sortBy(attachments, 'id'));
+    // then find first match (with highest id)
+    const oldAttachment = _.find(attachments, {choice_id: choice.id});
+    // remove from collection
+    attachments = _.reject(attachments, att => {
+      if (_.isEmpty(att)) return true;
+      if (att.choice_id === choice.id) return true;
+    });
 
-    await _.map(response.attachments, async att => {
+    await _.map(newAttachments, async attachment => {
+      let newAttachment = {
+        ...oldAttachment,
+        user_api_id: user.data.api_id,
+        subject_api_id: subject.data.api_id,
+        section_id: section.id,
+        choice_id: choice.id,
+        title: attachment.title,
+        width: attachment.width,
+        height: attachment.height,
+      };
       if (answer.id) {
-        attachment.answer_id = answer.id;
+        newAttachment.answer_id = answer.id;
       }
-      attachment.user_api_id = answer.user_api_id;
-      attachment.subject_api_id = answer.subject_api_id;
 
-      attachment.filename = att.uri.substring(
-        att.uri.lastIndexOf('/') + 1,
-        att.uri.length,
+      newAttachment.filename = attachment.uri.substring(
+        attachment.uri.lastIndexOf('/') + 1,
+        attachment.uri.length,
       );
 
       const attachmentDir = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY;
-      attachment.uri = attachmentDir + '/' + attachment.filename;
+      newAttachment.uri = attachmentDir + '/' + newAttachment.filename;
 
-      const fileType = att.uri.substring(
-        att.uri.lastIndexOf('.') + 1,
-        att.uri.length,
+      const fileType = attachment.uri.substring(
+        attachment.uri.lastIndexOf('.') + 1,
+        attachment.uri.length,
       );
 
-      switch (att.file_type) {
+      switch (attachment.file_type) {
         case 'file_image':
-          attachment.content_type = ImageFormats[fileType];
+          newAttachment.content_type = ImageFormats[fileType];
           break;
         case 'file_video':
-          attachment.content_type = VideoFormats[fileType];
+          newAttachment.content_type = VideoFormats[fileType];
           break;
         case 'file_audio':
-          attachment.content_type = AudioFormats[fileType];
+          newAttachment.content_type = AudioFormats[fileType];
           break;
         default:
-          attachment.content_type = '';
+          newAttachment.content_type = '';
       }
 
       // confirm physical file
-      let resultFile = await FileSystem.getInfoAsync(att.uri);
+      let resultFile = await FileSystem.getInfoAsync(attachment.uri);
 
       if (!resultFile.exists) {
-        console.log('Error: attachment not saved: ', choice.id, attachment.filename);
+        console.log(`Error: file doesn't exist, attachment not saved: Choice ID: ${choice.id};  File Name: ${attachment.filename}`);
         this.setState({errorMessage: 'Error: Attachment Not Saved'});
         return;
       }
 
       // move file from camera cache to app cache
-      await FileSystem.copyAsync({ from: att.uri, to: attachment.uri });
-      resultFile = await FileSystem.getInfoAsync(attachment.uri, {
+      await FileSystem.copyAsync({ from: attachment.uri, to: newAttachment.uri });
+
+      // confirm file
+      resultFile = await FileSystem.getInfoAsync(newAttachment.uri, {
         size: true,
         md5: true,
       });
 
       if (!resultFile.exists) {
-        console.log('Error: attachment not copied: ', attachment.filename);
+        console.log(`Error: attachment not copied: ${newAttachment.filename}`);
         this.setState({errorMessage: 'Error: Attachment Not Saved'});
         return;
       }
 
-      _.assign(attachment, {
-        section_id: this.state.section.id,
-        choice_id: choice.id,
-        title: att.title,
-        width: att.width,
-        height: att.height,
+      _.assign(newAttachment, {
         size: resultFile.size,
         checksum: resultFile.md5,
       });
 
-      new_attachments.push(attachment);
+      attachments.push(newAttachment);
 
-      this.updateAttachmentState(new_attachments);
+      this.updateAttachmentState(attachments);
     }); // map attachments
-    //return new_attachments;
   };
 
   updateAttachmentState = attachments => {
@@ -437,6 +493,7 @@ class MilestoneQuestionsScreen extends Component {
         }
 
         this.props.updateMilestoneAttachment(attachment);
+
         if (inStudy) {
           UploadMilestoneAttachment(attachment);
         }
@@ -445,9 +502,9 @@ class MilestoneQuestionsScreen extends Component {
           (attachment.content_type.includes('video') ||
             attachment.content_type.includes('image'))
         ) {
-          const data = {title: null, detail: null, cover};
+          const data = { title: null, detail: null, cover };
           this.props.createBabyBookEntry(data, attachment);
-          this.props.apiCreateBabyBookEntry(session, data, attachment);
+          //this.props.apiCreateBabyBookEntry(session, data, attachment);
         }
       });
     }
@@ -713,6 +770,7 @@ const mapDispatchToProps = {
   updateMilestoneAnswers,
   apiCreateMilestoneAnswer,
   apiUpdateMilestoneAnswers,
+  resetMilestoneAttachments,
   fetchMilestoneAttachments,
   updateMilestoneAttachment,
   createBabyBookEntry,

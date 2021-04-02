@@ -217,7 +217,7 @@ class OverviewTimeline extends React.Component {
     const available =
       moment().isAfter(available_start_at) &&
       moment().isBefore(available_end_at);
-    const task = find(tasks, ['id', item.task_id]);
+    const task = find(tasks, { id: item.task_id });
 
     if (item.uri) {
       return (

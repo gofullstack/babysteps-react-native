@@ -55,12 +55,12 @@ class ApiSyncData extends Component {
 
   componentDidMount() {
     console.log('*** API Data Sync');
-    AppState.addEventListener('change', this._handleAppStateChange);
+    AppState.addEventListener('change', this.handleAppStateChange);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const session = this.props.session;
-    const { user, respondent, subject } = this.props.registration;
+    const session = nextProps.session;
+    const { user, respondent, subject } = nextProps.registration;
     return (
       !session.fetching &&
       !user.fetching &&
@@ -179,10 +179,10 @@ class ApiSyncData extends Component {
   }
 
   componentWillUnmount() {
-    AppState.removeEventListener('change', this._handleAppStateChange);
+    AppState.removeEventListener('change', this.handleAppStateChange);
   }
 
-  _handleAppStateChange = nextAppState => {
+  handleAppStateChange = nextAppState => {
     const { appState } = this.state;
     if (appState.match(/inactive|background/) && nextAppState === 'active') {
       this.setState({

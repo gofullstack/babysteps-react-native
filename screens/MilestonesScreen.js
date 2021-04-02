@@ -135,9 +135,10 @@ class MilestonesScreen extends Component {
   updateInitialIndex = (sectionIndex, tasksForList) => {
     let initialIndex = 0;
     if (sectionIndex > 0) {
-      Array(sectionIndex).fill().forEach( (_, current) => {
-        initialIndex += tasksForList[current].data.length + 2;
-      });
+      Array(sectionIndex).fill()
+        .forEach((_, current) => {
+          initialIndex += tasksForList[current].data.length + 2;
+        });
       this.setState({ initialIndex });
     }
   };

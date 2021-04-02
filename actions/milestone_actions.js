@@ -114,6 +114,8 @@ import {
   DELETE_MILESTONE_ANSWERS_FULFILLED,
   DELETE_MILESTONE_ANSWERS_REJECTED,
 
+  RESET_MILESTONE_ATTACHMENTS,
+
   FETCH_MILESTONE_ATTACHMENTS_PENDING,
   FETCH_MILESTONE_ATTACHMENTS_FULFILLED,
   FETCH_MILESTONE_ATTACHMENTS_REJECTED,
@@ -581,40 +583,41 @@ export const fetchMilestoneAnswers = (params = {}) => {
 };
 
 const answerFields = [
+  'answer_boolean',
+  'answer_datetime',
+  'answer_numeric',
+  'answer_text',
   'api_id',
+  'choice_id',
+  'milestone_id',
+  'notified_at',
+  'pregnancy',
+  'question_id',
+  'respondent_api_id',
+  'respondent_id',
+  'score',
+  'section_id',
+  'subject_api_id',
+  'subject_id',
+  'task_id',
   'user_id',
   'user_api_id',
-  'respondent_id',
-  'respondent_api_id',
-  'subject_id',
-  'subject_api_id',
-  'milestone_id',
-  'task_id',
-  'section_id',
-  'question_id',
-  'choice_id',
-  'pregnancy',
-  'answer_numeric',
-  'answer_boolean',
-  'answer_text',
-  'score',
-  'notified_at',
 ];
 
 const attachmentFields = [
-  'api_id',
-  'subject_api_id',
-  'section_id',
-  'choice_id',
   'answer_id',
-  'filename',
-  'width',
-  'height',
-  'size',
-  'content_type',
+  'api_id',
   'checksum',
+  'choice_id',
+  'content_type',
+  'filename',
+  'height',
+  'section_id',
+  'size',
+  'subject_api_id',
   'uri',
   'url',
+  'width',
 ];
 
 const parseInsertFields = (object, fields) => {
@@ -627,6 +630,8 @@ const parseInsertFields = (object, fields) => {
       row.push(`'${object[field]}'`);
     } else if (field === 'answer_numeric') {
       row.push(object[field]);
+    } else if (field === 'answer_datetime') {
+      row.push(`'${object[field]}'`);
     } else if (field === 'answer_boolean') {
       if (object[field] === true) {
         row.push(1);
@@ -913,6 +918,12 @@ export const deleteMilestoneAnswer = answer_id => {
       );
     });
 
+  };
+};
+
+export const resetMilestoneAttachments = () => {
+  return dispatch => {
+    dispatch(Pending(RESET_MILESTONE_ATTACHMENTS));
   };
 };
 

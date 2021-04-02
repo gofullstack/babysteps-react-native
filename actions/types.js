@@ -96,6 +96,8 @@ export const DELETE_MILESTONE_ANSWERS_PENDING = 'delete_milestone_answers_pendin
 export const DELETE_MILESTONE_ANSWERS_FULFILLED = 'delete_milestone_answers_fulfilled';
 export const DELETE_MILESTONE_ANSWERS_REJECTED = 'delete_milestone_answers_fulfilled';
 
+export const RESET_MILESTONE_ATTACHMENTS = 'reset_milestone_attachments';
+
 export const FETCH_MILESTONE_ATTACHMENTS_PENDING = 'fetch_milestone_attachments_pending';
 export const FETCH_MILESTONE_ATTACHMENTS_FULFILLED = 'fetch_milestone_attachments_fulfilled';
 export const FETCH_MILESTONE_ATTACHMENTS_REJECTED = 'fetch_milestone_attachments_rejected';

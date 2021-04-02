@@ -97,6 +97,8 @@ import {
   DELETE_MILESTONE_ANSWERS_FULFILLED,
   DELETE_MILESTONE_ANSWERS_REJECTED,
 
+  RESET_MILESTONE_ATTACHMENTS,
+
   FETCH_MILESTONE_ATTACHMENTS_PENDING,
   FETCH_MILESTONE_ATTACHMENTS_FULFILLED,
   FETCH_MILESTONE_ATTACHMENTS_REJECTED,
@@ -1038,6 +1040,18 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: false,
           fetched: false,
           error: action.payload,
+        },
+      };
+    }
+
+    case RESET_MILESTONE_ATTACHMENTS: {
+      return {
+        ...state,
+        attachments: {
+          fetching: false,
+          fetched: false,
+          error: null,
+          data: [],
         },
       };
     }
