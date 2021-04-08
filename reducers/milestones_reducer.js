@@ -310,6 +310,27 @@ const reducer = (state = initialState, action, formData = []) => {
           error: null,
           data: data.tasks,
         },
+        sections: {
+          ...state.sections,
+          fetching: false,
+          fetched: true,
+          error: null,
+          data: data.sections,
+        },
+        questions: {
+          ...state.questions,
+          fetching: false,
+          fetched: true,
+          error: null,
+          data: data.questions,
+        },
+        choices: {
+          ...state.choices,
+          fetching: false,
+          fetched: true,
+          error: null,
+          data: data.choices,
+        },
       };
     }
     case API_FETCH_MILESTONES_REJECTED: {

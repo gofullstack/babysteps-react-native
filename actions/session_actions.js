@@ -54,13 +54,13 @@ const Response = (type, payload, session = {}) => {
 };
 
 export const resetSession = () => {
-  return function(dispatch) {
+  return dispatch => {
     dispatch(Pending(RESET_SESSION));
   };
 };
 
 export const fetchSession = () => {
-  return function(dispatch) {
+  return dispatch => {
     dispatch(Pending(FETCH_SESSION_PENDING));
 
     return db.transaction(tx => {
@@ -104,7 +104,7 @@ const sendSessionUpdate = (dispatch, data) => {
 };
 
 export const updateSession = data => {
-  return function(dispatch) {
+  return dispatch => {
     sendSessionUpdate(dispatch, data);
   };
 };
@@ -216,28 +216,34 @@ export const apiFetchSignin = (email, password) => {
         data,
       })
         .then(response => {
-          let data = response.data.data;
+          const { data } = response.data;
           data.api_id = data.id;
           delete data.id;
 
           db.transaction(tx => {
             tx.executeSql(
               'UPDATE sessions SET email = ?, password = ?, uid = ?, user_id = ?;',
-              [email, password, email, data.api_id],
-              (_, response) => console.log('*** Fetch Sign In: save session successful'),
+              [data.email, data.password, data.email, data.api_id],
+              (_, response) => {
+                dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, data));
+              },
               (_, error) => dispatch(Response(API_FETCH_SIGNIN_REJECTED, error)),
             );
           });
-
-          insertRows('users', schema['users'], [data]);
-          dispatch(
-            Response(API_FETCH_SIGNIN_FULFILLED, response, { email, password }),
-          );
         })
         .catch(error => {
           dispatch(Response(API_FETCH_SIGNIN_REJECTED, error));
         });
+      insertRows('users', schema.users, [
+        {
+          first_name: data.first_name,
+          last_name: data.last_name,
+          api_id: data.api_id,
+          email: data.email,
+          uid: data.uid,
+          password: data.password,
+        },
+      ]);
     }); // return Promise
   }; // return dispatch
 };
-

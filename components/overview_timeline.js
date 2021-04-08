@@ -56,15 +56,6 @@ class OverviewTimeline extends React.Component {
     });
   }
 
-  componentDidMount() {
-    const { overview_timeline } = this.props.milestones;
-    const { overviewTimelines } = this.state;
-    // hack to catch weird failure to rerender on ios
-    if (!isEmpty(overview_timeline.data) && isEmpty(overviewTimelines)) {
-      this.setState({ overviewTimelinesLoaded: false });
-    }
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
     const { subject } = nextProps.registration;
     const { overview_timeline } = nextProps.milestones;
@@ -76,14 +67,12 @@ class OverviewTimeline extends React.Component {
     const { overview_timeline } = this.props.milestones;
     const { overviewTimelinesLoaded } = this.state;
 
-    if (!isEmpty(subject.data)) {
-      if (isEmpty(overview_timeline.data)) {
-        this.props.fetchOverViewTimeline();
-        return;
-      }
-      if (!overviewTimelinesLoaded) {
-        this.constructOverviewTimeline();
-      }
+    if (
+      !isEmpty(subject.data) &&
+      !isEmpty(overview_timeline.data) && 
+      !overviewTimelinesLoaded
+    ) {
+      this.constructOverviewTimeline();
     }
   }
 

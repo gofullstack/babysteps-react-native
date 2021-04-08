@@ -196,7 +196,7 @@ class CheckDataIntegrity extends Component {
             let resultFile = await FileSystem.getInfoAsync(attachment.uri);
             if (!resultFile.exists) {
               // file not found or otherwise defective
-              console.log(`*** attachment file not found or otherwise defective - URI: ${attachment.uri}`);
+              console.log(`*** Attachment file not found or otherwise defective - URI: ${attachment.uri}`);
               attachment = {
                 ...attachment,
                 uri: null,
@@ -219,6 +219,7 @@ class CheckDataIntegrity extends Component {
               user_api_id: user.data.api_id,
               subject_api_id: subject.data.api_id
             };
+            console.log(`*** Attachment updated with foreign keys: ${{ attachment }}`);
             this.props.updateMilestoneAttachment(attachment);
           }
         } else {

@@ -10,14 +10,13 @@ const apiToken = Constants.manifest.extra.apiToken;
 const executeApiCall = async attachment => {
   const url = `${baseURL}/answers/attachments`;
   const uri = attachment.uri;
-  const subject_api_id = `${attachment.subject_api_id}`;
-  const choice_id = `${attachment.choice_id}`;
 
   const headers = {
     'Content-Type': attachment.content_type,
     'Content-File-Name': attachment.filename,
-    'Subject-ID': subject_api_id,
-    'Choice-ID': choice_id,
+    'User-ID': `${attachment.user_api_id}`,
+    'Subject-ID': `${attachment.subject_api_id}`,
+    'Choice-ID': `${attachment.choice_id}`,
     milestone_token: apiToken,
   };
 
@@ -39,7 +38,7 @@ export const UploadMilestoneAttachment = async attachment => {
 
   const response = await executeApiCall(attachment);
   if (response && response.status === 202) {
-    console.log('***** Attachment uploaded successfully');
+    console.log('*** Attachment uploaded successfully');
   } else {
     console.log({ attachment, response });
   }

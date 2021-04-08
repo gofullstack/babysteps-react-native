@@ -199,10 +199,12 @@ const reducer = (state = initialState, action, formData = {}) => {
     }
     case FETCH_SESSION_FULFILLED: {
       const data = action.payload.rows['_array'][0];
-      if (data.pending_actions === null || data.pending_actions === undefined) {
-        data.pending_actions = [];
-      } else {
-        data.pending_actions = JSON.parse(data.pending_actions);
+      if (data) {
+        if ([null, undefined].includes(data.pending_actions)) {
+          data.pending_actions = [];
+        } else {
+          data.pending_actions = JSON.parse(data.pending_actions);
+        }
       }
       return {
         ...state,
@@ -246,23 +248,21 @@ const reducer = (state = initialState, action, formData = {}) => {
     case API_FETCH_SIGNIN_PENDING: {
       return {
         ...state,
-        fetching: true,
-        fetched: false,
+        signinFetching: true,
+        signinFetched: false,
         error: null,
       };
     }
     case API_FETCH_SIGNIN_FULFILLED: {
-      const data = action.payload.data.data;
-      const { email, password } = action.session;
-
+      const { api_id, email, uid, password } = action.session;
       return {
         ...state,
-        fetching: false,
-        fetched: true,
-        api_id: data.api_id,
+        signinFetching: false,
+        signinFetched: true,
+        api_id,
         email,
         password,
-        uid: data.uid,
+        uid,
       };
     }
     case API_FETCH_SIGNIN_REJECTED: {
@@ -274,7 +274,8 @@ const reducer = (state = initialState, action, formData = {}) => {
       }
       return {
         ...state,
-        fetching: false,
+        signinFetching: false,
+        signinFetched: false,
         error: action.payload,
         errorMessages: error,
       };

@@ -17,12 +17,8 @@ import {
 } from '../actions/session_actions';
 
 import {
-  resetApiMilestones,
   apiFetchMilestones,
-  resetMilestoneCalendar,
   apiFetchMilestoneCalendar,
-  resetMilestoneAnswers,
-  apiSyncMilestoneAnswers,
 } from '../actions/milestone_actions';
 
 import {
@@ -33,10 +29,12 @@ import {
 } from '../actions/registration_actions';
 
 import { getApiUrl } from '../database/common';
+import { UploadMilestones } from '../database/sync_milestones';
 
 import States from '../actions/states';
 import Colors from '../constants/Colors';
 import AppStyles from '../constants/Styles';
+import CONSTANTS from '../constants';
 
 class SignInScreen extends Component {
   static navigationOptions = {
@@ -51,7 +49,6 @@ class SignInScreen extends Component {
       password: '',
       isSubmitting: false,
       errorMessages: [],
-      shouldUpdate: true,
       syncMilestones: false,
       syncRegistration: false,
       syncCalendar: false,
@@ -59,97 +56,63 @@ class SignInScreen extends Component {
     };
 
     this.props.resetSession();
+    this.props.resetRespondent();
+    this.props.resetSubject();
+    this.props.apiFetchMilestones();
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return nextState.shouldUpdate;
+    const session = nextProps.session;
+    const { apiSyncRegistration, apiSignature } = nextProps.registration;
+    return (
+      !session.fetching &&
+      !session.signinFetching &&
+      !apiSyncRegistration.fetching &&
+      !apiSignature.fetching
+    );
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate() {
     const session = this.props.session;
-    if (!session.fetching) {
-      this._saveSignInSession(session);
-    }
-  }
+    const { respondent, subject, apiSyncRegistration } = this.props.registration;
+    const { isSubmitting, syncRegistration } = this.state;
 
-  _saveSignInSession = session => {
-    const { syncMilestones, syncRegistration, syncCalendar, syncAnswers } = this.state;
-    
-    const registration = this.props.registration;
-    const { apiRespondent, apiSignature } = registration;
 
-    const milestones = this.props.milestones;
-    const { api_milestones, api_calendar, apiAnswers } = milestones;
 
-    if (session.fetched) {
+    if (session.signinFetched && session.api_id) {
+
       // get respondent and subject data
       if (!syncRegistration) {
-        this.props.resetRespondent();
-        this.props.resetSubject();
+        
         this.props.apiSyncRegistration(session.api_id);
         this.props.apiSyncSignature(session.api_id);
         this.setState({ syncRegistration: true });
-        // slow down to allow API to respond
         return;
       }
 
       // redirect to sign up if no respondent information
-      if (
-        !apiRespondent.fetching &&
-        apiRespondent.fetched &&
-        isEmpty(registration.respondent.data)
-      ) {
-        console.log('*** User found but not Respondent...');
-        this.props.updateSession({
-          registration_state: States.REGISTERING_FULL_CONSENT,
-        });
-        return;
-      }
+      if (apiSyncRegistration.fetched) {
+        if (isEmpty(respondent.data)) {
+          console.log('*** User found but not Respondent...');
+          this.props.updateSession({
+            registration_state: States.REGISTERING_FULL_CONSENT,
+          });
+          return;
+        }
 
-      if (!apiRespondent.fetching && apiRespondent.fetched) {
-        if (!syncMilestones) {
-          this.setState({ syncMilestones: true });
-          this.props.resetApiMilestones();
-          this.props.apiFetchMilestones();
+        if (!isEmpty(subject.data)) {
+          this.props.apiFetchMilestoneCalendar({ subject_id: subject.data.api_id })
         }
-        if (!syncCalendar && !isEmpty(registration.subject.data)) {
-          this.setState({ syncCalendar: true });
-          this.props.resetMilestoneCalendar();
-          this.props.apiFetchMilestoneCalendar({ subject_id: registration.subject.data.api_id });
-        }
-        if (
-          !syncAnswers &&
-          !apiAnswers.fetched &&
-          !isEmpty(registration.respondent.data) &&
-          !isEmpty(registration.subject.data)
-        ) {
-          this.setState({ syncAnswers: true });
-          this.props.resetMilestoneAnswers();
-          this.props.apiSyncMilestoneAnswers(session.api_id);
-        }
-      }
 
-      if (
-        syncMilestones &&
-        api_milestones.fetched &&
-        syncRegistration &&
-        apiRespondent.fetched &&
-        apiSignature.fetched &&
-        syncCalendar &&
-        api_calendar.fetched &&
-        syncAnswers &&
-        apiAnswers.fetched
-      ) {
-        this.setState({ shouldUpdate: false });
         this.props.updateSession({
           registration_state: States.REGISTERED_AS_IN_STUDY,
         });
       }
     }
-    if (session.errorMessages && this.state.isSubmitting) {
+    if (session.errorMessages && isSubmitting) {
       this.setState({ isSubmitting: false, errorMessages: session.errorMessages });
     }
-  };
+  }
 
   handlePress = () => {
     const { email, password } = this.state;
@@ -276,12 +239,8 @@ const mapDispatchToProps = {
   resetSession,
   updateSession,
   apiFetchSignin,
-  resetApiMilestones,
   apiFetchMilestones,
-  resetMilestoneCalendar,
   apiFetchMilestoneCalendar,
-  resetMilestoneAnswers,
-  apiSyncMilestoneAnswers,
   resetRespondent,
   resetSubject,
   apiSyncRegistration,

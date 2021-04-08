@@ -2,65 +2,30 @@ import axios from 'axios';
 import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
-import find from 'lodash/find';
-import isEmpty from 'lodash/isEmpty';
+import store from '../store';
+
+import { apiFetchMilestoneCalendar } from '../actions/milestone_actions';
 
 import { getApiUrl, getMilestoneCalendar, insertRows } from './common';
 
 const db = SQLite.openDatabase('babysteps.db');
 
-const schema = require('./milestone_triggers_schema.json');
 const apiToken = Constants.manifest.extra.apiToken;
 const headers = { milestone_token: apiToken };
 const baseURL = getApiUrl();
-
-const saveTriggerData = async newTriggers => {
-  const oldTriggers = await getMilestoneCalendar();
-  for (const newTrigger of newTriggers) {
-    const oldTrigger = find(oldTriggers, {id: newTrigger.id});
-    if (!isEmpty(oldTrigger)) {
-      newTrigger.questions_remaining = oldTrigger.questions_remaining;
-      newTrigger.completed_at = oldTrigger.completed_at;
-    }
-  }
-  insertRows('milestone_triggers', schema['milestone_triggers'], newTriggers);
-  return null;
-};
-
-export const UploadMilestoneTriggers = async subject_id => {
-  console.log('*** Begin Upload Milestone Triggers');
-  const url = '/milestone_calendars';
-
-  return new Promise((resolve, reject) => {
-    axios({
-      method: 'get',
-      responseType: 'json',
-      baseURL,
-      url,
-      headers,
-      params: { subject_id },
-    })
-      .then(response => {
-        const newTriggers = response.data;
-        saveTriggerData(newTriggers);
-        console.log('*** Milestone Triggers Uploaded Successfully');
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  });
-};
 
 const UpdateMilestoneCalendarLastUpdated = async last_updated_at => {
   return db.transaction(tx => {
     tx.executeSql(
       `UPDATE sessions SET milestone_calendar_last_updated_at='${last_updated_at}';`,
       [],
-      (_, response) => console.log('*** Session milestone_calendar_last_updated_at updated'),
+      (_, response) => {
+        console.log('*** Session milestone_calendar_last_updated_at updated');
+      },
       (_, error) => console.log(error),
     );
   });
-}
+};
 
 const SyncMilestoneTriggers = (subject_id, milestone_calendar_last_updated_at) => {
   console.log('*** Begin Milestone Trigger Sync');
@@ -81,7 +46,7 @@ const SyncMilestoneTriggers = (subject_id, milestone_calendar_last_updated_at) =
           milestone_calendar_last_updated_at === null ||
           milestone_calendar_last_updated_at !== last_updated_at
         ) {
-          UploadMilestoneTriggers(subject_id);
+          store.dispatch(apiFetchMilestoneCalendar({ subject_id }));
           UpdateMilestoneCalendarLastUpdated(last_updated_at);
         } else {
           console.log('*** Milestone Triggers up to date');

@@ -2,6 +2,8 @@ import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
 import forEach from 'lodash/forEach';
+import find from 'lodash/find';
+import isEmpty from 'lodash/isEmpty';
 
 import CONSTANTS from '../constants';
 
@@ -13,7 +15,7 @@ export function tableNames() {
       tx.executeSql(
         `SELECT name FROM sqlite_master WHERE type="table";`, [],
         (_, result) => resolve(result.rows._array),
-        (_, error) => reject('Error retrieving table names'),
+        (_, error) => reject(console.log(`*** Error retrieving table names: ${error}`)),
       );
     });
   });
@@ -48,7 +50,6 @@ export const insertRows = async (name, schema, data) => {
     console.log('*** Insert Failed: data is improper format: ', data);
     return;
   }
-  let count = 0;
 
   await new Promise((resolve, reject) => {
     db.transaction(
@@ -57,8 +58,12 @@ export const insertRows = async (name, schema, data) => {
         tx.executeSql(
           `DELETE FROM ${name}`,
           [],
-          (_, rows) => console.log('** Delete rows from table ' + name),
-          (_, error) => console.log('*** Error in deleting rows from table ' + name),
+          (_, rows) => {
+            console.log(`*** Delete rows from table ${name}: ${rows.rowsAffected} records affected`);
+          },
+          (_, error) => {
+            console.log('*** Error in deleting rows from table ' + name);
+          },
         );
 
         //Construct SQL
@@ -66,11 +71,11 @@ export const insertRows = async (name, schema, data) => {
         Object.keys(schema.columns).forEach(column => {
           prefix += `${column}, `;
         });
-        prefix = `${prefix.slice(0, -2)} ) VALUES `;
+        prefix = `${prefix.slice(0, -2)} ) `;
 
         forEach(data, row => {
           const values = [];
-          let sql = `${prefix} (`;
+          let sql = `${prefix} VALUES (`;
           Object.keys(schema.columns).forEach(column => {
             sql += ' ?,';
             // need to trap booleans
@@ -85,24 +90,25 @@ export const insertRows = async (name, schema, data) => {
           tx.executeSql(
             sql,
             values,
-            (_, rows) => console.log('** Execute ' + sql),
-            (_, error) => console.log('*** Error in executing ' + error),
+            (_, rows) => {
+              console.log(`*** Execute ${prefix}: ${rows.rowsAffected} records affected`);
+            },
+            (_, error) => {
+              console.log('*** Error in executing ' + error);
+            },
           );
-          count += 1;
         });
       }, // db.transaction
-      result => resolve(console.log(`Inserted ${count} records in ${name}`)),
-      error => reject(console.log(error)),
     );
   }); // await Promise
-
   return null;
 };
 
 export function dropTable(name) {
   db.transaction(tx => {
     tx.executeSql(
-      'DROP TABLE IF EXISTS ' + name, [],
+      'DROP TABLE IF EXISTS ' + name,
+      [],
       (_, rows) => console.log('** Drop table ' + name),
       (_, error) => console.log('*** Error in dropping table ' + name),
     );
@@ -133,8 +139,8 @@ export function addColumn(table, name, type) {
     tx.executeSql(
       `ALTER TABLE ${table} ADD COLUMN ${name} ${type};`,
       [],
-      (_, rows) => console.log('** Add Column successful'),
-      (_, error) => console.log(`column ${name} exists`),
+      (_, rows) => console.log(`*** Add Column ${name} successful`),
+      (_, error) => console.log(`*** Column ${name} exists`),
     );
   });
 }
@@ -245,7 +251,31 @@ export const getBabybookEntries = async () => {
   return entries;
 };
 
-export const delay = async (ms, message = null) => {
+export const saveTriggerData = async newTriggers => {
+  const schema = require('./milestone_triggers_schema.json');
+  const oldTriggers = await getMilestoneCalendar();
+  for (const newTrigger of newTriggers) {
+    const oldTrigger = find(oldTriggers, {id: newTrigger.id});
+    if (!isEmpty(oldTrigger)) {
+      newTrigger.questions_remaining = oldTrigger.questions_remaining;
+      newTrigger.completed_at = oldTrigger.completed_at;
+    }
+  }
+  insertRows('milestone_triggers', schema['milestone_triggers'], newTriggers);
+  return null;
+};
+
+// Example use of delay
+// use this method to trigger a rerender in component
+//  triggerRerender = () => {
+//    const { queryCount } = this.state;
+//    delay(this, queryCount, 3000, '*** Delay Overview pending milestone data...');
+//  };
+
+export const delay = async (theObject, queryCount, ms, message = null) => {
   if (message) console.log(message);
-  return new Promise(response => setTimeout(response, ms));
+  await setTimeout(() => {
+    theObject.setState({ queryCount: queryCount + 1 });
+  }, ms);
+  return null;
 };

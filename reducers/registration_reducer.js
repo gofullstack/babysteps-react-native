@@ -106,6 +106,12 @@ const initialState = {
     data: {},
     error: null,
   },
+  apiSyncRegistration: {
+    fetching: false,
+    fetched: false,
+    data: {},
+    error: null,
+  },
   apiSignature: {
     fetching: false,
     fetched: false,
@@ -760,8 +766,8 @@ const reducer = (state = initialState, action, formData = {}) => {
     case API_SYNC_REGISTRATION_PENDING: {
       return {
         ...state,
-        apiRespondent: {
-          ...state.apiRespondent,
+        apiSyncRegistration: {
+          ...state.apiSyncRegistration,
           fetching: true,
           fetched: false,
           error: null,
@@ -776,10 +782,11 @@ const reducer = (state = initialState, action, formData = {}) => {
       if (data.subjects) subject = data.subjects[0];
       return {
         ...state,
-        apiRespondent: {
-          ...state.apiRespondent,
+        apiSyncRegistration: {
+          ...state.apiSyncRegistration,
           fetching: false,
           fetched: true,
+          data,
           error: null,
         },
         respondent: {
@@ -795,8 +802,8 @@ const reducer = (state = initialState, action, formData = {}) => {
     case API_SYNC_REGISTRATION_REJECTED: {
       return {
         ...state,
-        apiRespondent: {
-          ...state.apiRespondent,
+        apiSyncRegistration: {
+          ...state.apiSyncRegistration,
           fetching: false,
           fetched: false,
           error: action.payload,

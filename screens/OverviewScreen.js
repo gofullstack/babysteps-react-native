@@ -2,19 +2,14 @@ import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
-import find from 'lodash/find';
-
 import isEmpty from 'lodash/isEmpty';
-import filter from 'lodash/filter';
 
 import { connect } from 'react-redux';
-
 import {
   fetchMilestoneGroups,
   fetchMilestoneTasks,
   fetchOverViewTimeline,
 } from '../actions/milestone_actions';
-
 import { fetchSubject, updateSubject } from '../actions/registration_actions';
 
 import Colors from '../constants/Colors';
@@ -42,13 +37,51 @@ class OverviewScreen extends React.Component {
     super(props);
 
     this.state = {
-      testNotificationCreated: false,
+      refreshMilestonesSubmitted: false,
+      refreshOverViewSubmitted: false,
     };
 
     this.props.fetchSubject();
     this.props.fetchMilestoneGroups();
     this.props.fetchMilestoneTasks();
     this.props.fetchOverViewTimeline();
+  }
+
+  shouldComponentUpdate(nextProps) {
+    const { subject } = nextProps.registration;
+    return !subject.fetching;
+  }
+
+  componentDidUpdate() {
+    const { api_milestones, api_calendar } = this.props.milestones;
+    const { refreshMilestonesSubmitted, refreshOverViewSubmitted } = this.state;
+
+    if (api_milestones.fetching && refreshMilestonesSubmitted) {
+      this.setState({ refreshMilestonesSubmitted: false });
+    }
+
+    if (api_calendar.fetching && refreshOverViewSubmitted) {
+      this.setState({ refreshOverViewSubmitted: false });
+    }
+
+    if (
+      !refreshMilestonesSubmitted &&
+      !api_milestones.fetching &&
+      api_milestones.fetched
+    ) {
+      this.props.fetchMilestoneGroups();
+      this.props.fetchMilestoneTasks();
+      this.setState({ refreshMilestonesSubmitted: true });
+    }
+
+    if (
+      !refreshOverViewSubmitted &&
+      !api_calendar.fetching &&
+      api_calendar.fetched
+    ){
+      this.props.fetchOverViewTimeline();
+      this.setState({ refreshOverViewSubmitted: true });
+    }
   }
 
   render() {
@@ -87,7 +120,8 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = ({ milestones }) => ({
+const mapStateToProps = ({ registration, milestones }) => ({
+  registration,
   milestones,
 });
 const mapDispatchToProps = {

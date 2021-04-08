@@ -11,7 +11,7 @@ import keys from 'lodash/keys';
 import isInteger from 'lodash/isInteger';
 import isEmpty from 'lodash/isEmpty';
 
-import { insertRows, getApiUrl } from '../database/common';
+import { insertRows, getApiUrl, saveTriggerData } from '../database/common';
 
 import CONSTANTS from '../constants';
 
@@ -197,33 +197,27 @@ export const apiFetchMilestones = () => {
 
   return dispatch => {
     dispatch(Pending(API_FETCH_MILESTONES_PENDING));
-    //const message = JSON.stringify({milestones: 'Milestones: Syncing'});
-    //dispatch(Response(SESSION_SYNC_MESSAGE, message));
     const baseURL = getApiUrl();
+    const url = '/milestones';
     const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
 
     return new Promise((resolve, reject) => {
       axios({
         method: 'get',
         responseType: 'json',
         baseURL,
-        url: '/milestones',
-        headers: {
-          "milestone_token": apiToken,
-        },
+        url,
+        headers,
       })
         .then(response => {
           Object.keys(response.data).map(name => {
             insertRows(name, schema[name], response.data[name]);
           });
           dispatch(Response(API_FETCH_MILESTONES_FULFILLED, response));
-          //const message = JSON.stringify({milestones: 'Milestones: Complete'});
-          //dispatch(Response(SESSION_SYNC_MESSAGE, message));
         })
         .catch(error => {
           dispatch(Response(API_FETCH_MILESTONES_REJECTED, error));
-          //const message = JSON.stringify({milestones: 'Milestones: Error'});
-          //dispatch(Response(SESSION_SYNC_MESSAGE, message));
         });
     }); // return Promise
   }; // return dispatch
@@ -371,12 +365,8 @@ export const apiFetchMilestoneCalendar = params => {
         params,
       })
         .then(response => {
-          insertRows('milestone_triggers', trigger_schema.milestone_triggers, response.data).then(() => {
-            console.log("Inserting Milestone Triggers", response, success)
-            dispatch(Response(API_FETCH_MILESTONE_CALENDAR_FULFILLED, response));
-          }).catch(error => {
-            dispatch(Response(API_FETCH_MILESTONE_CALENDAR_REJECTED, error));
-          });
+          saveTriggerData(response.data);
+          dispatch(Response(API_FETCH_MILESTONE_CALENDAR_FULFILLED, response));
         })
         .catch(error => {
           dispatch(Response(API_FETCH_MILESTONE_CALENDAR_REJECTED, error));
@@ -453,7 +443,9 @@ export const fetchMilestoneTasks = () => {
       db.transaction(tx => {
         tx.executeSql(
           sql, [],
-          (_, response) => {dispatch(Response(FETCH_MILESTONE_TASKS_FULFILLED, response))},
+          (_, response) => {
+            dispatch(Response(FETCH_MILESTONE_TASKS_FULFILLED, response));
+          },
           (_, error) => {dispatch(Response(FETCH_MILESTONE_TASKS_REJECTED, error))}
         );
       })
@@ -617,6 +609,7 @@ const attachmentFields = [
   'subject_api_id',
   'uri',
   'url',
+  'user_api_id',
   'width',
 ];
 
@@ -657,11 +650,7 @@ const parseUpdateFields = (object, fields) => {
     } else if (field === 'answer_numeric') {
       row.push(`${field} = ${object[field]}`);
     } else if (field === 'answer_boolean') {
-      if (object[field] === true) {
-        row.push(`${field} = 1`);
-      } else {
-        row.push(`${field} = 0`);
-      }
+      row.push(object[field] ? 1 : 0);
     } else if (typeof object[field] === 'string') {
       row.push(`${field} ='${object[field]}'`);
     } else {
@@ -679,7 +668,8 @@ export const createMilestoneAnswer = answer => {
 
     return db.transaction(tx => {
       tx.executeSql(
-        sql, [],
+        sql,
+        [],
         (_, response) => dispatch(Response(CREATE_MILESTONE_ANSWER_FULFILLED, response)),
         (_, error) => dispatch(Response(CREATE_MILESTONE_ANSWER_REJECTED, error))
       );
