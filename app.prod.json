@@ -28,9 +28,9 @@
     "assetBundlePatterns": [
       "./assets/**/*"
     ],
-    "version": "1.1.18",
+    "version": "1.1.19",
     "ios": {
-      "buildNumber": "107",
+      "buildNumber": "108",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps",
       "associatedDomains": [
@@ -40,11 +40,12 @@
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for this study and the baby book feature. For example, the study requires that you frequently take video of playing with your baby.  The use of such images is defined in the Consent Agreement provided when you registered on the app.",
         "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures or videos were taken. The use of such images is defined in the Consent Agreement provided when you registered on the app.",
-        "NSPhotoLibraryUsageDescription": "This app uses your photo library for selecting images of your baby for this study and baby book. For example, the study requires that you frequently provide video of playing with your baby. The use of such images is defined in the Consent Agreement provided when you registered on the app."
+        "NSPhotoLibraryUsageDescription": "This app uses your photo library for selecting images of your baby for this study and baby book. For example, the study requires that you frequently provide video of playing with your baby. The use of such images is defined in the Consent Agreement provided when you registered on the app.",
+        "NSMicrophoneUsageDescription": "This app uses the microphone to capture sounds of your baby for this study and the baby book feature. For example, the study requires that you record audio of playing with your baby.  The use of such audio is defined in the Consent Agreement provided when you registered on the app."
       }
     },
     "android": {
-      "versionCode": 107,
+      "versionCode": 108,
       "package": "com.gofullstack.babysteps.prod",
       "googleServicesFile": "./google-services.prod.json",
       "permissions": [
