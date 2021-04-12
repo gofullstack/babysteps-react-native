@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { AppState } from 'react-native';
 
+import isEmpty from 'lodash/isEmpty';
+
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 import { fetchConsent } from '../actions/registration_actions';
-
-import isEmpty from 'lodash/isEmpty';
 
 import States from '../actions/states';
 
@@ -39,8 +39,6 @@ class ConfirmConsentVersion extends Component {
   componentDidUpdate() {
     const session = this.props.session;
     const consent = this.props.registration.consent.data;
-    console.log({ session })
-    console.log({ consent })
     if (
       session.consent_last_version_id !== consent.version_id &&
       consent.update_confirmation_type === 'update_signature'

@@ -2,12 +2,15 @@ import React, { Component } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import isEmpty from 'lodash/isEmpty';
+
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 
 import ConsentEligibilityForm from '../components/consent_eligibility_form';
-import ConsentSummaryForm from '../components/consent_summary_form';
-import ConsentDisclosureForm from '../components/consent_disclosure_form';
+//import ConsentSummaryForm from '../components/consent_summary_form';
+//import ConsentDisclosureForm from '../components/consent_disclosure_form';
+import ConsentSummaryVersion from '../components/consent_summary_version';
 import ConsentDisclosureVersion from '../components/consent_disclosure_version';
 import ConsentSignatureForm from '../components/consent_signature_form';
 
@@ -39,6 +42,7 @@ class ConsentScreen extends Component {
     };
   };
 
+
   componentDidMount() {
     this.props.navigation.setParams({ resetForm: this.resetForm });
   }
@@ -63,11 +67,12 @@ class ConsentScreen extends Component {
 
   selectForm = () => {
     const registration_state = this.props.session.registration_state;
+
     if (registration_state === States.REGISTERING_ELIGIBILITY) {
       return <ConsentEligibilityForm />;
     }
     if (registration_state === States.REGISTERING_AS_ELIGIBLE) {
-      return <ConsentSummaryForm />;
+      return <ConsentSummaryVersion />;
     }
     if (registration_state === States.REGISTERING_FULL_CONSENT) {
       //return <ConsentDisclosureForm />;

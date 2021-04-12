@@ -8,21 +8,21 @@ import { getApiUrl } from './common';
 import CONSTANTS from '../constants';
 
 const baseURL = getApiUrl();
+const dirUri = FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY;
 const apiToken = Constants.manifest.extra.apiToken;
 const headers = { milestone_token: apiToken };
 
 const executeApiCall = async (version_id, respondent_id) => {
   const signatureFileName = `signature_${version_id}.png`;
-  const url = `${baseURL}/respondent_consents/${signatureFileName}`;
-  version_id = `${version_id}`;
-  respondent_id = `${respondent_id}`;
+  const fileUri = `${dirUri}/${signatureFileName}`;
+  const url = `${baseURL}/respondent_consents/signature`;
 
   const headers = {
     'Content-Type': 'image/png',
     'Content-File-Name': signatureFileName,
+    'Version-ID': `${version_id}`,
+    'Respondent-ID': `${respondent_id}`,
     milestone_token: apiToken,
-    version_id,
-    respondent_id,
   };
 
   const response = await FileSystem.uploadAsync(url, fileUri, {
@@ -39,8 +39,7 @@ const executeApiCall = async (version_id, respondent_id) => {
 };
 
 const confirmSignatureFile = async version_id => {
-  const fileUri =
-    FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + `/signature_${version_id}.png`;
+  const fileUri = dirUri + `/signature_${version_id}.png`;
   const signatureFile = await FileSystem.getInfoAsync(fileUri);
   if (!signatureFile.exists) console.log('*** No signature file found');
   return signatureFile.exists;
@@ -77,7 +76,7 @@ const SyncConsentSignature = async (version_id, respondent_id) => {
     })
       .then(response => {
         const { status, data } = response;
-        if (status !== 404 && !data.has_attachment) {
+        if (!data.has_attachment) {
           SaveConsentSignature(version_id, respondent_id);
         } else if (data.has_attachment) {
           console.log('*** Consent Signature Exists on Server');

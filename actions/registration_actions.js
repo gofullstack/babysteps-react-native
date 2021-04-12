@@ -659,21 +659,22 @@ export const apiFetchConsent = study_id => {
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
     const headers = { milestone_token: apiToken };
+    const url = '/consents/current';
 
     return new Promise((resolve, reject) => {
       axios({
         method: 'get',
         responseType: 'json',
         baseURL,
-        url: '/consents/current',
+        url,
         headers,
         params: { study_id },
       })
         .then(response => {
-          const consent = [response.data];
+          const consent = response.data;
           // consent id becomes api id in sqlite
-          consent[0].api_id = consent[0].id;
-          insertRows('consents', schema['consents'], consent);
+          consent.api_id = consent.id;
+          insertRows('consents', schema['consents'], [consent]);
           dispatch(Response(API_FETCH_CONSENT_FULFILLED, consent));
         })
         .catch(error => {

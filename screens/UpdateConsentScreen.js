@@ -162,30 +162,32 @@ class UpdateConsentScreen extends Component {
     const signatureDir =
       FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY;
     const resultDir = await FileSystem.getInfoAsync(signatureDir);
+    let errorMessage = null;
 
     if (resultDir.exists) {
       const uri = signatureDir + `/signature_${consent.version_id}.png`;
       if (!remoteDebug) {
         await FileSystem.copyAsync({ from: image.uri, to: uri });
-      }
-      const resultFile = await FileSystem.getInfoAsync(uri, { size: true });
-      if (resultFile.exists) {
-        if (!remoteDebug) {
+        const resultFile = await FileSystem.getInfoAsync(uri, { size: true });
+
+        if (resultFile.exists) {
           SaveConsentSignature(consent.version_id, respondent.id);
-        }
-        const registration_state = States.REGISTERED_AS_IN_STUDY;
-        this.props.updateSession({
-          registration_state,
-          consent_last_version_id: consent.version_id,
-        });
+          const registration_state = States.REGISTERED_AS_IN_STUDY;
+          this.props.updateSession({
+            registration_state,
+            consent_last_version_id: consent.version_id,
+          });
+          return;
+        } // resultFile exists
+
+        errorMessage = '*** Error: file not saved. No file found.';
       } else {
-        const errorMessage = 'Error: file not saved. No file.';
-        this.setState({ errorMessage });
-      }
+        errorMessage = '*** Cannot submit signature file when debugger is enabled';
+      } // !remoteDebug
     } else {
-      const errorMessage = 'Error: no directory - ' + resultDir;
-      this.setState({ errorMessage });
-    }
+      errorMessage = '*** Error: no directory - ' + resultDir;
+    } // resultDir exists
+    this.setState({ errorMessage });
   };
 
   render() {

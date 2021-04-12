@@ -37,13 +37,13 @@ export const columnNames = tableName => {
   });
 };
 
-export const addColumn = async (table, name, type) => {
+export const addColumn = async (tableName, columnName, type) => {
   db.transaction(tx => {
     tx.executeSql(
-      `ALTER TABLE ${table} ADD COLUMN ${name} ${type};`,
+      `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${type};`,
       [],
-      (_, rows) => console.log('** Add Column successful'),
-      (_, error) => console.log(`column ${name} exists`),
+      (_, rows) => console.log(`*** Add Column ${columnName} successful`),
+      (_, error) => console.log(`*** Column ${columnName} exists`),
     );
   });
   return null;
@@ -193,17 +193,6 @@ export const getApiUrl = () => {
   }
   return `${Constants.manifest.extra.baseUrl}/api`;
 }
-
-export function addColumn(tableName, columnName, type) {
-  db.transaction(tx => {
-    tx.executeSql(
-      `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${type};`,
-      [],
-      (_, rows) => console.log(`*** Add Column ${columnName} successful`),
-      (_, error) => console.log(`*** Column ${columnName} exists`),
-    );
-  });
-};
 
 export const getAnswer = async (id, method = 'answer') => {
   let answer = {};

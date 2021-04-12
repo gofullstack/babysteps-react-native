@@ -2,14 +2,12 @@ import React, { Component } from 'react';
 import { Text, View, ScrollView, Dimensions, StyleSheet } from 'react-native';
 import { Button } from 'react-native-elements';
 
+import isEmpty from 'lodash/isEmpty';
+
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 import { fetchConsent } from '../actions/registration_actions';
 
-import ConsentSummaryContent002 from './consent_summary_content_002';
-import ConsentSummaryContent003 from './consent_summary_content_003';
-
-import IRBInformation from '../constants/IRB';
 import States from '../actions/states';
 import Colors from '../constants/Colors';
 
@@ -20,11 +18,6 @@ const widthOffset = 60;
 
 const signatureWidth = width - (widthOffset * 2);
 const signatureHeight = signatureWidth * 0.4;
-
-const components = {
-  '002': ConsentSummaryContent002,
-  '003': ConsentSummaryContent003,
-};
 
 class ConsentSummaryContent extends Component {
   constructor(props) {
@@ -65,9 +58,6 @@ class ConsentSummaryContent extends Component {
   };
 
   render() {
-    const { tosID } = this.props;
-    let ConsentSummaryVersion = components[tosID];
-
     return (
       <ScrollView
         contentContainerStyle={styles.scrollView}

@@ -924,6 +924,9 @@ const reducer = (state = initialState, action, formData = {}) => {
         },
         consent: {
           ...state.consent,
+          fetching: false,
+          fetched: true,
+          error: null,
           data,
         },
       };

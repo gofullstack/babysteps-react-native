@@ -127,6 +127,8 @@ class CheckDataIntegrity extends Component {
       FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
     const copyUri =
       FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature_1.png';
+    const signatureFile = await FileSystem.getInfoAsync(fileUri);
+    if (!signatureFile.exists) return null;
     try {
       await FileSystem.copyAsync({ from: fileUri, to: copyUri });
     } catch (error) {

@@ -217,33 +217,32 @@ export const apiFetchSignin = (email, password) => {
       })
         .then(response => {
           const { data } = response.data;
-          data.api_id = data.id;
-          delete data.id;
+          const user = {...data, api_id: data.id, email, password}
 
           db.transaction(tx => {
             tx.executeSql(
               'UPDATE sessions SET email = ?, password = ?, uid = ?, user_id = ?;',
-              [data.email, data.password, data.email, data.api_id],
+              [email, password, data.uid, data.id],
               (_, response) => {
-                dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, data));
+                dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, user));
               },
               (_, error) => dispatch(Response(API_FETCH_SIGNIN_REJECTED, error)),
             );
           });
+          insertRows('users', schema.users, [
+            {
+              first_name: data.first_name,
+              last_name: data.last_name,
+              api_id: data.id,
+              email,
+              uid: data.uid,
+              password,
+            },
+          ]);
         })
         .catch(error => {
           dispatch(Response(API_FETCH_SIGNIN_REJECTED, error));
         });
-      insertRows('users', schema.users, [
-        {
-          first_name: data.first_name,
-          last_name: data.last_name,
-          api_id: data.api_id,
-          email: data.email,
-          uid: data.uid,
-          password: data.password,
-        },
-      ]);
     }); // return Promise
   }; // return dispatch
 };

@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import { Text, View, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { Button } from 'react-native-elements';
 import { WebView } from 'react-native-webview';
-import * as FileSystem from 'expo-file-system';
-import ExpoPixi from 'expo-pixi';
 
 import { connect } from 'react-redux';
 
@@ -19,28 +17,20 @@ const { width, height } = Dimensions.get('window');
 const oneButtonWidth = width - 100;
 const twoButtonWidth = (width / 2) - 40;
 
-class ConsentDisclosureVersion extends Component {
+class ConsentSummaryVersion extends Component {
   constructor(props) {
     super(props);
-
-    const remoteDebug = typeof DedicatedWorkerGlobalScope !== 'undefined';
-
-    this.state = {
-      remoteDebug,
-      scrollEnabled: true,
-      errorMessage: null,
-    };
 
     this.props.fetchConsent();
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const { consent } = nextProps.registration;
-    return !consent.fetching;
+    const { consent, apiConsent } = nextProps.registration;
+    return !apiConsent.fetching && !consent.fetching;
   }
 
   handleSubmit = () => {
-    const registration_state = States.REGISTERING_SIGNATURE;
+    const registration_state = States.REGISTERING_FULL_CONSENT;
     this.props.updateSession({ registration_state });
   };
 
@@ -71,13 +61,13 @@ class ConsentDisclosureVersion extends Component {
     const consent = this.props.registration.consent.data;
     const hideButton = this.props.hideButton || false;
     let webViewHeight = height * 0.6;
-    let [irb_id, version_id, version_content] = ['pending', '', ''];
+    if (hideButton) webViewHeight = height * 0.8;
+    let [irb_id, version_id, summary] = ['pending', '', ''];
     if (!isEmpty(consent)) {
       irb_id = consent.irb_id;
       version_id = consent.version_id;
-      version_content = consent.version_content;
+      summary = consent.summary;
     }
-    if (hideButton) webViewHeight = height * 0.8;
 
     return (
       <ScrollView
@@ -89,7 +79,7 @@ class ConsentDisclosureVersion extends Component {
         </Text>
         <WebView
           originWhitelist={['*']}
-          source={{ html: version_content }}
+          source={{ html: summary }}
           style={[styles.webView, {height: webViewHeight}]}
           scalesPageToFit={false}
           useWebKit
@@ -159,4 +149,4 @@ const mapDispatchToProps = { updateSession, fetchConsent };
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(ConsentDisclosureVersion);
+)(ConsentSummaryVersion);

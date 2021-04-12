@@ -53,7 +53,6 @@ class ConsentSignatureForm extends Component {
 
   handleReset = () => {
     const remoteDebug = this.state.remoteDebug;
-    console.log('signature clear');
     if (!remoteDebug) {
       this.signature.clear();
     }
@@ -69,6 +68,7 @@ class ConsentSignatureForm extends Component {
 
   handleSubmit = async () => {
     const session = this.props.session;
+    const consent = this.props.registration.consent.data;
     const remoteDebug = this.state.remoteDebug;
     let image = null;
     if (!remoteDebug) {
@@ -83,14 +83,14 @@ class ConsentSignatureForm extends Component {
     const resultDir = await FileSystem.getInfoAsync(signatureDir);
 
     if (resultDir.exists) {
-      const uri = signatureDir + '/signature.png';
+      const uri = signatureDir + `/signature_${consent.version_id}.png`;
 
       if (!remoteDebug) {
         await FileSystem.copyAsync({ from: image.uri, to: uri });
       }
-      const resultFile = await FileSystem.getInfoAsync(fileName);
+      const resultFile = await FileSystem.getInfoAsync(uri);
 
-      if (remoteDebug || resultFile.exists) {
+      if (!remoteDebug || resultFile.exists) {
         const {
           screening_blood,
           screening_blood_notification,
