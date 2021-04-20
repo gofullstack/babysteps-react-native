@@ -77,17 +77,17 @@ class SignInScreen extends Component {
     const { respondent, subject, apiSyncRegistration } = this.props.registration;
     const { isSubmitting, syncRegistration } = this.state;
 
-
-
-    if (session.signinFetched && session.api_id) {
+    if (session.signinFetched) {
 
       // get respondent and subject data
-      if (!syncRegistration) {
-        
-        this.props.apiSyncRegistration(session.api_id);
-        this.props.apiSyncSignature(session.api_id);
-        this.setState({ syncRegistration: true });
-        return;
+      if (isSubmitting && !syncRegistration) {
+        if (session.user_id) {
+          this.props.apiSyncRegistration(session.user_id);
+          this.props.apiSyncSignature(session.user_id);
+          this.setState({ syncRegistration: true });
+          return;
+        }
+        this.setState({ isSubmitting: false, errorMessages: '*** Error: No User ID returned' });
       }
 
       // redirect to sign up if no respondent information

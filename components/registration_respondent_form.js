@@ -22,6 +22,7 @@ import isEmpty from 'lodash/isEmpty';
 import { connect } from 'react-redux';
 import {
   fetchUser,
+  fetchConsent,
   resetRespondent,
   createRespondent,
   updateRespondent,
@@ -118,6 +119,7 @@ class RegistrationRespondentForm extends Component {
     };
 
     this.props.fetchUser();
+    this.props.fetchConsent();
     this.props.resetRespondent();
   }
 
@@ -185,6 +187,7 @@ class RegistrationRespondentForm extends Component {
     return initialValues;
   };
 
+
   handleOnSubmit = values => {
     const user = this.props.registration.user.data;
     const tos_id = Object.keys(IRBInformation)[0];
@@ -205,6 +208,7 @@ class RegistrationRespondentForm extends Component {
   };
 
   render() {
+    const { apiErrorMessage } = this.state;
     return (
       <ScrollView>
         <Formik
@@ -310,7 +314,7 @@ class RegistrationRespondentForm extends Component {
                 />
 
                 <Text style={AppStyles.registrationTextHelper}>
-                  We are asking for your driver's license number to help us
+                  We are asking for your driver&#39;s license number to help us
                   recontact you in the future in the event that your usual
                   contact information changes. This field is encouraged but
                   optional.
@@ -354,9 +358,7 @@ class RegistrationRespondentForm extends Component {
                   />
                 </View>
 
-                <Text style={styles.errorMessage}>
-                  {this.state.apiErrorMessage}
-                </Text>
+                <Text style={styles.errorMessage}>{apiErrorMessage}</Text>
 
                 <View style={AppStyles.registrationButtonContainer}>
                   <Button
@@ -403,6 +405,7 @@ const mapStateToProps = ({ session, registration }) => ({
 
 const mapDispatchToProps = {
   fetchUser,
+  fetchConsent,
   resetRespondent,
   createRespondent,
   updateRespondent,

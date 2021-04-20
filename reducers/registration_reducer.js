@@ -80,9 +80,28 @@ import {
   API_SYNC_SIGNATURE_FULFILLED,
   API_SYNC_SIGNATURE_REJECTED,
 
+  FETCH_CONSENT_PENDING,
+  FETCH_CONSENT_FULFILLED,
+  FETCH_CONSENT_REJECTED,
+
+  API_FETCH_CONSENT_PENDING,
+  API_FETCH_CONSENT_FULFILLED,
+  API_FETCH_CONSENT_REJECTED,
+
 } from '../actions/types';
 
 const initialState = {
+  consent: {
+    fetching: false,
+    fetched: false,
+    data: {},
+    error: null,
+  },
+  apiConsent: {
+    fetching: false,
+    fetched: false,
+    error: null,
+  },
   user: {
     fetching: false,
     fetched: false,
@@ -440,6 +459,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.apiRespondent,
           fetching: false,
           fetched: true,
+          error: null,
           data: {},
         },
       };
@@ -475,6 +495,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.apiRespondent,
           fetching: false,
           fetched: true,
+          error: null,
           data: action.payload.data,
         },
       };
@@ -838,6 +859,83 @@ const reducer = (state = initialState, action, formData = {}) => {
         ...state,
         apiSignature: {
           ...state.apiSignature,
+          fetching: false,
+          fetched: false,
+          error: action.payload,
+        },
+      };
+    }
+
+    case FETCH_CONSENT_PENDING: {
+      return {
+        ...state,
+        consent: {
+          ...state.consent,
+          fetching: true,
+          fetched: false,
+          error: null,
+        },
+      };
+    }
+    case FETCH_CONSENT_FULFILLED: {
+      const data = action.payload.rows['_array'][0];
+      return {
+        ...state,
+        consent: {
+          ...state.consent,
+          fetching: false,
+          fetched: true,
+          error: null,
+          data,
+        },
+      };
+    }
+    case FETCH_CONSENT_REJECTED: {
+      return {
+        ...state,
+        consent: {
+          ...state.consent,
+          fetching: false,
+          error: action.payload,
+        },
+      };
+    }
+
+    case API_FETCH_CONSENT_PENDING: {
+      return {
+        ...state,
+        apiConsent: {
+          ...state.apiConsent,
+          fetching: true,
+          fetched: false,
+          error: null,
+        },
+      };
+    }
+    case API_FETCH_CONSENT_FULFILLED: {
+      const data = action.payload;
+      return {
+        ...state,
+        apiConsent: {
+          ...state.apiConsent,
+          fetching: false,
+          fetched: true,
+          error: null,
+        },
+        consent: {
+          ...state.consent,
+          fetching: false,
+          fetched: true,
+          error: null,
+          data,
+        },
+      };
+    }
+    case API_FETCH_CONSENT_REJECTED: {
+      return {
+        ...state,
+        apiConsent: {
+          ...state.apiConsent,
           fetching: false,
           fetched: false,
           error: action.payload,

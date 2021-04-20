@@ -21,7 +21,17 @@ import {
   deleteMilestoneAttachment,
 } from '../actions/milestone_actions';
 
+import checkRegistrationSchema from './check_registration_schema';
+import checkMilestonesSchema from './check_milestones_schema';
+import checkMilestoneTriggersSchema from './check_milestone_triggers_schema';
+import checkAnswersSchema from './check_answers_schema';
+import checkNotificationsSchema from './check_notifications_schema';
+import checkBabyBookSchema from './check_babybook_schema';
+import checkCustomDirectories from './check_custom_directories';
+
 import { addColumn } from './common';
+
+import CONSTANTS from '../constants';
 
 class CheckDataIntegrity extends Component {
   constructor(props) {
@@ -30,7 +40,7 @@ class CheckDataIntegrity extends Component {
     this.state = {
       cleanDuplicateAnswersSubmitted: false,
       cleanDuplicateAttachmentsSubmitted: false,
-      userPasswordUpdated: false,
+      signatureFileUpdated: false,
     };
 
     this.props.fetchSession();
@@ -41,23 +51,18 @@ class CheckDataIntegrity extends Component {
     this.props.fetchMilestoneAttachments();
   }
 
-  componentDidMount() {
+  componentDidMount = async () => {
     console.log('*** Checking Data Integrity');
 
-    // temporary code for backward compatibility
-    addColumn('sessions', 'push_token', 'text');
-    addColumn('sessions', 'last_registration_state', 'text');
-    addColumn('sessions', 'milestones_updated_at', 'text');
-    addColumn('sessions', 'milestones_last_updated_at', 'text');
-    addColumn('sessions', 'milestone_calendar_updated_at', 'text');
-    addColumn('sessions', 'milestone_calendar_last_updated_at', 'text');
-    addColumn('sessions', 'current_group_index', 'integer');
-    addColumn('attachments', 'user_api_id', 'integer');
-    addColumn('attachments', 'subject_api_id', 'integer');
-    addColumn('attachments', 'size', 'integer');
-    addColumn('attachments', 'checksum', 'string');
-    addColumn('babybook_entries', 'choice_id', 'integer');
-  }
+    // async check of schemas
+    await checkRegistrationSchema();
+    await checkMilestonesSchema();
+    await checkMilestoneTriggersSchema();
+    await checkAnswersSchema();
+    await checkNotificationsSchema();
+    await checkBabyBookSchema();
+    await checkCustomDirectories();
+  };
 
   shouldComponentUpdate(nextProps, nextState) {
     const session = this.props.session;
@@ -79,10 +84,18 @@ class CheckDataIntegrity extends Component {
     const {
       cleanDuplicateAnswersSubmitted,
       cleanDuplicateAttachmentsSubmitted,
+      signatureFileUpdated,
     } = this.state;
 
     if (!session.fetching && session.fetched) {
       this.confirmSessionAttributes();
+    }
+
+    if (!signatureFileUpdated) {
+      // backward compatibility
+      // create copy to migrate to consent versions
+      this.copySignatureFile();
+      this.setState({ signatureFileUpdated: true });
     }
 
     if (
@@ -108,6 +121,20 @@ class CheckDataIntegrity extends Component {
       this.setState({ cleanDuplicateAttachmentsSubmitted: true });
     }
   }
+
+  copySignatureFile = async () => {
+    const fileUri =
+      FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
+    const copyUri =
+      FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature_1.png';
+    const signatureFile = await FileSystem.getInfoAsync(fileUri);
+    if (!signatureFile.exists) return null;
+    try {
+      await FileSystem.copyAsync({ from: fileUri, to: copyUri });
+    } catch (error) {
+      console.log({ error });
+    }
+  };
 
   confirmSessionAttributes = () => {
     const session = this.props.session;
@@ -236,11 +263,7 @@ class CheckDataIntegrity extends Component {
   }
 }
 
-const mapStateToProps = ({
-  session,
-  registration,
-  milestones,
-}) => ({
+const mapStateToProps = ({ session, registration, milestones }) => ({
   session,
   registration,
   milestones,

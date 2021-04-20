@@ -39,7 +39,7 @@ import {
   UploadMilestoneAttachment,
 } from '../database/sync_milestone_attachments';
 
-import ConsentDisclosureContent from '../components/consent_disclosure_content';
+import ConsentDisclosureVersion from '../components/consent_disclosure_version';
 import SettingsFAQContent from '../components/settings_faq_content';
 
 import CONSTANTS from '../constants';
@@ -117,13 +117,13 @@ class SettingsScreen extends React.Component {
     const release = this.getRelease();
     const version = `${Constants.manifest.version}:${build}`;
     const { session, registration } = this.props;
-    let body = `\n\n\n________________________\n\n`
-    body += `Platform: ${Platform.OS}\n`
-    body += `Version: ${version}\n`
-    body += `Release: ${release}\n`
-    body += `Notifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\n`
-    body += `Notification Permissions: ${session.notifications_permission}\n`
-    body += `User ID: ${registration.user.data.api_id}\n\n`
+    let body = `\n\n\n________________________\n\n`;
+    body += `Platform: ${Platform.OS}\n`;
+    body += `Version: ${version}\n`;
+    body += `Release: ${release}\n`;
+    body += `Notifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\n`;
+    body += `Notification Permissions: ${session.notifications_permission}\n`;
+    body += `User ID: ${registration.user.data.api_id}\n\n`;
     body += `________________________\n\n\n`;
     Linking.openURL(
       `mailto:feedback@babystepsapp.net?subject=BabySteps App Feedback (v${version})&body=${body}`,
@@ -217,16 +217,7 @@ class SettingsScreen extends React.Component {
             >
               <Ionicons name="md-close" size={36} />
             </TouchableOpacity>
-            <ConsentDisclosureContent
-              formState="view"
-              tosID={respondent.tos_id}
-              screening_blood={subject.screening_blood}
-              screening_blood_other={subject.screening_blood_other}
-              screening_blood_notification={subject.screening_blood_notification}
-              video_sharing={subject.video_sharing}
-              video_presentation={subject.video_presentation}
-              setModalVisible={this.setConsentModalVisible}
-            />
+            <ConsentDisclosureVersion hideButton={true} />
           </View>
         </Modal>
       </View>

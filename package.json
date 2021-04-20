@@ -62,6 +62,7 @@
     "react-native-sideswipe": "^1.4.1",
     "react-native-timeline-listview": "^0.2.3",
     "react-native-vector-icons": "^6.1.0",
+    "react-native-webview": "11.0.0",
     "react-navigation": "^4.0.6",
     "react-navigation-stack": "^1.9.3",
     "react-navigation-tabs": "^2.5.5",

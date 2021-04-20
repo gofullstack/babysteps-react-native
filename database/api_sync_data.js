@@ -15,9 +15,11 @@ import {
   fetchSubject,
 } from '../actions/registration_actions';
 
+import SyncConsentVersion from './sync_consent_version';
+import SyncConsentSignature from './sync_consent_signature';
 import SyncMilestones from './sync_milestones';
 import SyncRespondentByUser from './sync_respondent_by_user';
-import SyncRespondentSignature from './sync_respondent_signature';
+//import SyncRespondentSignature from './sync_respondent_signature';
 import SyncSubjectByUser from './sync_subject_by_user';
 import SyncMilestoneTriggers from './sync_milestone_triggers';
 import SyncMilestoneAnswers from './sync_milestone_answers';
@@ -37,7 +39,8 @@ class ApiSyncData extends Component {
       apiSyncData: false,
       apiRefreshTokenSubmitted: false,
       userRespondentApiUpdated: false,
-      respondentAttachmentsApiUpdated: false,
+      updateConsentVersionSubmitted: false,
+      updateConsentSignatureSubmitted: false,
       userSubjectApiUpdated: false,
       uploadMilestonesSubmitted: false,
       uploadMilestoneTriggersSubmitted: false,
@@ -71,14 +74,15 @@ class ApiSyncData extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
-    const { user, respondent, subject } = this.props.registration;
+    const { user, respondent, subject, consent } = this.props.registration;
     const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
 
     const {
       apiRefreshTokenSubmitted,
       apiSyncData,
       userRespondentApiUpdated,
-      respondentAttachmentsApiUpdated,
+      updateConsentSignatureSubmitted,
+      updateConsentVersionSubmitted,
       userSubjectApiUpdated,
       uploadMilestonesSubmitted,
       uploadMilestoneTriggersSubmitted,
@@ -102,13 +106,19 @@ class ApiSyncData extends Component {
       });
     }
 
+    if (session.fetched && !updateConsentVersionSubmitted) {
+      const study_id = CONSTANTS.STUDY_ID;
+      SyncConsentVersion(study_id, session.consent_last_updated_at);
+      this.setState({ updateConsentVersionSubmitted: true });
+    }
+
+    if (!uploadMilestonesSubmitted) {
+      SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
+      this.setState({ uploadMilestonesSubmitted: true });
+    }
+
     // rebuild respondent and subject on server
     if (inStudy && apiSyncData) {
-
-      if (!uploadMilestonesSubmitted) {
-        SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
-        this.setState({ uploadMilestonesSubmitted: true });
-      }
 
       if (!isEmpty(user.data) && user.data.api_id) {
         const user_api_id = user.data.api_id;
@@ -126,11 +136,14 @@ class ApiSyncData extends Component {
           const respondent_api_id = respondent.data.api_id;
 
           if (
-            !respondentAttachmentsApiUpdated // &&
+            !updateConsentSignatureSubmitted &&
+            !isEmpty(consent.data) &&
+            consent.data.version_id // &&
             //session.connectionType === 'wifi'
           ) {
-            SyncRespondentSignature(respondent_api_id);
-            this.setState({ respondentAttachmentsApiUpdated: true });
+            //SyncRespondentSignature(respondent_api_id);
+            SyncConsentSignature(consent.data.version_id, respondent_api_id);
+            this.setState({ updateConsentSignatureSubmitted: true });
           }
 
           if (!isEmpty(subject.data) && subject.data.api_id) {

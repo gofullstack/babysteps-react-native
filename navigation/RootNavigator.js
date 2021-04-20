@@ -15,6 +15,7 @@ import ConsentScreen from '../screens/ConsentScreen';
 import RegistrationScreen from '../screens/RegistrationScreen';
 import TourNoStudyConfirmScreen from '../screens/TourNoStudyConfirmScreen';
 import RegistrationNoStudyScreen from '../screens/RegistrationNoStudyScreen';
+import UpdateConsentScreen from '../screens/UpdateConsentScreen';
 
 import Colors from '../constants/Colors';
 import States from '../actions/states';
@@ -118,6 +119,9 @@ class RootNavigator extends Component {
     }
     if (States.REGISTERING_CONSENT.includes(registration_state)) {
       return <ConsentNavigationContainer />;
+    }
+    if (registration_state === States.REGISTERING_UPDATE_CONSENT) {
+      return <UpdateConsentScreen />;
     }
     if (States.REGISTERING_REGISTRATION.includes(registration_state)) {
       return <RegistrationNavigationContainer />;
