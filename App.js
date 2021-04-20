@@ -127,7 +127,6 @@ export default class App extends Component {
       MaterialIcons: require('./assets/fonts/MaterialIcons.ttf'),
       'Material Icons': require('./assets/fonts/MaterialIcons.ttf'),
     });
-
   };
 
   render() {

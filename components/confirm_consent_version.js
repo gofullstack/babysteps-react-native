@@ -39,12 +39,13 @@ class ConfirmConsentVersion extends Component {
   componentDidUpdate() {
     const session = this.props.session;
     const consent = this.props.registration.consent.data;
-    if (
-      session.consent_last_version_id !== consent.version_id &&
-      consent.update_confirmation_type === 'update_signature'
-    ) {
-      const registration_state = States.REGISTERING_UPDATE_CONSENT;
-      this.props.updateSession({ registration_state });
+    if (session.consent_last_version_id !== consent.version_id) {
+      if (consent.update_confirmation_type === 'update_signature') {
+        const registration_state = States.REGISTERING_UPDATE_CONSENT;
+        this.props.updateSession({ registration_state });
+      } else {
+        this.props.updateSession({ consent_last_version_id: consent.version_id });
+      }
     }
   }
 
@@ -54,14 +55,7 @@ class ConfirmConsentVersion extends Component {
 
   handleAppStateChange = nextAppState => {
     const { appState } = this.state;
-    if (appState.match(/inactive|background/) && nextAppState === 'active') {
-      this.setState({
-        appState: nextAppState,
-        ConsentVersionConfirmed: false,
-      });
-    } else {
-      this.setState({ appState: nextAppState });
-    }
+    this.setState({ appState: nextAppState });
   };
 
   render() {

@@ -171,7 +171,7 @@ class UpdateConsentScreen extends Component {
         const resultFile = await FileSystem.getInfoAsync(uri, { size: true });
 
         if (resultFile.exists) {
-          SaveConsentSignature(consent.version_id, respondent.id);
+          SaveConsentSignature(consent.version_id, respondent.api_id);
           const registration_state = States.REGISTERED_AS_IN_STUDY;
           this.props.updateSession({
             registration_state,
