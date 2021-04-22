@@ -108,7 +108,6 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 14,
     fontWeight: '900',
-    color: Colors.darkGrey,
     textAlign: 'center',
     paddingTop: 5,
     marginLeft: 5,
@@ -116,6 +115,17 @@ const styles = StyleSheet.create({
     marginTop: 5,
     borderTopColor: Colors.black,
     borderTopWidth: 1,
+  },
+  subHeader: {
+    fontSize: 12,
+    color: Colors.darkGrey,
+    textAlign: 'center',
+    paddingBottom: 5,
+    marginLeft: 5,
+    marginRight: 5,
+    marginBottom: 5,
+    borderBottomColor: Colors.black,
+    borderBottomWidth: 1,
   },
   footerContainer: {
     flex: 1,

@@ -29,6 +29,10 @@ const headerOptions = {
   headerTitleStyle: {
     fontWeight: '900',
   },
+  headerForceInset: {
+    top: 'never',
+    bottom: 'never',
+  },
 };
 
 const ConsentNavigator = createStackNavigator(

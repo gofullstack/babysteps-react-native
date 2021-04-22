@@ -5,6 +5,7 @@
       "name": "TEXT", 
       "description": "TEXT",
       "duration_days": "INTEGER",
+      "baseline_type": "INTEGER",
     },
     "indexes": [],
   },
@@ -17,6 +18,8 @@
       "title": "TEXT",
       "week_start_at": "INTEGER",
       "week_end_at": "INTEGER",
+      "baseline_range_days_start": "INTEGER",
+      "baseline_range_days_end": "INTEGER",
     },
     "indexes": [
       "milestone_groups_study_id ON milestone_groups (study_id);",
