@@ -72,6 +72,7 @@ class ConsentDisclosureVersion extends Component {
     const consent = this.props.registration.consent.data;
     const hideButton = this.props.hideButton || false;
     let [irb_id, version_id, tos_approved_on, version_content] = ['pending', '', '', ''];
+
     if (!isEmpty(consent)) {
       irb_id = consent.irb_id;
       version_id = consent.version_id;

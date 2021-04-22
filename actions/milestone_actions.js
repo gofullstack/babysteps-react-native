@@ -197,10 +197,12 @@ export const apiFetchMilestones = () => {
 
   return dispatch => {
     dispatch(Pending(API_FETCH_MILESTONES_PENDING));
+    
     const baseURL = getApiUrl();
     const url = '/milestones';
     const apiToken = Constants.manifest.extra.apiToken;
     const headers = { milestone_token: apiToken };
+    const study_id = CONSTANTS.STUDY_ID;
 
     return new Promise((resolve, reject) => {
       axios({
@@ -209,6 +211,7 @@ export const apiFetchMilestones = () => {
         baseURL,
         url,
         headers,
+        params: { study_id },
       })
         .then(response => {
           Object.keys(response.data).map(name => {
@@ -435,7 +438,7 @@ export const fetchMilestoneTasks = () => {
     dispatch(Pending(FETCH_MILESTONE_TASKS_PENDING));
     let sql = 'SELECT ts.*, mg.position AS milestone_group_position, mg.visible AS milestone_group_visible, ms.milestone_group_id, ms.position AS milestone_position, ms.always_visible AS milestone_always_visible, ms.title AS milestone_title, ms.momentary_assessment AS momentary_assessment, ms.response_scale AS response_scale, ta.attachment_url as attachment_url, ta.content_type as attachment_content_type FROM tasks AS ts';
     sql += ' INNER JOIN milestones AS ms ON ms.id = ts.milestone_id';
-    sql += ' INNER JOIN milestone_groups AS mg ON mg.id = ms.milestone_group_id';
+    sql += ' INNER JOIN milestone_groups AS mg ON mg.baseline_range_days_start <= ms.days_since_baseline AND mg.baseline_range_days_end >= ms.days_since_baseline';
     sql += ' LEFT JOIN task_attachments AS ta ON ts.id = ta.task_id';
     sql += ' ORDER BY milestone_group_position, milestone_position, position;';
 
@@ -446,7 +449,9 @@ export const fetchMilestoneTasks = () => {
           (_, response) => {
             dispatch(Response(FETCH_MILESTONE_TASKS_FULFILLED, response));
           },
-          (_, error) => {dispatch(Response(FETCH_MILESTONE_TASKS_REJECTED, error))}
+          (_, error) => {
+            dispatch(Response(FETCH_MILESTONE_TASKS_REJECTED, error))
+          },
         );
       })
     );
