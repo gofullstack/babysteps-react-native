@@ -18,6 +18,7 @@ import Colors from '../constants/Colors';
 const { width, height } = Dimensions.get('window');
 const oneButtonWidth = width - 100;
 const twoButtonWidth = (width / 2) - 40;
+let webViewHeight = height * 0.6;
 
 class ConsentDisclosureVersion extends Component {
   constructor(props) {
@@ -70,11 +71,11 @@ class ConsentDisclosureVersion extends Component {
   render() {
     const consent = this.props.registration.consent.data;
     const hideButton = this.props.hideButton || false;
-    let webViewHeight = height * 0.6;
-    let [irb_id, version_id, version_content] = ['pending', '', ''];
+    let [irb_id, version_id, tos_approved_on, version_content] = ['pending', '', '', ''];
     if (!isEmpty(consent)) {
       irb_id = consent.irb_id;
       version_id = consent.version_id;
+      tos_approved_on = consent.tos_approved_on;
       version_content = consent.version_content;
     }
     if (hideButton) webViewHeight = height * 0.8;
@@ -84,8 +85,9 @@ class ConsentDisclosureVersion extends Component {
         contentContainerStyle={styles.scrollView}
         ref={this._scrollView}
       >
-        <Text style={styles.header}>
-          IRB ID: {irb_id}.V{version_id}
+        <Text style={styles.header}>INFORMED CONSENT</Text>
+        <Text style={styles.subHeader}>
+          IRB ID: {irb_id}.v{version_id} Approved: {tos_approved_on}
         </Text>
         <WebView
           originWhitelist={['*']}
@@ -115,7 +117,6 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 14,
     fontWeight: '900',
-    color: Colors.darkGrey,
     textAlign: 'center',
     paddingTop: 5,
     marginLeft: 5,
@@ -123,6 +124,17 @@ const styles = StyleSheet.create({
     marginTop: 5,
     borderTopColor: Colors.black,
     borderTopWidth: 1,
+  },
+  subHeader: {
+    fontSize: 12,
+    color: Colors.darkGrey,
+    textAlign: 'center',
+    paddingBottom: 5,
+    marginLeft: 5,
+    marginRight: 5,
+    marginBottom: 5,
+    borderBottomColor: Colors.black,
+    borderBottomWidth: 1,
   },
   footerContainer: {
     flex: 1,

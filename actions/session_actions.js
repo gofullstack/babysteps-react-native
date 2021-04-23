@@ -221,7 +221,7 @@ export const apiFetchSignin = (email, password) => {
 
           db.transaction(tx => {
             tx.executeSql(
-              'UPDATE sessions SET email = ?, password = ?, uid = ?, user_id = ?;',
+              'UPDATE sessions SET email = ?, password = ?, uid = ?, user_api_id = ?;',
               [email, password, data.uid, data.id],
               (_, response) => {
                 dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, user));

@@ -16,6 +16,7 @@ import Colors from '../constants/Colors';
 const { width, height } = Dimensions.get('window');
 const oneButtonWidth = width - 100;
 const twoButtonWidth = (width / 2) - 40;
+let webViewHeight = height * 0.6;
 
 class ConsentSummaryVersion extends Component {
   constructor(props) {
@@ -60,12 +61,13 @@ class ConsentSummaryVersion extends Component {
   render() {
     const consent = this.props.registration.consent.data;
     const hideButton = this.props.hideButton || false;
-    let webViewHeight = height * 0.6;
+
     if (hideButton) webViewHeight = height * 0.8;
-    let [irb_id, version_id, summary] = ['pending', '', ''];
+    let [irb_id, version_id, tos_approved_on, summary] = ['pending', '', '', ''];
     if (!isEmpty(consent)) {
       irb_id = consent.irb_id;
       version_id = consent.version_id;
+      tos_approved_on = consent.tos_approved_on;
       summary = consent.summary;
     }
 
@@ -74,8 +76,9 @@ class ConsentSummaryVersion extends Component {
         contentContainerStyle={styles.scrollView}
         ref={this._scrollView}
       >
-        <Text style={styles.header}>
-          IRB ID: {irb_id}.V{version_id}
+        <Text style={styles.header}>SUMMARY OF INFORMED CONSENT</Text>
+        <Text style={styles.subHeader}>
+          IRB ID: {irb_id}.v{version_id} Approved: {tos_approved_on}
         </Text>
         <WebView
           originWhitelist={['*']}

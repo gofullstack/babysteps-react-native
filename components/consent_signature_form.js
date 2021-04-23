@@ -128,6 +128,7 @@ class ConsentSignatureForm extends Component {
           screening_blood_physician_notification,
           video_sharing,
           video_presentation,
+          consent_last_version_id: consent.version_id,
           registration_state,
         });
       } else {

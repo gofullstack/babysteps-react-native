@@ -154,7 +154,7 @@ export default store => next => action => {
           access_token: headers['access-token'],
           client: headers.client,
           uid: headers.uid,
-          user_id: headers.user_id,
+          user_api_id: headers.user_id,
         };
         updateSession(data);
       }
@@ -165,7 +165,7 @@ export default store => next => action => {
       //  JSON.stringify({
       //    access_token: headers['access-token'],
       //    uid: headers.uid,
-      //    user_id: headers.user_id,
+      //    user_api_id: headers.user_id,
       //    event_at: Date(),
       //  }),
       //);

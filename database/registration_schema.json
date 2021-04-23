@@ -7,7 +7,7 @@
       "access_token": "TEXT",
       "client": "TEXT",
       "uid": "TEXT",
-      "user_id": "INTEGER",
+      "user_api_id": "INTEGER",
       "email": "TEXT",
       "password": "TEXT",
       "consent_updated_at": "TEXT",

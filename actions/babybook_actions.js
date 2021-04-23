@@ -180,7 +180,7 @@ export const apiCreateBabyBookEntry = (session, data, image = null) => {
   const formData = new FormData();
 
   data = parseImageMetaData(data, image);
-  data.user_id = session.user_id;
+  data.user_id = session.user_api_id;
 
   // only upload files for entries not originating from answers
   if (data.file_name && !data.choice_id) {
@@ -217,7 +217,7 @@ export const apiCreateBabyBookEntry = (session, data, image = null) => {
   }; // return dispatch
 };
 
-export const apiSyncBabybookEntries = (api_user_id) => {
+export const apiSyncBabybookEntries = (user_id) => {
   return dispatch => {
     dispatch(Pending(API_SYNC_BABYBOOK_ENTRIES_PENDING));
     const baseURL = getApiUrl();
@@ -234,7 +234,7 @@ export const apiSyncBabybookEntries = (api_user_id) => {
           milestone_token: apiToken,
         },
         data: {
-          user_id: api_user_id,
+          user_id,
         },
       })
         .then(response => {

@@ -94,7 +94,7 @@ class RegistrationUserForm extends Component {
             access_token: auth.accessToken,
             client: auth.client,
             uid: auth.uid,
-            user_id: auth.user_id,
+            user_api_id: auth.user_id,
             email: apiUser.data.email,
             password: apiUser.data.password,
             uid: apiUser.data.email,

@@ -22,6 +22,7 @@ import {
 } from '../actions/milestone_actions';
 
 import {
+  apiFetchConsent,
   resetRespondent,
   resetSubject,
   apiSyncRegistration,
@@ -61,6 +62,11 @@ class SignInScreen extends Component {
     this.props.apiFetchMilestones();
   }
 
+  componentDidMount() {
+    const study_id = CONSTANTS.STUDY_ID;
+    this.props.apiFetchConsent(study_id);
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const session = nextProps.session;
     const { apiSyncRegistration, apiSignature } = nextProps.registration;
@@ -81,9 +87,9 @@ class SignInScreen extends Component {
 
       // get respondent and subject data
       if (isSubmitting && !syncRegistration) {
-        if (session.user_id) {
-          this.props.apiSyncRegistration(session.user_id);
-          this.props.apiSyncSignature(session.user_id);
+        if (session.user_api_id) {
+          this.props.apiSyncRegistration(session.user_api_id);
+          this.props.apiSyncSignature(session.user_api_id);
           this.setState({ syncRegistration: true });
           return;
         }
@@ -239,6 +245,7 @@ const mapDispatchToProps = {
   resetSession,
   updateSession,
   apiFetchSignin,
+  apiFetchConsent,
   apiFetchMilestones,
   apiFetchMilestoneCalendar,
   resetRespondent,

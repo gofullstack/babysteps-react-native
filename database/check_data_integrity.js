@@ -40,6 +40,7 @@ class CheckDataIntegrity extends Component {
     this.state = {
       cleanDuplicateAnswersSubmitted: false,
       cleanDuplicateAttachmentsSubmitted: false,
+      userPasswordUpdated: false,
       signatureFileUpdated: false,
     };
 
@@ -139,25 +140,35 @@ class CheckDataIntegrity extends Component {
   confirmSessionAttributes = () => {
     const session = this.props.session;
     const { user } = this.props.registration;
+    const { userPasswordUpdated } = this.state;
+    
     if (user.fetched && !_.isEmpty(user.data)) {
-      const data = user.data;
-      if ((!session.uid && data.email) || (!session.user_id && data.api_id)) {
+      if (
+        (!session.uid && user.data.email) ||
+        (!session.user_api_id && user.data.api_id)
+      ) {
         this.props.updateSession({
-          user_id: data.api_id,
-          email: data.email,
-          uid: data.email,
-          password: data.password,
+          user_api_id: user.data.api_id,
+          email: user.data.email,
+          uid: user.data.email,
         });
       }
       if (!session.last_registration_state) {
-        this.props.updateSession({ last_registration_state: session.registration_state })
+        this.props.updateSession({
+          last_registration_state: session.registration_state,
+        });
       }
-      // temp fix for lane's phone
-      if (user.data.api_id === 562 && !userPasswordUpdated) {
-        const password = 'kitkat12';
-        const id = user.data.id;
-        this.props.updateUser({ id, password });
-        this.props.updateSession({ password });
+
+      if (!userPasswordUpdated) {
+        if (session.password && !user.data.password) {
+          const id = user.data.id;
+          const password = session.password;
+          this.props.updateUser({ id, password });
+        }
+        if (!session.password && user.data.password) {
+          const password = user.data.password;
+          this.props.updateSession({ password });
+        }
         this.setState({ userPasswordUpdated: true });
       }
     }
@@ -243,7 +254,7 @@ class CheckDataIntegrity extends Component {
             attachment = {
               ...attachment,
               answer_id: answer.id,
-              user_api_id: user.data.api_id,
+              user_id: user.data.api_id,
               subject_api_id: subject.data.api_id
             };
             console.log(`*** Attachment updated with foreign keys: ${{ attachment }}`);

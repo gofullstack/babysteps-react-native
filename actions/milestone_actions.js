@@ -821,7 +821,7 @@ export const apiUpdateMilestoneAnswers = (session, section_id, data) => {
   }; // return dispatch
 };
 
-export const apiSyncMilestoneAnswers = api_user_id => {
+export const apiSyncMilestoneAnswers = user_id => {
   return dispatch => {
     dispatch(Pending(API_SYNC_MILESTONE_ANSWERS_PENDING));
     const baseURL = getApiUrl();
@@ -838,7 +838,7 @@ export const apiSyncMilestoneAnswers = api_user_id => {
           milestone_token: apiToken,
         },
         data: {
-          user_id: api_user_id,
+          user_id,
         },
       })
         .then(response => {
