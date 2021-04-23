@@ -3,9 +3,7 @@ import Constants from 'expo-constants';
 
 import forEach from 'lodash/forEach';
 
-import find from 'lodash/find';
-import isEmpty from 'lodash/isEmpty';
-import isInteger from 'lodash/isInteger';
+import _ from 'lodash';
 
 import CONSTANTS from '../constants';
 
@@ -304,8 +302,8 @@ export const saveTriggerData = async newTriggers => {
   const schema = require('./milestone_triggers_schema.json');
   const oldTriggers = await getMilestoneCalendar();
   for (const newTrigger of newTriggers) {
-    const oldTrigger = find(oldTriggers, {id: newTrigger.id});
-    if (!isEmpty(oldTrigger)) {
+    const oldTrigger = _.find(oldTriggers, {id: newTrigger.id});
+    if (!_.isEmpty(oldTrigger)) {
       newTrigger.questions_remaining = oldTrigger.questions_remaining;
       newTrigger.completed_at = oldTrigger.completed_at;
     }
@@ -334,7 +332,7 @@ export const getUpdateSQL = data => {
   const updateSQL = [];
 
   forEach(keys, key => {
-    if (isInteger(data[key])) {
+    if (_.isInteger(data[key])) {
       updateSQL.push(`${key} = ${data[key]}`);
     } else {
       updateSQL.push(`${key} = '${data[key]}'`);

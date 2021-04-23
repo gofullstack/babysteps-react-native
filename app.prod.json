@@ -48,6 +48,7 @@
       "versionCode": 110,
       "package": "com.gofullstack.babysteps.prod",
       "googleServicesFile": "./google-services.prod.json",
+      "useNextNotificationsApi": true,
       "permissions": [
         "AUDIO_RECORDING",
         "RECORD_AUDIO",

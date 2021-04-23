@@ -42,6 +42,7 @@ const initialState = {
   error: null,
   id: null,
   registration_state: 'none',
+  last_registration_state: null,
   consent_last_updated_at: null,
   consent_updated_at: null,
   consent_last_version_id: null,

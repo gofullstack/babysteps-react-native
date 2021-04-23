@@ -48,6 +48,7 @@
       "versionCode": 41,
       "package": "com.gofullstack.babysteps.staging",
       "googleServicesFile": "./google-services.staging.json",
+      "useNextNotificationsApi": true,
       "permissions": [
         "AUDIO_RECORDING",
         "RECORD_AUDIO",
