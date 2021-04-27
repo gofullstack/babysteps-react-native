@@ -400,6 +400,7 @@ class SettingsScreen extends React.Component {
               style={uploadDatabaseSelected ? styles.linkTextDisabled : styles.linkText}
             >
               Upload Answers Database
+              {uploadDatabaseSelected ? ' - Done ' : ''}
             </Text>
             <Ionicons
               name="ios-arrow-forward"

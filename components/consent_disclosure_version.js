@@ -18,7 +18,7 @@ import Colors from '../constants/Colors';
 const { width, height } = Dimensions.get('window');
 const oneButtonWidth = width - 100;
 const twoButtonWidth = (width / 2) - 40;
-let webViewHeight = height * 0.6;
+let webViewHeight = height * 0.55;
 
 class ConsentDisclosureVersion extends Component {
   constructor(props) {
