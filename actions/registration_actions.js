@@ -474,7 +474,7 @@ export const createSubject = subject => {
   };
 };
 
-export const apiCreateSubject = data => {
+export const apiCreateSubject = (study_id, data) => {
   //delete data.id;
   delete data.api_id;
 
@@ -483,6 +483,7 @@ export const apiCreateSubject = data => {
       type: API_CREATE_SUBJECT_PENDING,
       payload: {
         data: {
+          study_id,
           subject: data,
         },
       },
@@ -521,7 +522,7 @@ export const updateSubject = data => {
   };
 };
 
-export const apiUpdateSubject = (session, data) => {
+export const apiUpdateSubject = (session, study_id, data) => {
   const api_id = data.api_id;
   delete data.id;
   delete data.api_id;
@@ -531,6 +532,7 @@ export const apiUpdateSubject = (session, data) => {
       type: API_UPDATE_SUBJECT_PENDING,
       payload: {
         data: {
+          study_id,
           subject: data,
         },
         session,

@@ -1,4 +1,4 @@
-{ 
+{
   "sessions": {
     "columns": {
       "id": "INTEGER PRIMARY KEY",
@@ -54,9 +54,9 @@
   },
   "users": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
+      "id": "INTEGER PRIMARY KEY",
       "api_id": "INTEGER",
-      "email": "TEXT", 
+      "email": "TEXT",
       "password": "TEXT",
       "first_name": "TEXT",
       "last_name": "TEXT",
@@ -67,7 +67,7 @@
   },
   "subjects": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
+      "id": "INTEGER PRIMARY KEY",
       "api_id": "INTEGER",
       "first_name": "TEXT",
       "last_name": "TEXT",
@@ -89,7 +89,7 @@
   },
   "respondents": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
+      "id": "INTEGER PRIMARY KEY",
       "api_id": "INTEGER",
       "user_id": "INTEGER",
       "respondent_type": "TEXT",
@@ -110,17 +110,15 @@
       "marital_status": "TEXT",
       "weight": "INTEGER",
       "height": "INTEGER",
-      "tos_id": "TEXT",
-      "irb_id": "TEXT",
-      "accepted_tos_at": "TEXT",
       "pregnant": "INTEGER",
       "push_token": "TEXT",
+      "push_error": "TEXT",
     },
     "indexes": [],
   },
   "respondents_subjects": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
+      "id": "INTEGER PRIMARY KEY",
       "api_id": "INTEGER",
       "respondent_id": "INTEGER",
       "subject_id": "INTEGER",
