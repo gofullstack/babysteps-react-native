@@ -192,7 +192,7 @@ class OverviewBirthFormScreen extends Component {
     const data = {...values, api_id: subject.data.api_id}
 
     if (!this.state.submittedApiUpdateSubject) {
-      this.props.apiUpdateSubject(session, data);
+      this.props.apiUpdateSubject(session, study_id, data);
       this.setState({ submittedApiUpdateSubject: true });
     } else if (!apiSubject.fetching && apiSubject.fetched) {
       if (!this.state.submittedApiFetchMilestoneCalendar) {
