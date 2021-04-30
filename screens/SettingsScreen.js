@@ -70,6 +70,11 @@ class SettingsScreen extends React.Component {
     this.props.fetchMilestoneAttachments();
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    const { user, respondent, subject } = nextProps.registration;
+    return !user.fetching && !respondent.fetching && !subject.fetching;
+  }
+
   componentDidUpdate() {
     const { subject } = this.props.registration;
     const { attachments } = this.props.milestones;
@@ -115,14 +120,15 @@ class SettingsScreen extends React.Component {
     const build = this.getAppVersion();
     const release = this.getRelease();
     const version = `${Constants.manifest.version}:${build}`;
-    const { session, registration } = this.props;
+    const session = this.props.session;
+    const user = this.props.registration.user.data;
     let body = `\n\n\n________________________\n\n`;
     body += `Platform: ${Platform.OS}\n`;
     body += `Version: ${version}\n`;
     body += `Release: ${release}\n`;
-    body += `Notifications Updated At: ${moment(this.props.session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\n`;
+    body += `Notifications Updated At: ${moment(session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\n`;
     body += `Notification Permissions: ${session.notifications_permission}\n`;
-    body += `User ID: ${registration.user.data.api_id}\n\n`;
+    body += `User ID: ${user.api_id}\n\n`;
     body += `________________________\n\n\n`;
     Linking.openURL(
       `mailto:feedback@babystepsapp.net?subject=BabySteps App Feedback (v${version})&body=${body}`,
@@ -130,13 +136,13 @@ class SettingsScreen extends React.Component {
   };
 
   handleDirectoryListingPress = async () => {
-    const { registration } = this.props;
+    const user = this.props.registration.user.data;
     const release = this.getRelease();
     const attachmentDir = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY  + '/'
     const fileNames = await FileSystem.readDirectoryAsync(attachmentDir);
     let body = `<div>Release: ${release}</div>`;
     body += `Directory: ${CONSTANTS.ATTACHMENTS_DIRECTORY}\n`;
-    body += `User ID: ${registration.user.data.api_id}\n`;
+    body += `User ID: ${user.api_id}\n`;
     body += '________________________\n\n';
 
     for (const fileName of fileNames) {
@@ -158,7 +164,6 @@ class SettingsScreen extends React.Component {
   handleUploadDatabasePress = () => {
     const user = this.props.registration.user.data;
     UploadSQLiteDatabase(user.api_id);
-    //UploadRawAttachments(user.api_id);
     this.setState({ uploadDatabaseSelected: true });
   };
 
@@ -315,7 +320,6 @@ class SettingsScreen extends React.Component {
         <Text>Approved By: {consent.tos_approved_by}</Text>
         <Text>ID Number: {consent.irb_id}</Text>
         <Text>Approval Date: {consent.tos_approved_on}</Text>
-        <Text>Accepted On: {moment(respondent.accepted_tos_at).format('MM/DD/YY',)}</Text>
 
         <TouchableOpacity
           style={styles.linkContainer}
@@ -350,8 +354,9 @@ class SettingsScreen extends React.Component {
           </Text>
           <Text>Notification Permission: {session.notifications_permission}</Text>
           <Text>Release: {release}</Text>
-          <Text>User ID: {user.api_id}</Text>
-
+          {user && (
+            <Text>User ID: {user.api_id}</Text>
+          )}
           <TouchableOpacity
             style={styles.linkContainer}
             onPress={this.handleFAQPress}

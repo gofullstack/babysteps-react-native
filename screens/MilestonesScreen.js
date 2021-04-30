@@ -26,6 +26,7 @@ import {
   fetchMilestoneGroups,
   fetchMilestoneTasks,
 } from '../actions/milestone_actions';
+import { fetchUser } from '../actions/registration_actions';
 
 import Colors from '../constants/Colors';
 import States from '../actions/states';
@@ -57,6 +58,7 @@ class MilestonesScreen extends Component {
       scrollToComplete: false,
     };
 
+    this.props.fetchUser();
     this.props.fetchMilestoneGroups();
     this.props.fetchMilestoneTasks();
   }
@@ -327,7 +329,11 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = ({ session, milestones }) => ({ session, milestones });
-const mapDispatchToProps = { fetchMilestoneGroups, fetchMilestoneTasks };
+const mapDispatchToProps = {
+  fetchMilestoneGroups,
+  fetchMilestoneTasks,
+  fetchUser,
+};
 
 export default connect(
   mapStateToProps,
