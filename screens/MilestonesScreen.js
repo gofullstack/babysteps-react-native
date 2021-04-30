@@ -107,9 +107,6 @@ class MilestonesScreen extends Component {
       ) {
         return false;
       }
-      if (findIndex(groups, ['id', task.milestone_group_id]) === -1) {
-        return false;
-      }
       // don't show task, linked by notification
       if (task.milestone_always_visible !== 1) {
         return false;
@@ -252,6 +249,7 @@ class MilestonesScreen extends Component {
   render() {
     const { tasksForList, initialIndex } = this.state;
     if (isEmpty(tasksForList)) return null;
+
     return (
       <View style={styles.container}>
         <Text style={styles.legend}>
@@ -268,7 +266,7 @@ class MilestonesScreen extends Component {
           renderSectionHeader={this.renderSectionHeader}
           renderItem={this.renderItem}
           sections={tasksForList}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => `key-${index}`}
         />
       </View>
     );

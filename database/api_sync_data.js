@@ -113,7 +113,11 @@ class ApiSyncData extends Component {
     }
 
     if (!uploadMilestonesSubmitted) {
-      SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
+      SyncMilestones(
+        CONSTANTS.STUDY_ID,
+        session.milestones_updated_at,
+        session.milestones_last_updated_at,
+      );
       this.setState({ uploadMilestonesSubmitted: true });
     }
 
@@ -202,6 +206,7 @@ class ApiSyncData extends Component {
       this.setState({
         appState: nextAppState,
         apiSyncData: true,
+        uploadMilestonesSubmitted: false,
         uploadAnswersSubmitted: false,
         uploadAttachmentsSubmitted: false,
         uploadMilestoneTriggersSubmitted: false,

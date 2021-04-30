@@ -1,8 +1,9 @@
-{ 
+{
   "milestone_triggers": {
     "columns": {
       "id": "INTEGER PRIMARY KEY",
       "subject_id": "INTEGER",
+      "study_id": "INTEGER",
       "milestone_id": "INTEGER",
       "task_id": "INTEGER",
       "task_type": "TEXT",
@@ -22,6 +23,7 @@
       "completed_at": "TEXT",
     },
     "indexes": [
+      "milestone_triggers_study_id ON milestone_triggers (study_id);",
       "milestone_triggers_milestone_id ON milestone_triggers (milestone_id);",
       "milestone_triggers_task_id ON milestone_triggers (task_id);",
       "milestone_triggers_momentary_assessment ON milestone_triggers (momentary_assessment);",

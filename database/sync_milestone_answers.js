@@ -96,7 +96,7 @@ const SyncMilestoneAnswers = subject_id => {
               const answers = response.rows['_array'];
               UploadMilestoneAnswers(answers);
             },
-            (_, error) => { 
+            (_, error) => {
               console.log(error);
             },
           );

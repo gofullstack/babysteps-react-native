@@ -89,6 +89,7 @@ class RegistrationUserForm extends Component {
         return;
       }
       if (apiUser.fetched) {
+        const registration_state = States.REGISTERING_RESPONDENT;
         this.props.updateSession({
           access_token: auth.accessToken,
           client: auth.client,
@@ -97,9 +98,8 @@ class RegistrationUserForm extends Component {
           email: apiUser.data.email,
           password: apiUser.data.password,
           uid: apiUser.data.email,
+          registration_state,
         });
-        const registration_state = States.REGISTERING_RESPONDENT;
-        this.props.updateSession({ registration_state });
         SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
       } // apiUser.fetched
     } // isSubmitting

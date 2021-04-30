@@ -148,7 +148,7 @@ class MilestonePregnancyHistoryScreen extends Component {
   };
 
   _saveAnswersData = answers => {
-    const answersFetched = this.state.answersFetched; 
+    const answersFetched = this.state.answersFetched;
     if (_.isEmpty(answers) || !answersFetched) {
       let numberOfPregnancies = this.state.numberOfPregnancies;
       let currentPregnancy = this.state.currentPregnancy;
@@ -308,8 +308,8 @@ class MilestonePregnancyHistoryScreen extends Component {
       this.props.apiUpdateMilestoneAnswers(session, section.id, answers);
       const calendar = _.find(this.props.milestones.calendar.data, ['task_id', section.task_id]);
       if (calendar && calendar.id) {
-        const date = new Date().toISOString();
-        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: {completed_at: date}});
+        const completed_at = new Date().toISOString();
+        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: {completed_at}});
       }
     }
     this.props.fetchMilestoneCalendar();
