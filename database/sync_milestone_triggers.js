@@ -8,6 +8,8 @@ import { apiFetchMilestoneCalendar } from '../actions/milestone_actions';
 
 import { getApiUrl, getMilestoneCalendar, insertRows } from './common';
 
+import CONSTANTS from '../constants';
+
 const db = SQLite.openDatabase('babysteps.db');
 
 const apiToken = Constants.manifest.extra.apiToken;
@@ -42,11 +44,12 @@ const SyncMilestoneTriggers = (subject_id, milestone_calendar_last_updated_at) =
     })
       .then(response => {
         const last_updated_at = response.data.last_updated_at;
+        const study_id = CONSTANTS.STUDY_ID;
         if (
           milestone_calendar_last_updated_at === null ||
           milestone_calendar_last_updated_at !== last_updated_at
         ) {
-          store.dispatch(apiFetchMilestoneCalendar({ subject_id }));
+          store.dispatch(apiFetchMilestoneCalendar({ study_id, subject_id }));
           UpdateMilestoneCalendarLastUpdated(last_updated_at);
         } else {
           console.log('*** Milestone Triggers up to date');

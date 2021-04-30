@@ -107,7 +107,9 @@ class SignInScreen extends Component {
         }
 
         if (!isEmpty(subject.data)) {
-          this.props.apiFetchMilestoneCalendar({ subject_id: subject.data.api_id })
+          const study_id = CONSTANTS.STUDY_ID;
+          const subject_id = subject.data.api_id;
+          this.props.apiFetchMilestoneCalendar({ study_id, subject_id })
         }
 
         this.props.updateSession({

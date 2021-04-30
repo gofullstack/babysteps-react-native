@@ -69,7 +69,7 @@ class OverviewTimeline extends React.Component {
 
     if (
       !isEmpty(subject.data) &&
-      !isEmpty(overview_timeline.data) && 
+      !isEmpty(overview_timeline.data) &&
       !overviewTimelinesLoaded
     ) {
       this.constructOverviewTimeline();
