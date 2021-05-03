@@ -80,7 +80,7 @@ class RegistrationUserForm extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
-    const { auth, user, apiUser } = this.props.registration;
+    const { auth, apiUser } = this.props.registration;
     const { isSubmitting, sessionSubmitted, userSubmitted } = this.state;
     if (isSubmitting) {
       if (apiUser.error) {
@@ -89,30 +89,18 @@ class RegistrationUserForm extends Component {
         return;
       }
       if (apiUser.fetched) {
-        if (!session.fetched && !sessionSubmitted) {
-          this.props.updateSession({
-            access_token: auth.accessToken,
-            client: auth.client,
-            uid: auth.uid,
-            user_api_id: auth.user_id,
-            email: apiUser.data.email,
-            password: apiUser.data.password,
-            uid: apiUser.data.email,
-          });
-          this.setState({ sessionSubmitted: true });
-        }
-        if (!user.fetched && !userSubmitted) {
-          this.props.createUser({
-            ...apiUser.data,
-            api_id: auth.user_id,
-          });
-          this.setState({ userSubmitted: true });
-        }
-        if (userSubmitted) {
-          const registration_state = States.REGISTERING_RESPONDENT;
-          this.props.updateSession({ registration_state });
-          SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
-        }
+        this.props.updateSession({
+          access_token: auth.accessToken,
+          client: auth.client,
+          uid: auth.uid,
+          user_api_id: auth.user_id,
+          email: apiUser.data.email,
+          password: apiUser.data.password,
+          uid: apiUser.data.email,
+        });
+        const registration_state = States.REGISTERING_RESPONDENT;
+        this.props.updateSession({ registration_state });
+        SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
       } // apiUser.fetched
     } // isSubmitting
   }
@@ -154,6 +142,7 @@ class RegistrationUserForm extends Component {
       <Formik
         onSubmit={values => {
           values.uid = values.email;
+          this.props.createUser(values);
           this.props.apiCreateUser(values);
         }}
         initialValues={this._getInitialValues()}

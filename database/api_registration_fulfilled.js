@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 import {
+  API_CREATE_USER_FULFILLED,
   API_CREATE_RESPONDENT_FULFILLED,
   API_CREATE_SUBJECT_FULFILLED,
 } from '../actions/types';
@@ -13,6 +14,24 @@ const db = SQLite.openDatabase('babysteps.db');
 export default store => next => action => {
   if (!action || !action.type) {
     return null;
+  }
+
+  if (action.type === API_CREATE_USER_FULFILLED) {
+    const headers = action.payload.headers;
+    const sql = `UPDATE users SET api_id=${headers.user_id}`;
+
+    db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, response) => {
+          console.log(`User API_ID updated from api`);
+        },
+        (_, error) => {
+          console.log(`ERROR - User API_ID not updated from api: ${error}`);
+        },
+      );
+    });
   }
 
   if (action.type === API_CREATE_RESPONDENT_FULFILLED) {

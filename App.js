@@ -31,10 +31,17 @@ import ConfirmConsentVersion from './components/confirm_consent_version';
 import CheckDataIntegrity from './database/check_data_integrity';
 import ApiSyncData from './database/api_sync_data';
 import ApiOfflineListener from './database/api_offline_listener';
+import Player from './components/Player';
 
 import store from './store';
 
-import Player from './components/Player';
+import checkRegistrationSchema from './database/check_registration_schema';
+import checkMilestonesSchema from './database/check_milestones_schema';
+import checkMilestoneTriggersSchema from './database/check_milestone_triggers_schema';
+import checkAnswersSchema from './database/check_answers_schema';
+import checkNotificationsSchema from './database/check_notifications_schema';
+import checkBabyBookSchema from './database/check_babybook_schema';
+import checkCustomDirectories from './database/check_custom_directories';
 
 import Colors from './constants/Colors';
 import soundLibrary from './constants/SoundLibrary';
@@ -127,6 +134,15 @@ export default class App extends Component {
       MaterialIcons: require('./assets/fonts/MaterialIcons.ttf'),
       'Material Icons': require('./assets/fonts/MaterialIcons.ttf'),
     });
+
+    // async check of schemas
+    await checkCustomDirectories();
+    await checkRegistrationSchema();
+    await checkNotificationsSchema();
+    await checkMilestonesSchema();
+    await checkMilestoneTriggersSchema();
+    await checkAnswersSchema();
+    await checkBabyBookSchema();
   };
 
   render() {

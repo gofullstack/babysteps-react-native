@@ -36,15 +36,16 @@ export const columnNames = tableName => {
 };
 
 export const addColumn = async (tableName, columnName, type) => {
-  db.transaction(tx => {
-    tx.executeSql(
-      `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${type};`,
-      [],
-      (_, rows) => console.log(`*** Add Column ${columnName} successful`),
-      (_, error) => console.log(`*** Column ${columnName} exists`),
-    );
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${type};`,
+        [],
+        (_, rows) => resolve(console.log(`*** Add Column ${columnName} successful`)),
+        (_, error) => console.log(`*** Column ${columnName} exists`),
+      );
+    });
   });
-  return null;
 };
 
 export const confirmColumns = async (schema, tableName) => {
@@ -52,55 +53,65 @@ export const confirmColumns = async (schema, tableName) => {
   // list of columns in SQLite
   const result = await columnNames(tableName);
   const existingColumns = result.map(c => c.name).sort();
-  schemaColumns.forEach(columnName => {
+  for (const columnName of schemaColumns) {
     if (!existingColumns.includes(columnName)) {
-      addColumn(tableName, columnName, schema[columnName]);
+      await addColumn(tableName, columnName, schema[columnName]);
     }
-  });
+  };
 };
 
 export const confirmTables = async schema => {
   const schemaTables = Object.keys(schema);
   // list of tables in SQLite
-  const result = await tableNames(); 
+  const result = await tableNames();
   const existingTables = result.map(a => a.name).sort();
-  schemaTables.forEach(tableName => {
+  for (const tableName of schemaTables) {
     if (!existingTables.includes(tableName)) {
       createTable(tableName, schema[tableName]);
+      createIndexes(tableName, schema[tableName]);
       // need a session record to initialize app
       if (tableName === 'sessions') createSessionRecord();
     } else {
       confirmColumns(schema[tableName].columns, tableName);
     }
-  });
+  }
   return null;
 };
 
 export const createTable = async (tableName, schema) => {
-  db.transaction(tx => {
-    let sql = `CREATE TABLE IF NOT EXISTS ${tableName} (`;
-    Object.keys(schema.columns).forEach(column => {
-      sql += `${column} ${schema.columns[column]}, `;
-    });
-    sql = sql.slice(0, -2);
-    sql += ' );';
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      let sql = `CREATE TABLE IF NOT EXISTS ${tableName} (`;
+      Object.keys(schema.columns).forEach(column => {
+        sql += `${column} ${schema.columns[column]}, `;
+      });
+      sql = sql.slice(0, -2);
+      sql += ' );';
 
-    tx.executeSql(
-      sql, [],
-      (_, rows) => console.log('** Execute ' + sql),
-      (_, error) => console.log('*** Error in executing ' + sql),
-    );
-    schema.indexes.forEach(sql => {
       tx.executeSql(
-        'CREATE INDEX IF NOT EXISTS ' + sql,
+        sql,
         [],
-        (_, rows) => console.log('** Execute CREATE INDEX ' + sql),
-        (_, error) => console.log('*** Error in executing CREATE INDEX ' + sql),
+        (_, rows) => resolve(console.log('** Execute ' + sql)),
+        (_, error) => reject(console.log('*** Error in executing ' + sql)),
       );
     });
   });
-  return null;
 };
+
+export const createIndexes = async (tableName, schema) => {
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      schema.indexes.forEach(sql => {
+        tx.executeSql(
+          'CREATE INDEX IF NOT EXISTS ' + sql,
+          [],
+          (_, rows) => resolve(console.log('** Execute CREATE INDEX ' + sql)),
+          (_, error) => reject(console.log('*** Error in executing CREATE INDEX ' + sql)),
+        );
+      });
+    });
+  });
+}
 
 export const insertRows = async (tableName, schema, data) => {
   if (typeof data !== 'object') {
@@ -162,13 +173,15 @@ export const insertRows = async (tableName, schema, data) => {
 };
 
 export const dropTable = async tableName => {
-  db.transaction(tx => {
-    tx.executeSql(
-      'DROP TABLE IF EXISTS ' + tableName,
-      [],
-      (_, rows) => console.log('** Drop table ' + tableName),
-      (_, error) => console.log('*** Error in dropping table ' + tableName),
-    );
+  return new Promise((resolve, reject) => {
+    db.transaction(tx => {
+      tx.executeSql(
+        'DROP TABLE IF EXISTS ' + tableName,
+        [],
+        (_, result) => resolve(console.log('** Drop table ' + tableName)),
+        (_, error) => reject(console.log('*** Error in dropping table ' + tableName)),
+      );
+    });
   });
 };
 

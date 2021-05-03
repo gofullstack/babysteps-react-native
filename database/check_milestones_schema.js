@@ -2,20 +2,20 @@ import { confirmTables, dropTable } from './common';
 import CONSTANTS from '../constants';
 import schema from './milestones_schema.json';
 
-const checkMilestonesSchema = () => {
-  console.log('checkMilestonesSchema');
+const checkMilestonesSchema = async () => {
+  console.log('*** Check Milestones Schema');
 
   // list of tables from schema
   const tables = Object.keys(schema);
 
   // drop tables for testing
   if (CONSTANTS.DROP_MILESTONE_TABLES) {
-    tables.forEach(tableName => {
-      dropTable(tableName);
-    });
+    for (const tableName of tables) {
+      await dropTable(tableName);
+    };
   }
 
-  confirmTables(schema);
+  await confirmTables(schema);
 
   return null;
 };

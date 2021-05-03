@@ -4,20 +4,20 @@ import { confirmTables, dropTable } from './common';
 import CONSTANTS from '../constants';
 import schema from './babybook_schema.json';
 
-const checkBabyBookSchema = () => {
-  console.log('checkBabyBookSchema');
+const checkBabyBookSchema = async () => {
+  console.log('*** Check Babybook Schema');
 
   // list of tables from schema
   const tables = Object.keys(schema);
 
   // drop tables for testing
   if (CONSTANTS.DROP_BABYBOOK_TABLES) {
-    tables.forEach(tableName => {
-      dropTable(tableName);
-    });
+    for (const tableName of tables) {
+      await dropTable(tableName);
+    };
   }
 
-  confirmTables(schema);
+  await confirmTables(schema);
 
   return null;
 

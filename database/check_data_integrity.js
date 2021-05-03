@@ -21,14 +21,6 @@ import {
   deleteMilestoneAttachment,
 } from '../actions/milestone_actions';
 
-import checkRegistrationSchema from './check_registration_schema';
-import checkMilestonesSchema from './check_milestones_schema';
-import checkMilestoneTriggersSchema from './check_milestone_triggers_schema';
-import checkAnswersSchema from './check_answers_schema';
-import checkNotificationsSchema from './check_notifications_schema';
-import checkBabyBookSchema from './check_babybook_schema';
-import checkCustomDirectories from './check_custom_directories';
-
 import { addColumn } from './common';
 
 import CONSTANTS from '../constants';
@@ -54,15 +46,6 @@ class CheckDataIntegrity extends Component {
 
   componentDidMount = async () => {
     console.log('*** Checking Data Integrity');
-
-    // async check of schemas
-    await checkRegistrationSchema();
-    await checkMilestonesSchema();
-    await checkMilestoneTriggersSchema();
-    await checkAnswersSchema();
-    await checkNotificationsSchema();
-    await checkBabyBookSchema();
-    await checkCustomDirectories();
   };
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -141,7 +124,7 @@ class CheckDataIntegrity extends Component {
     const session = this.props.session;
     const { user } = this.props.registration;
     const { userPasswordUpdated } = this.state;
-    
+
     if (user.fetched && !_.isEmpty(user.data)) {
       if (
         (!session.uid && user.data.email) ||

@@ -3,18 +3,18 @@ import { confirmTables, dropTable } from './common';
 import CONSTANTS from '../constants';
 import schema from './registration_schema.json';
 
-const checkRegistrationSchema = () => {
-  console.log('checkRegistrationSchema');
+const checkRegistrationSchema = async () => {
+  console.log('*** Check Registration Schema');
 
   // drop tables for testing
   if (CONSTANTS.DROP_REGISTRATION_TABLES) {
     const tables = Object.keys(schema);
-    tables.forEach(tableName => {
-      dropTable(tableName);
-    });
+    for (const tableName of tables) {
+      await dropTable(tableName);
+    }
   }
 
-  confirmTables(schema);
+  await confirmTables(schema);
 
   return null;
 };

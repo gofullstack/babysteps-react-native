@@ -2,20 +2,20 @@ import { confirmTables, dropTable } from './common';
 import CONSTANTS from '../constants';
 import schema from './answers_schema.json';
 
-const checkAnswersSchema = () => {
-  console.log('checkAnswersSchema');
+const checkAnswersSchema = async () => {
+  console.log('*** Check Answers Schema');
 
   // list of tables from schema
   const tables = Object.keys(schema);
 
   // drop tables for testing
   if (CONSTANTS.DROP_ANSWER_TABLE) {
-    tables.forEach(TableName => {
-      dropTable(TableName);
-    });
+    for (const tableName of tables) {
+      await dropTable(TableName);
+    };
   }
 
-  confirmTables(schema);
+  await confirmTables(schema);
 
   return null;
 };
