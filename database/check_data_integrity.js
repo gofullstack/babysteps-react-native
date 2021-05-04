@@ -21,8 +21,6 @@ import {
   deleteMilestoneAttachment,
 } from '../actions/milestone_actions';
 
-import { addColumn } from './common';
-
 import CONSTANTS from '../constants';
 
 class CheckDataIntegrity extends Component {
@@ -30,6 +28,7 @@ class CheckDataIntegrity extends Component {
     super(props);
 
     this.state = {
+      sessionUpdated: false,
       cleanDuplicateAnswersSubmitted: false,
       cleanDuplicateAttachmentsSubmitted: false,
       userPasswordUpdated: false,
@@ -66,13 +65,15 @@ class CheckDataIntegrity extends Component {
     const session = this.props.session;
     const { answers, attachments } = this.props.milestones;
     const {
+      sessionUpdated,
       cleanDuplicateAnswersSubmitted,
       cleanDuplicateAttachmentsSubmitted,
       signatureFileUpdated,
     } = this.state;
 
-    if (!session.fetching && session.fetched) {
+    if (!sessionUpdated && session.fetched) {
       this.confirmSessionAttributes();
+      this.setState({ sessionUpdated: true });
     }
 
     if (!signatureFileUpdated) {
@@ -118,6 +119,7 @@ class CheckDataIntegrity extends Component {
   };
 
   confirmSessionAttributes = () => {
+    console.log('*** Begin Confirm Session Attributes');
     const session = this.props.session;
     const { user } = this.props.registration;
     const { userPasswordUpdated } = this.state;
@@ -228,20 +230,15 @@ class CheckDataIntegrity extends Component {
             } // if resultFile.exists
           } // if attachment.uri
 
-          if (
-            !attachment.answer_id ||
-            !attachment.user_api_id ||
-            !attachment.subject_api_id
-          ) {
-            attachment = {
-              ...attachment,
-              answer_id: answer.id,
-              user_id: user.data.api_id,
-              subject_api_id: subject.data.api_id
-            };
-            console.log(`*** Attachment updated with foreign keys: ${{ attachment }}`);
-            this.props.updateMilestoneAttachment(attachment);
-          }
+          attachment = {
+            ...attachment,
+            answer_id: answer.id,
+            user_id: user.data.api_id,
+            subject_api_id: subject.data.api_id,
+          };
+          console.log(`*** Attachment updated with foreign keys: ${attachment.id}`);
+          this.props.updateMilestoneAttachment(attachment);
+
         } else {
           // delete duplicates
           this.props.deleteMilestoneAttachment(attachment.id);
