@@ -57,7 +57,7 @@ class OverviewScreen extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const { groups } = nextProps.milestone;
+    const { groups } = nextProps.milestones;
     const { subject } = nextProps.registration;
     return !groups.fetching && !subject.fetching;
   }
@@ -74,6 +74,7 @@ class OverviewScreen extends React.Component {
     const { groups } = this.props.milestones;
     const { subject } = this.props.registration;
     const { date_of_birth, expected_date_of_birth } = subject.data;
+
     let baseDate = '';
     if (date_of_birth) {
       baseDate = moment(date_of_birth, 'YYYY-MM-DD');
@@ -97,8 +98,8 @@ class OverviewScreen extends React.Component {
       // locate index of current milestone group
       let currentGroupIndex = findIndex(milestoneGroups, group => {
         return (
-          group.week_start_at <= currentWeek &&
-          currentWeek <= group.week_end_at
+          group.baseline_range_days_start <= currentDay &&
+          currentDay <= group.baseline_range_days_end
         );
       });
 
