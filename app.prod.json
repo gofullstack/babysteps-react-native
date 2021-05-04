@@ -30,7 +30,7 @@
     ],
     "version": "1.2.5",
     "ios": {
-      "buildNumber": "114",
+      "buildNumber": "115",
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps",
       "associatedDomains": [
@@ -45,7 +45,7 @@
       }
     },
     "android": {
-      "versionCode": 114,
+      "versionCode": 115,
       "package": "com.gofullstack.babysteps.prod",
       "googleServicesFile": "./google-services.prod.json",
       "useNextNotificationsApi": true,
