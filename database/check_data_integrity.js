@@ -59,7 +59,7 @@ class CheckDataIntegrity extends Component {
       !subject.fetching &&
       !answers.fetching &&
       !attachments.fetching
-    )
+    );
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -84,7 +84,6 @@ class CheckDataIntegrity extends Component {
 
     if (
       answers.fetched &&
-      attachments.fetched &&
       !_.isEmpty(answers.data) &&
       !cleanDuplicateAnswersSubmitted
     ) {
@@ -95,8 +94,6 @@ class CheckDataIntegrity extends Component {
 
     if (
       cleanDuplicateAnswersSubmitted &&
-      answers.fetched &&
-      !_.isEmpty(answers.data) &&
       attachments.fetched &&
       !_.isEmpty(attachments.data) &&
       !cleanDuplicateAttachmentsSubmitted
@@ -169,7 +166,9 @@ class CheckDataIntegrity extends Component {
         // delete all but first record (highest ID)
         if (answer.id !== ansChoiceID[0].id) {
           this.props.deleteMilestoneAnswer(answer.id);
-        } else if (
+          return null;
+        }
+        if (
           !answer.user_api_id ||
           !answer.respondent_api_id ||
           !answer.subject_api_id

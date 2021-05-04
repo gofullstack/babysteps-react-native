@@ -166,6 +166,7 @@ class ApiSyncData extends Component {
 
             // upload any attachments not yet uploaded
             if (
+              uploadAnswersSubmitted &&
               !uploadAttachmentsSubmitted // &&
               // session.connectionType === 'wifi'
             ) {
