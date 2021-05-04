@@ -56,33 +56,33 @@ class OverviewScreen extends React.Component {
     };
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    const { groups } = nextProps.milestone;
+    const { subject } = nextProps.registration;
+    return !groups.fetching && !subject.fetching;
+  }
+
   componentDidUpdate(prevProps, prevState) {
     const subject = this.props.registration.subject;
     const milestoneGroupsLoaded = this.state.milestoneGroupsLoaded;
-    if (
-      subject.fetched &&
-      !isEmpty(subject.data) &&
-      !milestoneGroupsLoaded
-    ) {
+    if (subject.fetched && !isEmpty(subject.data) && !milestoneGroupsLoaded) {
       this.getMilestoneGroups();
     }
   }
 
   getMilestoneGroups = () => {
     const { groups } = this.props.milestones;
-    const {
-      date_of_birth,
-      expected_date_of_birth,
-    } = this.props.registration.subject.data;
+    const { subject } = this.props.registration;
+    const { date_of_birth, expected_date_of_birth } = subject.data;
     let baseDate = '';
     if (date_of_birth) {
       baseDate = moment(date_of_birth, 'YYYY-MM-DD');
     } else {
       baseDate = moment(expected_date_of_birth, 'YYYY-MM-DD');
     }
-    const currentWeek = moment().diff(baseDate, 'weeks');
+    const currentDay = moment().diff(baseDate, 'days');
 
-    if (!groups.fetching && groups.fetched) {
+    if (groups.fetched) {
 
       if (isEmpty(groups.data)) {
         this.props.fetchMilestoneGroups();
@@ -119,7 +119,7 @@ class OverviewScreen extends React.Component {
     return (
       <View key={data.itemIndex} style={styles.mgSlideContainer}>
         <TouchableOpacity
-          onPress={() => navigate('MilestonesStack', {currentGroupIndex: data.itemIndex})} 
+          onPress={() => navigate('MilestonesStack', {currentGroupIndex: data.itemIndex})}
         >
           <Image source={group.uri} style={styles.mgItemImage} />
           <View style={styles.mgItemFooter}>
