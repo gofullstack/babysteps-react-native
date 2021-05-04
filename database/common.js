@@ -168,8 +168,7 @@ export const insertRows = async (tableName, schema, data) => {
         });
       }, // db.transaction
     );
-  }); // await Promise
-  return null;
+  }); // Promise
 };
 
 export const dropTable = async tableName => {

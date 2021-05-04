@@ -31,9 +31,9 @@ class ConsentSignatureForm extends Component {
       yet_undefined.includes(session.screening_blood_notification) ? true : !!session.screening_blood_notification;
     const screening_blood_physician_notification =
       yet_undefined.includes(session.screening_blood_physician_notification) ? true : !!session.screening_blood_physician_notification;
-    const video_presentation = 
+    const video_presentation =
       yet_undefined.includes(session.video_presentation) ? 'yes_study_presentations' : !!session.video_presentation;
-    const video_sharing = 
+    const video_sharing =
       yet_undefined.includes(session.video_sharing) ? 'yes_other_researchers' : !!session.video_sharing;
 
     const remoteDebug = (typeof DedicatedWorkerGlobalScope) !== 'undefined';
@@ -90,7 +90,7 @@ class ConsentSignatureForm extends Component {
       }
       const resultFile = await FileSystem.getInfoAsync(uri);
 
-      if (!remoteDebug || resultFile.exists) {
+      if (remoteDebug || resultFile.exists) {
         const {
           screening_blood,
           screening_blood_notification,
@@ -284,9 +284,9 @@ class ConsentSignatureForm extends Component {
           </Text>
 
           <CheckBox
-            title="Yes, I allow the investigators to show digital video clips 
-              of the interaction with my child during research presentations. 
-              These videos may also be used by researchers at other institutions, 
+            title="Yes, I allow the investigators to show digital video clips
+              of the interaction with my child during research presentations.
+              These videos may also be used by researchers at other institutions,
               who are working with the current Principal Investigator on this study."
             textStyle={styles.checkboxText}
             checked={video_presentation === 'yes_study_presentations'}
