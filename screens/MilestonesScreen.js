@@ -17,9 +17,8 @@ import filter from 'lodash/filter';
 import groupBy from 'lodash/groupBy';
 import reduce from 'lodash/reduce';
 import find from 'lodash/find';
-import findIndex from 'lodash/findIndex';
 
-import moment from 'moment';
+import Moment from 'moment';
 
 import { connect } from 'react-redux';
 import {
@@ -66,9 +65,9 @@ class MilestonesScreen extends Component {
   shouldComponentUpdate(nextProps, nextState) {
     // trap section header render - don't update view
     const newSectionID = nextState.sectionID !== this.state.sectionID;
-    const tasks = nextProps.milestones.tasks;
+    const { tasks, calendar } = nextProps.milestones;
     //const newSectionIndex = nextState.sectionIndex !== this.state.sectionIndex;
-    return !newSectionID && tasks.fetched && !tasks.fetching;
+    return !newSectionID && !tasks.fetching && !calendar.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -144,8 +143,8 @@ class MilestonesScreen extends Component {
 
   handleOnPress = (task, calendar) => {
     if (!CONSTANTS.TESTING_ENABLE_ALL_TASKS) {
-      if (moment().isBefore(calendar.available_start_at)) {
-        const available = moment(calendar.available_start_at).format('MM/DD/YYYY');
+      if (Moment().isBefore(calendar.available_start_at)) {
+        const available = Moment(calendar.available_start_at).format('MM/DD/YYYY');
         showMessage({
           message: `This task will be available ${available}. Please check back then.`,
           type: 'warning',
@@ -153,8 +152,8 @@ class MilestonesScreen extends Component {
         });
         return null;
       }
-      if (moment().isAfter(calendar.available_end_at) && !calendar.completed_at) {
-        const ended = moment(calendar.available_end_at).format('MM/DD/YYYY');
+      if (Moment().isAfter(calendar.available_end_at) && !calendar.completed_at) {
+        const ended = Moment(calendar.available_end_at).format('MM/DD/YYYY');
         showMessage({
           message: `Sorry, this task is expired on ${ended} and is no longer available.`,
           type: 'warning',
@@ -183,7 +182,7 @@ class MilestonesScreen extends Component {
         checkboxSource = require('../assets/images/milestones_checkbox_complete.png');
       }
       if (!CONSTANTS.TESTING_ENABLE_ALL_TASKS) {
-        if (moment().isBefore(calendar.available_start_at) || moment().isAfter(calendar.available_end_at)) {
+        if (Moment().isBefore(calendar.available_start_at) || Moment().isAfter(calendar.available_end_at)) {
           color = Colors.lightGrey;
         }
       }

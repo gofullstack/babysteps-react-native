@@ -1,8 +1,8 @@
-{ 
+{
   "studies": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
-      "name": "TEXT", 
+      "id": "INTEGER PRIMARY KEY",
+      "name": "TEXT",
       "description": "TEXT",
       "duration_days": "INTEGER",
       "baseline_type": "INTEGER",
@@ -11,10 +11,10 @@
   },
   "milestone_groups": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
-      "study_id": "INTEGER", 
+      "id": "INTEGER PRIMARY KEY",
+      "study_id": "INTEGER",
       "position": "INTEGER",
-      "visible": "INTEGER", 
+      "visible": "INTEGER",
       "title": "TEXT",
       "week_start_at": "INTEGER",
       "week_end_at": "INTEGER",
@@ -28,31 +28,29 @@
   },
   "milestones": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
-      "milestone_group_id": "INTEGER", 
-      "position": "INTEGER", 
-      "title": "TEXT", 
+      "id": "INTEGER PRIMARY KEY",
+      "position": "INTEGER",
+      "title": "TEXT",
       "message": "TEXT",
       "momentary_assessment": "INTEGER",
       "frequency": "TEXT",
       "response_scale": "TEXT",
-      "days_since_baseline": "INTEGER", 
-      "always_visible": "INTEGER", 
+      "days_since_baseline": "INTEGER",
+      "always_visible": "INTEGER",
       "notify": "INTEGER"
     },
     "indexes": [
-      "milestones_milestone_group_id ON milestones (milestone_group_id)",
       "milestones_position ON milestones (position);",
       "milestones_title ON milestones (title);"
     ]
   },
   "tasks": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
-      "milestone_id": "INTEGER", 
-      "task_type": "TEXT", 
-      "position": "INTEGER", 
-      "study_only": "INTEGER", 
+      "id": "INTEGER PRIMARY KEY",
+      "milestone_id": "INTEGER",
+      "task_type": "TEXT",
+      "position": "INTEGER",
+      "study_only": "INTEGER",
       "baby_book": "INTEGER",
       "pregnancy_period": "TEXT",
       "name": "TEXT"
@@ -67,9 +65,9 @@
   },
   "task_attachments": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
-      "task_id": "INTEGER", 
-      "attachment_url": "TEXT", 
+      "id": "INTEGER PRIMARY KEY",
+      "task_id": "INTEGER",
+      "attachment_url": "TEXT",
       "content_type": "TEXT"
     },
     "indexes": [
@@ -77,12 +75,12 @@
     ]
   },
   "sections": {
-    "columns":{ 
-      "id": "INTEGER PRIMARY KEY", 
-      "task_id": "INTEGER", 
-      "section_type": "TEXT", 
-      "position": "INTEGER", 
-      "title": "TEXT", 
+    "columns":{
+      "id": "INTEGER PRIMARY KEY",
+      "task_id": "INTEGER",
+      "section_type": "TEXT",
+      "position": "INTEGER",
+      "title": "TEXT",
       "body": "TEXT"
     },
     "indexes": [
@@ -93,12 +91,12 @@
   },
   "questions": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
-      "section_id": "INTEGER", 
-      "option_group_id": "INTEGER", 
-      "position": "INTEGER", 
-      "question_number": "TEXT", 
-      "title": "TEXT", 
+      "id": "INTEGER PRIMARY KEY",
+      "section_id": "INTEGER",
+      "option_group_id": "INTEGER",
+      "position": "INTEGER",
+      "question_number": "TEXT",
+      "title": "TEXT",
       "body": "TEXT"
     },
     "indexes": [
@@ -109,8 +107,8 @@
   },
   "option_groups": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
-      "input_type": "TEXT", 
+      "id": "INTEGER PRIMARY KEY",
+      "input_type": "TEXT",
       "rn_input_type": "TEXT",
       "name": "TEXT"
     },
@@ -120,14 +118,14 @@
   },
   "choices": {
     "columns": {
-      "id": "INTEGER PRIMARY KEY", 
+      "id": "INTEGER PRIMARY KEY",
       "question_id": "INTEGER",
       "option_group_id": "INTEGER",
-      "position": "INTEGER", 
-      "body": "TEXT", 
+      "position": "INTEGER",
+      "body": "TEXT",
       "score": "INTEGER",
       "overview_timeline": "TEXT",
-      "require_explanation": "TEXT", 
+      "require_explanation": "TEXT",
       "unit_of_measure": "TEXT"
     },
     "indexes": [

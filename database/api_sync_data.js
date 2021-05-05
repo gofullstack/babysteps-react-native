@@ -107,8 +107,11 @@ class ApiSyncData extends Component {
     }
 
     if (session.fetched && !updateConsentVersionSubmitted) {
-      const study_id = CONSTANTS.STUDY_ID;
-      SyncConsentVersion(study_id, session.consent_last_updated_at);
+      SyncConsentVersion(
+        CONSTANTS.STUDY_ID,
+        session.consent_update_at,
+        session.consent_last_updated_at,
+      );
       this.setState({ updateConsentVersionSubmitted: true });
     }
 

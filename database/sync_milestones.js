@@ -49,7 +49,7 @@ const SyncMilestones = (study_id, milestones_updated_at, milestones_last_updated
               milestones_updated_at: timeNow.format('YYYY-MM-DD HH:mm:SS'),
             }),
           );
-          console.log(`*** Session milestones_last_updated_at ${last_updated_at}`)
+          console.log(`*** Session milestones_updated_at ${timeNow.format('YYYY-MM-DD')}`)
         } else {
           console.log('*** Milestones are up to date');
         }

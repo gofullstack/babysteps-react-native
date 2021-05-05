@@ -406,6 +406,7 @@ class MilestoneQuestionsScreen extends Component {
           newAttachment.content_type = ImageFormats[fileType];
           break;
         case 'file_video':
+        case 'file_video_frustration':
           newAttachment.content_type = VideoFormats[fileType];
           break;
         case 'file_audio':
