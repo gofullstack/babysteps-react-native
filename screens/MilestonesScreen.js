@@ -119,7 +119,9 @@ class MilestonesScreen extends Component {
       tasksForList,
       (acc, data, index) => {
         const group = find(groups, ['id', data[0].milestone_group_id]);
-        acc.push({ key: index, id: group.id, title: group.title, data });
+        if (!isEmpty(group)) {
+          acc.push({ key: index, id: group.id, title: group.title, data });
+        }
         return acc;
       },
       [],
