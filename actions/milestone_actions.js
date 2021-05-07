@@ -438,6 +438,7 @@ export const fetchMilestoneTasks = () => {
         mg.visible AS milestone_group_visible, \
         mg.id AS milestone_group_id, \
         ms.position AS milestone_position, \
+        ms.days_since_baseline AS milestone_days_since_baseline, \
         ms.always_visible AS milestone_always_visible, \
         ms.title AS milestone_title, \
         ms.momentary_assessment AS momentary_assessment, \

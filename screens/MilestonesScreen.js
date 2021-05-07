@@ -15,6 +15,7 @@ import { showMessage } from 'react-native-flash-message';
 import isEmpty from 'lodash/isEmpty';
 import filter from 'lodash/filter';
 import groupBy from 'lodash/groupBy';
+import orderBy from 'lodash/sortBy';
 import reduce from 'lodash/reduce';
 import find from 'lodash/find';
 
@@ -115,6 +116,7 @@ class MilestonesScreen extends Component {
 
     tasksForList = groupBy(tasksForList, task => task.milestone_group_id);
 
+    // remove any tasks without a milestone group
     tasksForList = reduce(
       tasksForList,
       (acc, data, index) => {
@@ -126,6 +128,20 @@ class MilestonesScreen extends Component {
       },
       [],
     );
+
+    // order by study_only, then days_since_baseline
+    tasksForList = tasksForList.map(group => {
+      const study_only = orderBy(
+        filter(group.data, { study_only: 1 }),
+        'milestone_days_since_baseline',
+      );
+      const included = orderBy(
+        filter(group.data, { study_only: 0 }),
+        'milestone_days_since_baseline',
+      );
+      group.data = [...study_only, ...included];
+      return group;
+    });
 
     this.updateInitialIndex(sectionIndex, tasksForList);
 
