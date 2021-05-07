@@ -36,7 +36,7 @@
       "requireFullScreen": true,
       "associatedDomains": [
         "webcredentials:babysteps-staging.icts.uiowa.edu",
-        "webcredentials:babysteps.icts.uiowa.edu"
+        "webcredentials:staging-api.babystepsapp.net"
       ],
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for this study and the baby book feature.  For example, the study requires that you frequently take video of playing with your baby. The use of such images is defined in the Consent Agreement provided when you registered on the app.",

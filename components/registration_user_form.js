@@ -183,6 +183,7 @@ class RegistrationUserForm extends Component {
                 type="email"
                 inputStyle={AppStyles.registrationTextInput}
                 inputContainerStyle={AppStyles.registrationTextInputContainer}
+                textContentType="username"
               />
               <TextField
                 label="Password"
@@ -190,6 +191,7 @@ class RegistrationUserForm extends Component {
                 type="password"
                 inputStyle={AppStyles.registrationTextInput}
                 inputContainerStyle={AppStyles.registrationTextInputContainer}
+                textContentType="newPassword"
               />
 
               <Text style={styles.errorMessage}>

@@ -34,7 +34,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps",
       "associatedDomains": [
-        "webcredentials:babysteps-staging.icts.uiowa.edu",
+        "webcredentials:api.babystepsapp.net",
         "webcredentials:babysteps.icts.uiowa.edu"
       ],
       "infoPlist": {
