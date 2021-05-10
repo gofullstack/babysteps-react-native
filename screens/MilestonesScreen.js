@@ -72,6 +72,7 @@ class MilestonesScreen extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    const prevTasks = prevProps.milestones.tasks;
     const { tasks } = this.props.milestones;
     const { tasksForList, tasksSaved, sectionIndex } = this.state;
     // default to navigation param, then subject base group
@@ -80,8 +81,10 @@ class MilestonesScreen extends Component {
       selectedGroupIndex = this.props.session.current_group_index;
     }
 
-    if (tasks.fetched && !isEmpty(tasks.data) && !tasksSaved) {
-      this._saveTasksData(tasks);
+    if (tasks.fetched && !isEmpty(tasks.data)) {
+      if (prevTasks !== tasks || !tasksSaved) {
+        this._saveTasksData(tasks);
+      }
     }
     if (
       tasksForList.length !== 0 &&
