@@ -19,12 +19,9 @@ import moment from 'moment';
 
 import { connect } from 'react-redux';
 
-import memoize from "memoize-one";
-
-import { updateSession } from '../actions/session_actions';
+import { fetchMilestoneCalendar } from '../actions/milestone_actions';
 
 import Colors from '../constants/Colors';
-import States from '../actions/states';
 
 const { width, height } = Dimensions.get('window');
 
@@ -43,28 +40,6 @@ class OverviewScreen extends React.Component {
     header: null,
   };
 
-  memoizedScreeningEvents = memoize( ( moment, calendar, api_calendar ) => {
-    //const calendar = milestones.calendar;
-
-    let screeningEvents = filter(calendar.data, s => {
-      if (s.momentary_assessment) {
-        return false;
-      }
-      if (s.study_only !== 1) {
-        return false;
-      }
-      if (s.completed_at) {
-        return false;
-      }
-      return ( moment.isAfter(s.available_start_at) && moment.isBefore(s.available_end_at) );
-    });
-    screeningEvents = sortBy(screeningEvents, s => {
-      const notify_at = new Date(s.notify_at);
-      return notify_at.toISOString();
-    });
-    return screeningEvents;
-  });
-
   constructor(props) {
     super(props);
 
@@ -74,20 +49,17 @@ class OverviewScreen extends React.Component {
     };
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    const session = this.props.session;
-    const subject = this.props.registration.subject;
-    const { calendar, api_calendar } = this.props.milestones;
-    const { sliderLoading } = this.state;
+  shouldComponentUpdate(nextProps, nextState) {
+    const { calendar, api_calendar } = nextProps.milestones;
+    return !calendar.fetching && !api_calendar.fetching;
+  }
 
-    if (
-      subject.fetched && 
-      !isEmpty(subject.data) &&
-      calendar.fetched &&
-      sliderLoading
-    ) {
+  componentDidUpdate() {
+    const { calendar } = this.props.milestones;
+    const { sliderLoading } = this.state;
+    if (!isEmpty(calendar.data) && sliderLoading) {
       this.setState({ sliderLoading: false });
-    } 
+    }
   }
 
   handleOnPress = task => {
@@ -99,17 +71,39 @@ class OverviewScreen extends React.Component {
     }
   };
 
+  screeningEvents = () => {
+    const { calendar } = this.props.milestones;
+
+    if (isEmpty(calendar.data)) return [];
+
+    let screeningEvents = filter(calendar.data, s => {
+      if (s.momentary_assessment || s.study_only !== 1 || s.completed_at) {
+        return false;
+      }
+      return true;
+      //return ( moment.isAfter(s.available_start_at) && moment.isBefore(s.available_end_at) );
+    });
+    screeningEvents = sortBy(screeningEvents, s => {
+      const start_at = new Date(s.available_start_at);
+      return start_at.toISOString();
+    });
+    return screeningEvents;
+  };
+
   renderScreeningItem = data => {
     const task = { ...data.item };
     task.trigger_id = task.id;
     task.id = task.task_id;
 
-    const longDate = moment(task.available_end_at).format('dddd, MMMM D, YYYY');
+    const startDate = moment(task.available_start_at).format('dddd, MMMM D, YYYY');
+    const endDate = moment(task.available_end_at).format('dddd, MMMM D, YYYY');
     return (
       <View key={data.itemIndex} style={styles.screening_slide_container}>
         <TouchableOpacity onPress={() => this.handleOnPress(task)}>
           <Text style={styles.screening_title}>{task.name}</Text>
-          <Text numberOfLines={1} style={styles.screening_date}>Due by {longDate}</Text>
+          <Text numberOfLines={2} style={styles.screening_date}>
+            To be completed between: {startDate} and {endDate}
+          </Text>
           <Text style={styles.screening_text}>{task.message}</Text>
         </TouchableOpacity>
         <View style={styles.screening_slide_link}>
@@ -124,11 +118,12 @@ class OverviewScreen extends React.Component {
     );
   };
 
-  render() {
-    const {calendar, api_calendar} = this.props.milestones;
-    const today = moment();
-    const screeningEvents = this.memoizedScreeningEvents( today, calendar, api_calendar);
+  onIndexChange = async currentIndexScreening => {
+    this.setState({ currentIndexScreening });
+  };
 
+  render() {
+    const screeningEvents = this.screeningEvents();
     return (
       <View style={styles.container}>
         <View style={styles.slider_header}>
@@ -162,9 +157,7 @@ class OverviewScreen extends React.Component {
               itemWidth={width - scCardMargin}
               contentOffset={scCardMargin - 2}
               useVelocityForIndex
-              onIndexChange={index =>
-                this.setState(() => ({ currentIndexScreening: index }))
-              }
+              onIndexChange={this.onIndexChange}
             />
           )}
         </View>
@@ -229,9 +222,9 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   screening_date: {
-    fontSize: 14,
+    fontSize: 11,
     color: Colors.green,
-    marginBottom: 6,
+    marginLeft: 10,
   },
   screening_text: {
     fontSize: 14,
@@ -279,7 +272,7 @@ const mapStateToProps = ({ session, milestones, registration }) => ({
 });
 
 const mapDispatchToProps = {
-  updateSession,
+  fetchMilestoneCalendar,
 };
 
 export default connect(
