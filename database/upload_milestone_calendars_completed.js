@@ -26,11 +26,13 @@ const UploadMilestoneCalendarsCompleted = async () => {
         const data = { triggers: [] };
 
         triggers.forEach(trigger => {
-          data.triggers.push({
-            task_id: trigger.task_id,
-            subject_id: trigger.subject_id,
-            completed_at: trigger.completed_at,
-          });
+          if (trigger.task_id && trigger.subject_id) {
+            data.triggers.push({
+              task_id: trigger.task_id,
+              subject_id: trigger.subject_id,
+              completed_at: trigger.completed_at,
+            });
+          }
         });
 
         if (isEmpty(data.triggers)) {

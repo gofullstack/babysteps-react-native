@@ -107,13 +107,20 @@ class ApiSyncData extends Component {
     }
 
     if (session.fetched && !updateConsentVersionSubmitted) {
-      const study_id = CONSTANTS.STUDY_ID;
-      SyncConsentVersion(study_id, session.consent_last_updated_at);
+      SyncConsentVersion(
+        CONSTANTS.STUDY_ID,
+        session.consent_update_at,
+        session.consent_last_updated_at,
+      );
       this.setState({ updateConsentVersionSubmitted: true });
     }
 
     if (!uploadMilestonesSubmitted) {
-      SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
+      SyncMilestones(
+        CONSTANTS.STUDY_ID,
+        session.milestones_updated_at,
+        session.milestones_last_updated_at,
+      );
       this.setState({ uploadMilestonesSubmitted: true });
     }
 
@@ -202,6 +209,7 @@ class ApiSyncData extends Component {
       this.setState({
         appState: nextAppState,
         apiSyncData: true,
+        uploadMilestonesSubmitted: false,
         uploadAnswersSubmitted: false,
         uploadAttachmentsSubmitted: false,
         uploadMilestoneTriggersSubmitted: false,

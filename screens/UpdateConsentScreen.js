@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Colors.darkGrey,
     textAlign: 'center',
-    paddingTop: 5,
+    paddingTop: 15,
     paddingBottom: 5,
     paddingLeft: 20,
     paddingRight: 20,

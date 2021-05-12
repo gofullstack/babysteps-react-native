@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Button, Text } from 'react-native-elements';
 
-import get from 'lodash/get';
+import isEmpty from 'lodash/isEmpty';
 
 import { compose } from 'recompose';
 import { Formik } from 'formik';
@@ -18,7 +18,7 @@ import {
   fetchUser,
   apiCreateUser,
 } from '../actions/registration_actions';
-import { updateSession } from '../actions/session_actions';
+import { fetchSession, updateSession } from '../actions/session_actions';
 
 import TextFieldWithLabel from './textFieldWithLabel';
 
@@ -53,10 +53,10 @@ class RegistrationUserForm extends Component {
 
     this.state = {
       isSubmitting: false,
-      createUserSubmitted: false,
       apiErrorMessage: '',
-      user_registration_complete: false,
+      apiUserSubmitted: false,
     };
+    this.props.fetchSession();
   }
 
   componentDidMount() {
@@ -64,9 +64,8 @@ class RegistrationUserForm extends Component {
     if (['none', 'unknown'].includes(session.connectionType)) {
       this.setState({
         isSubmitting: true,
+        apiUserSubmitted: true,
         apiErrorMessage: 'The internet is not currently available',
-        sessionSubmitted: false,
-        userSubmitted: false,
       });
     }
   }
@@ -75,20 +74,26 @@ class RegistrationUserForm extends Component {
     const session = nextProps.session;
     const { user, apiUser } = nextProps.registration;
 
-    return !session.fetching && !apiUser.fetching && !user.fetching;
+    return !session.fetching && !user.fetching && !apiUser.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
-    const { auth, apiUser } = this.props.registration;
-    const { isSubmitting, sessionSubmitted, userSubmitted } = this.state;
+    const { user, auth, apiUser } = this.props.registration;
+    const { isSubmitting, apiUserSubmitted } = this.state;
     if (isSubmitting) {
+      if (user.fetched && !isEmpty(user.data) && !apiUserSubmitted) {
+        this.props.apiCreateUser(user.data);
+        this.setState({ apiUserSubmitted: true });
+        return;
+      }
       if (apiUser.error) {
         const apiErrorMessage = apiUser.error;
         this.setState({ isSubmitting: false, apiErrorMessage });
         return;
       }
       if (apiUser.fetched) {
+        const registration_state = States.REGISTERING_RESPONDENT;
         this.props.updateSession({
           access_token: auth.accessToken,
           client: auth.client,
@@ -97,9 +102,8 @@ class RegistrationUserForm extends Component {
           email: apiUser.data.email,
           password: apiUser.data.password,
           uid: apiUser.data.email,
+          registration_state,
         });
-        const registration_state = States.REGISTERING_RESPONDENT;
-        this.props.updateSession({ registration_state });
         SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
       } // apiUser.fetched
     } // isSubmitting
@@ -143,7 +147,6 @@ class RegistrationUserForm extends Component {
         onSubmit={values => {
           values.uid = values.email;
           this.props.createUser(values);
-          this.props.apiCreateUser(values);
         }}
         initialValues={this._getInitialValues()}
         validationSchema={validationSchema}
@@ -237,10 +240,11 @@ const mapStateToProps = ({ session, registration }) => ({
   registration,
 });
 const mapDispatchToProps = {
+  fetchSession,
+  updateSession,
   createUser,
   fetchUser,
   apiCreateUser,
-  updateSession,
 };
 
 export default connect(

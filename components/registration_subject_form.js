@@ -31,6 +31,7 @@ import Picker from './pickerInput';
 import Colors from '../constants/Colors';
 import States from '../actions/states';
 import AppStyles from '../constants/Styles';
+import CONSTANTS from '../constants';
 
 const TextField = compose(
   withInputAutoFocus,
@@ -116,15 +117,16 @@ class RegistrationSubjectForm extends Component {
       apiSubjectSubmitted,
       apiFetchCalendarSubmitted,
     } = this.state;
+    const study_id = CONSTANTS.STUDY_ID;
 
     if (isSubmitting && !isEmpty(subject.data)) {
       if (!apiSubject.fetched && !apiSubjectSubmitted) {
-        this.props.apiCreateSubject(subject.data);
+        this.props.apiCreateSubject(study_id, subject.data);
         this.setState({ apiSubjectSubmitted: true });
       }
       if (!isEmpty(apiSubject.data) && !apiFetchCalendarSubmitted) {
         const subject_id = apiSubject.data.id;
-        this.props.apiFetchMilestoneCalendar({ subject_id });
+        this.props.apiFetchMilestoneCalendar({ study_id, subject_id });
         this.setState({ apiFetchCalendarSubmitted: true });
       }
       if (!isEmpty(calendar.data)) {

@@ -49,7 +49,6 @@ class CameraModal extends Component {
     flashMode: Camera.Constants.FlashMode.off,
     isLandscape: false,
     recording: false,
-    isTakingImage: false,
     confirmingImage: false,
     videoTimer: null,
   };
@@ -128,8 +127,7 @@ class CameraModal extends Component {
 
   cancelVideo = () => {
     deactivateKeepAwake();
-    this.cancelRecording = true;
-    this.setState({ videoTimer: moment.duration(0) });
+    if (this.videoTimeInterval) clearInterval(this.videoTimeInterval);
     this.stopVideo();
   };
 
@@ -152,6 +150,9 @@ class CameraModal extends Component {
     const { activeOption } = this.state;
     if (activeOption === 'video') {
       if (this.state.recording) {
+        if (this.videoTimeInterval) clearInterval(this.videoTimeInterval);
+        this.videoTimer = moment.duration(0);
+        this.setState({ recording: false, videoTimer: null });
         this.stopVideo();
       } else {
         this.startVideo();
@@ -461,7 +462,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   bottomBarConfirm: {
-    backgroundColor: 'rgba(0,0,0,.3)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   bottomBarAction: {
     flex: 0.3,

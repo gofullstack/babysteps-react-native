@@ -6,6 +6,7 @@ import {
   fetchMilestoneGroups,
   fetchMilestoneTasks,
   fetchOverViewTimeline,
+  fetchMilestoneCalendar,
 } from '../actions/milestone_actions';
 
 import { fetchSubject, updateSubject } from '../actions/registration_actions';
@@ -43,6 +44,7 @@ class OverviewScreen extends React.Component {
     this.props.fetchMilestoneGroups();
     this.props.fetchMilestoneTasks();
     this.props.fetchOverViewTimeline();
+    this.props.fetchMilestoneCalendar();
   }
 
   shouldComponentUpdate(nextProps) {
@@ -128,6 +130,7 @@ const mapDispatchToProps = {
   fetchMilestoneGroups,
   fetchMilestoneTasks,
   fetchOverViewTimeline,
+  fetchMilestoneCalendar,
 };
 export default connect(
   mapStateToProps,

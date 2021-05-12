@@ -29,6 +29,10 @@ const headerOptions = {
   headerTitleStyle: {
     fontWeight: '900',
   },
+  headerForceInset: {
+    top: 'never',
+    bottom: 'never',
+  },
 };
 
 const ConsentNavigator = createStackNavigator(
@@ -62,18 +66,18 @@ const TourNavigator = createStackNavigator(
   {
     Tour: {
       screen: TourScreen,
+      navigationOptions: { header: null }
     },
     Registration: {
       screen: RegistrationNavigator,
+      navigationOptions: { header: null }
     },
     SignIn: {
       screen: SignInScreen,
     },
   },
   {
-    defaultNavigationOptions: () => ({
-      header: null,
-    }),
+    defaultNavigationOptions: headerOptions,
   },
 );
 

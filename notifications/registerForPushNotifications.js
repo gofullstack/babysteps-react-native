@@ -26,8 +26,8 @@ class RegisterForPushNotifications extends Component {
       requestedPushToken: false,
     };
 
-    this.props.fetchSession();
-    this.props.fetchRespondent();
+    //this.props.fetchSession();
+    //this.props.fetchRespondent();
   }
 
   componentDidMount() {
@@ -37,13 +37,15 @@ class RegisterForPushNotifications extends Component {
   shouldComponentUpdate(nextProps, nextState) {
     const session = nextProps.session;
     const { respondent, apiRespondent } = nextProps.registration;
+    const { requestedPushToken } = nextState;
 
     return (
       !session.fetching &&
       !respondent.fetching &&
       !apiRespondent.fetching &&
       !isEmpty(respondent.data) &&
-      ![null, undefined].includes(respondent.data.api_id)
+      ![null, undefined].includes(respondent.data.api_id) &&
+      !requestedPushToken
     );
   }
 

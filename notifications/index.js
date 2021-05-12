@@ -124,6 +124,7 @@ export const apiCreateCalendarEntry = (entry, scheduleTime) => {
   const notify_at = scheduleTime.toISOString();
   const data = {
     milestone_trigger: {
+      study_id: CONSTANTS.STUDY_ID,
       subject_id: entry.subject_id,
       milestone_id: entry.milestone_id,
       task_id: entry.task_id,
@@ -136,7 +137,7 @@ export const apiCreateCalendarEntry = (entry, scheduleTime) => {
       notify_at,
     },
   };
-  store.dispatch(apiCreateMilestoneCalendar(entry.subject_id, data));
+  store.dispatch(apiCreateMilestoneCalendar(data));
 };
 
 export const setMomentaryAssessments = (entries, studyEndDate) => {

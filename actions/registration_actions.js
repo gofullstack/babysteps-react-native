@@ -250,72 +250,9 @@ export const resetRespondent = () => {
 export const createRespondent = respondent => {
   return function(dispatch) {
     dispatch(Pending(CREATE_RESPONDENT_PENDING));
-    const sql = 'INSERT INTO respondents ( \
-      user_id, \
-      respondent_type, \
-      first_name, \
-      last_name, \
-      middle_name, \
-      address_1, \
-      address_2, \
-      city, \
-      state, \
-      zip_code, \
-      country_code, \
-      email, \
-      home_phone, \
-      other_phone, \
-      date_of_birth, \
-      drivers_license_number, \
-      marital_status, \
-      weight, \
-      height, \
-      tos_id, \
-      irb_id, \
-      accepted_tos_at \
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
-    const values = [
-      respondent.user_id,
-      respondent.respondent_type,
-      respondent.first_name,
-      respondent.last_name,
-      respondent.middle_name,
-      respondent.address_1,
-      respondent.address_2,
-      respondent.city,
-      respondent.state,
-      respondent.zip_code,
-      'USA',
-      respondent.email,
-      respondent.home_phone,
-      respondent.other_phone,
-      respondent.date_of_birth,
-      respondent.drivers_license_number,
-      respondent.marital_status,
-      respondent.weight,
-      respondent.height,
-      respondent.tos_id,
-      respondent.irb_id,
-      respondent.accepted_tos_at,
-    ];
-    return db.transaction(tx => {
-      tx.executeSql(
-        'DELETE FROM respondents',
-        [],
-        (_, rows) => console.log('** Clear respondents table'),
-        (_, error) => console.log('*** Error in clearing respondents table'),
-      );
-      tx.executeSql(
-        sql,
-        values,
-        (_, response) => {
-          dispatch(Response(CREATE_RESPONDENT_FULFILLED, response, respondent));
-        },
-        (_, error) => {
-          dispatch(Response(CREATE_RESPONDENT_REJECTED, error));
-        },
-      );
-    });
+
+    insertRows('respondents', schema['respondents'], [respondent]);
+    dispatch(Response(CREATE_RESPONDENT_FULFILLED, null, respondent));
   };
 };
 
@@ -474,7 +411,7 @@ export const createSubject = subject => {
   };
 };
 
-export const apiCreateSubject = data => {
+export const apiCreateSubject = (study_id, data) => {
   //delete data.id;
   delete data.api_id;
 
@@ -483,6 +420,7 @@ export const apiCreateSubject = data => {
       type: API_CREATE_SUBJECT_PENDING,
       payload: {
         data: {
+          study_id,
           subject: data,
         },
       },
@@ -521,7 +459,7 @@ export const updateSubject = data => {
   };
 };
 
-export const apiUpdateSubject = (session, data) => {
+export const apiUpdateSubject = (session, study_id, data) => {
   const api_id = data.api_id;
   delete data.id;
   delete data.api_id;
@@ -531,6 +469,7 @@ export const apiUpdateSubject = (session, data) => {
       type: API_UPDATE_SUBJECT_PENDING,
       payload: {
         data: {
+          study_id,
           subject: data,
         },
         session,

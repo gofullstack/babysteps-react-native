@@ -15,11 +15,11 @@ import { showMessage } from 'react-native-flash-message';
 import isEmpty from 'lodash/isEmpty';
 import filter from 'lodash/filter';
 import groupBy from 'lodash/groupBy';
+import orderBy from 'lodash/sortBy';
 import reduce from 'lodash/reduce';
 import find from 'lodash/find';
-import findIndex from 'lodash/findIndex';
 
-import moment from 'moment';
+import Moment from 'moment';
 
 import { connect } from 'react-redux';
 import {
@@ -66,12 +66,13 @@ class MilestonesScreen extends Component {
   shouldComponentUpdate(nextProps, nextState) {
     // trap section header render - don't update view
     const newSectionID = nextState.sectionID !== this.state.sectionID;
-    const tasks = nextProps.milestones.tasks;
+    const { tasks, calendar } = nextProps.milestones;
     //const newSectionIndex = nextState.sectionIndex !== this.state.sectionIndex;
-    return !newSectionID && tasks.fetched && !tasks.fetching;
+    return !newSectionID && !tasks.fetching && !calendar.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
+    const prevTasks = prevProps.milestones.tasks;
     const { tasks } = this.props.milestones;
     const { tasksForList, tasksSaved, sectionIndex } = this.state;
     // default to navigation param, then subject base group
@@ -80,8 +81,10 @@ class MilestonesScreen extends Component {
       selectedGroupIndex = this.props.session.current_group_index;
     }
 
-    if (tasks.fetched && !isEmpty(tasks.data) && !tasksSaved) {
-      this._saveTasksData(tasks);
+    if (tasks.fetched && !isEmpty(tasks.data)) {
+      if (prevTasks !== tasks || !tasksSaved) {
+        this._saveTasksData(tasks);
+      }
     }
     if (
       tasksForList.length !== 0 &&
@@ -107,9 +110,6 @@ class MilestonesScreen extends Component {
       ) {
         return false;
       }
-      if (findIndex(groups, ['id', task.milestone_group_id]) === -1) {
-        return false;
-      }
       // don't show task, linked by notification
       if (task.milestone_always_visible !== 1) {
         return false;
@@ -119,15 +119,32 @@ class MilestonesScreen extends Component {
 
     tasksForList = groupBy(tasksForList, task => task.milestone_group_id);
 
+    // remove any tasks without a milestone group
     tasksForList = reduce(
       tasksForList,
       (acc, data, index) => {
         const group = find(groups, ['id', data[0].milestone_group_id]);
-        acc.push({ key: index, id: group.id, title: group.title, data });
+        if (!isEmpty(group)) {
+          acc.push({ key: index, id: group.id, title: group.title, data });
+        }
         return acc;
       },
       [],
     );
+
+    // order by study_only, then days_since_baseline
+    tasksForList = tasksForList.map(group => {
+      const study_only = orderBy(
+        filter(group.data, { study_only: 1 }),
+        'milestone_days_since_baseline',
+      );
+      const included = orderBy(
+        filter(group.data, { study_only: 0 }),
+        'milestone_days_since_baseline',
+      );
+      group.data = [...study_only, ...included];
+      return group;
+    });
 
     this.updateInitialIndex(sectionIndex, tasksForList);
 
@@ -147,8 +164,8 @@ class MilestonesScreen extends Component {
 
   handleOnPress = (task, calendar) => {
     if (!CONSTANTS.TESTING_ENABLE_ALL_TASKS) {
-      if (moment().isBefore(calendar.available_start_at)) {
-        const available = moment(calendar.available_start_at).format('MM/DD/YYYY');
+      if (Moment().isBefore(calendar.available_start_at)) {
+        const available = Moment(calendar.available_start_at).format('MM/DD/YYYY');
         showMessage({
           message: `This task will be available ${available}. Please check back then.`,
           type: 'warning',
@@ -156,8 +173,8 @@ class MilestonesScreen extends Component {
         });
         return null;
       }
-      if (moment().isAfter(calendar.available_end_at) && !calendar.completed_at) {
-        const ended = moment(calendar.available_end_at).format('MM/DD/YYYY');
+      if (Moment().isAfter(calendar.available_end_at) && !calendar.completed_at) {
+        const ended = Moment(calendar.available_end_at).format('MM/DD/YYYY');
         showMessage({
           message: `Sorry, this task is expired on ${ended} and is no longer available.`,
           type: 'warning',
@@ -186,7 +203,7 @@ class MilestonesScreen extends Component {
         checkboxSource = require('../assets/images/milestones_checkbox_complete.png');
       }
       if (!CONSTANTS.TESTING_ENABLE_ALL_TASKS) {
-        if (moment().isBefore(calendar.available_start_at) || moment().isAfter(calendar.available_end_at)) {
+        if (Moment().isBefore(calendar.available_start_at) || Moment().isAfter(calendar.available_end_at)) {
           color = Colors.lightGrey;
         }
       }
@@ -252,6 +269,7 @@ class MilestonesScreen extends Component {
   render() {
     const { tasksForList, initialIndex } = this.state;
     if (isEmpty(tasksForList)) return null;
+
     return (
       <View style={styles.container}>
         <Text style={styles.legend}>
@@ -268,7 +286,7 @@ class MilestonesScreen extends Component {
           renderSectionHeader={this.renderSectionHeader}
           renderItem={this.renderItem}
           sections={tasksForList}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => `key-${index}`}
         />
       </View>
     );

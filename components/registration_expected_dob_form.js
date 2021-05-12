@@ -28,6 +28,7 @@ import DatePicker from './datePickerInput';
 import Colors from '../constants/Colors';
 import AppStyles from '../constants/Styles';
 import States from '../actions/states';
+import CONSTANTS from '../constants';
 
 const DatePickerInput = compose(
   withInputAutoFocus,
@@ -75,15 +76,17 @@ class RegistrationExpectedDOB extends Component {
       apiSubjectSubmitted,
       apiFetchCalendarSubmitted,
     } = this.state;
+    const study_id = CONSTANTS.STUDY_ID;
 
     if (isSubmitting && !isEmpty(subject.data)) {
       if (!apiSubject.fetched && !apiSubjectSubmitted) {
-        this.props.apiCreateSubject(subject.data);
+        this.props.apiCreateSubject(study_id, subject.data);
         this.setState({ apiSubjectSubmitted: true });
       }
       if (!isEmpty(apiSubject.data) && !apiFetchCalendarSubmitted) {
+        const study_id = CONSTANTS.STUDY_ID;
         const subject_id = apiSubject.data.id;
-        this.props.apiFetchMilestoneCalendar({ subject_id });
+        this.props.apiFetchMilestoneCalendar({ study_id, subject_id });
         this.setState({ apiFetchCalendarSubmitted: true });
       }
       if (!isEmpty(calendar.data)) {

@@ -173,15 +173,13 @@ export const fetchMilestones = () => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONES_PENDING));
 
-    return (
-      db.transaction(tx => {
-        tx.executeSql(
-          'SELECT * FROM milestones;', [],
-          (_, response) => { dispatch( Response(FETCH_MILESTONES_FULFILLED, response)) },
-          (_, error) => { dispatch( Response(FETCH_MILESTONES_REJECTED, error)) }
-        );
-      })
-    );
+    return db.transaction(tx => {
+      tx.executeSql(
+        'SELECT * FROM milestones;', [],
+        (_, response) => { dispatch( Response(FETCH_MILESTONES_FULFILLED, response)) },
+        (_, error) => { dispatch( Response(FETCH_MILESTONES_REJECTED, error)) }
+      );
+    });
   };
 
 };
@@ -194,13 +192,13 @@ export const resetApiMilestones = () => {
 
 // this fetches all milestone and related tables
 export const apiFetchMilestones = () => {
-
   return dispatch => {
     dispatch(Pending(API_FETCH_MILESTONES_PENDING));
     const baseURL = getApiUrl();
     const url = '/milestones';
     const apiToken = Constants.manifest.extra.apiToken;
     const headers = { milestone_token: apiToken };
+    const study_id = CONSTANTS.STUDY_ID;
 
     return new Promise((resolve, reject) => {
       axios({
@@ -209,6 +207,7 @@ export const apiFetchMilestones = () => {
         baseURL,
         url,
         headers,
+        params: { study_id },
       })
         .then(response => {
           Object.keys(response.data).map(name => {
@@ -375,14 +374,13 @@ export const apiFetchMilestoneCalendar = params => {
   }; // return dispatch
 };
 
-export const apiCreateMilestoneCalendar = (subject_id, milestone_trigger) => {
+export const apiCreateMilestoneCalendar = data => {
   return dispatch => {
     dispatch(Pending(API_CREATE_MILESTONE_CALENDAR_PENDING));
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
     const headers = { milestone_token: apiToken };
     const url = '/milestone_calendars';
-    const data = { subject_id, ...milestone_trigger };
 
     return new Promise((resolve, reject) => {
       axios({
@@ -433,23 +431,40 @@ export const apiUpdateMilestoneCalendar = (id, data) => {
 export const fetchMilestoneTasks = () => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_TASKS_PENDING));
-    let sql = 'SELECT ts.*, mg.position AS milestone_group_position, mg.visible AS milestone_group_visible, ms.milestone_group_id, ms.position AS milestone_position, ms.always_visible AS milestone_always_visible, ms.title AS milestone_title, ms.momentary_assessment AS momentary_assessment, ms.response_scale AS response_scale, ta.attachment_url as attachment_url, ta.content_type as attachment_content_type FROM tasks AS ts';
-    sql += ' INNER JOIN milestones AS ms ON ms.id = ts.milestone_id';
-    sql += ' INNER JOIN milestone_groups AS mg ON mg.id = ms.milestone_group_id';
-    sql += ' LEFT JOIN task_attachments AS ta ON ts.id = ta.task_id';
-    sql += ' ORDER BY milestone_group_position, milestone_position, position;';
+    const sql =
+      'SELECT ts.*, \
+        mg.id AS milestone_group_id, \
+        mg.position AS milestone_group_position, \
+        mg.visible AS milestone_group_visible, \
+        mg.id AS milestone_group_id, \
+        ms.position AS milestone_position, \
+        ms.days_since_baseline AS milestone_days_since_baseline, \
+        ms.always_visible AS milestone_always_visible, \
+        ms.title AS milestone_title, \
+        ms.momentary_assessment AS momentary_assessment, \
+        ms.response_scale AS response_scale, \
+        ta.attachment_url as attachment_url, \
+        ta.content_type as attachment_content_type \
+      FROM tasks AS ts \
+      INNER JOIN milestones AS ms ON ms.id = ts.milestone_id \
+      INNER JOIN milestone_groups AS mg ON \
+        mg.baseline_range_days_start <= ms.days_since_baseline AND \
+        mg.baseline_range_days_end >= ms.days_since_baseline \
+      LEFT JOIN task_attachments AS ta ON ts.id = ta.task_id \
+      ORDER BY milestone_group_position, milestone_position, position;';
 
-    return (
-      db.transaction(tx => {
-        tx.executeSql(
-          sql, [],
-          (_, response) => {
-            dispatch(Response(FETCH_MILESTONE_TASKS_FULFILLED, response));
-          },
-          (_, error) => {dispatch(Response(FETCH_MILESTONE_TASKS_REJECTED, error))}
-        );
-      })
-    );
+    return db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, response) => {
+          dispatch(Response(FETCH_MILESTONE_TASKS_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_MILESTONE_TASKS_REJECTED, error));
+        },
+      );
+    });
   };
 };
 
@@ -483,12 +498,18 @@ export const resetMilestoneQuestions = () => {
 export const fetchMilestoneQuestions = (params = {}) => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_QUESTIONS_PENDING));
-    var sql = 'SELECT qs.*, ops.input_type, ops.rn_input_type, ta.attachment_url, ta.content_type FROM questions AS qs';
-    sql += ' INNER JOIN option_groups AS ops ON qs.option_group_id = ops.id';
-    sql += ' INNER JOIN sections AS ss ON qs.section_id = ss.id';
-    sql += ' LEFT JOIN task_attachments AS ta ON ss.task_id = ta.task_id';
-    sql += ' WHERE ss.id = ' + params['section_id'];
-    sql += ' ORDER BY qs.position;';
+    const sql =
+      `SELECT qs.*, \
+        ops.input_type, \
+        ops.rn_input_type, \
+        ta.attachment_url, \
+        ta.content_type \
+      FROM questions AS qs \
+      INNER JOIN option_groups AS ops ON qs.option_group_id = ops.id \
+      INNER JOIN sections AS ss ON qs.section_id = ss.id \
+      LEFT JOIN task_attachments AS ta ON ss.task_id = ta.task_id \
+      WHERE ss.id = '${params['section_id']}' \
+      ORDER BY qs.position;`;
 
     return (
       db.transaction(tx => {
@@ -1022,8 +1043,8 @@ export const fetchOverViewTimeline = () => {
   return dispatch => {
     dispatch(Pending(FETCH_OVERVIEW_TIMELINE_PENDING));
 
-    let sql =
-      'SELECT DISTINCT \
+    const sql =
+      "SELECT DISTINCT \
         ss.task_id AS task_id, \
         ss.title AS title, \
         mts.id AS milestone_trigger_id, \
@@ -1038,14 +1059,14 @@ export const fetchOverViewTimeline = () => {
         ats.content_type AS content_type, \
         ats.uri AS uri, \
         ats.url AS url \
-      FROM choices AS cs';
-    sql += ' INNER JOIN questions AS qs ON qs.id = cs.question_id';
-    sql += ' INNER JOIN sections AS ss ON ss.id = qs.section_id';
-    sql += ' INNER JOIN milestone_triggers AS mts ON ss.task_id = mts.task_id';
-    sql += ' LEFT JOIN answers AS ans ON ans.choice_id = cs.id';
-    sql += ' LEFT JOIN attachments AS ats ON ans.choice_id = ats.choice_id';
-    sql += ` WHERE cs.overview_timeline IN ('during_pregnancy', 'birth', 'post_birth')`;
-    sql += ' ORDER BY mts.notify_at;';
+      FROM choices AS cs \
+      INNER JOIN questions AS qs ON qs.id = cs.question_id \
+      INNER JOIN sections AS ss ON ss.id = qs.section_id \
+      INNER JOIN milestone_triggers AS mts ON ss.task_id = mts.task_id \
+      LEFT JOIN answers AS ans ON ans.choice_id = cs.id \
+      LEFT JOIN attachments AS ats ON ans.choice_id = ats.choice_id \
+      WHERE cs.overview_timeline IN ('during_pregnancy', 'birth', 'post_birth') \
+      ORDER BY mts.notify_at;";
 
     return db.transaction(tx => {
       tx.executeSql(

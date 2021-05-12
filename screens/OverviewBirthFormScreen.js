@@ -166,40 +166,38 @@ class OverviewBirthFormScreen extends Component {
   }
 
   _handleUpdateNoStudyCalendar = outcomeIsLiveBirth => {
+    const apiCalendar = this.props.milestones.api_calendar;
+    const base_date = this.state.values.date_of_birth;
+    const study_id = CONSTANTS.STUDY_ID;
     if (outcomeIsLiveBirth) {
       if (!this.state.submittedApiFetchMilestoneCalendar) {
-        const values = this.state.values;
-        const fetchCalendarParams = { base_date: values.date_of_birth };
-        this.props.apiFetchMilestoneCalendar(fetchCalendarParams);
+        this.props.apiFetchMilestoneCalendar({ study_id, base_date });
         this.setState({ submittedApiFetchMilestoneCalendar: true });
-      } else {
-        const apiCalendar = this.props.milestones.api_calendar;
-        if (!apiCalendar.fetching && apiCalendar.fetched) {
-          if (!this.state.submittedFetchMilestoneCalendar) {
-            this.props.fetchMilestoneCalendar();
-            this.setState({ submittedFetchMilestoneCalendar: true });
-          } // submittedFetchMilestoneCalendar
-        } // apiCalendar.fetched
+      } else if (!apiCalendar.fetching && apiCalendar.fetched) {
+        if (!this.state.submittedFetchMilestoneCalendar) {
+          this.props.fetchMilestoneCalendar();
+          this.setState({ submittedFetchMilestoneCalendar: true });
+        } // submittedFetchMilestoneCalendar
       } // submittedApiMilestoneCalendar
     } // outcome is live birth
   };
 
   _handleUpdateInStudyCalendar = outcomeIsLiveBirth => {
     const session = this.props.session;
-    const subject = this.props.registration.subject;
     const apiSubject = this.props.registration.apiSubject;
     const apiCalendar = this.props.milestones.api_calendar;
+    const subject_id = this.props.registration.subject.data.api_id;
+    const study_id = CONSTANTS.STUDY_ID;
     const values = this.state.values;
     const data = {...values, api_id: subject.data.api_id}
 
     if (!this.state.submittedApiUpdateSubject) {
-      this.props.apiUpdateSubject(session, data);
+      this.props.apiUpdateSubject(session, study_id, data);
       this.setState({ submittedApiUpdateSubject: true });
     } else if (!apiSubject.fetching && apiSubject.fetched) {
       if (!this.state.submittedApiFetchMilestoneCalendar) {
         // update api calendar
-        const fetchCalendarParams = { subject_id: subject.data.api_id };
-        this.props.apiFetchMilestoneCalendar(fetchCalendarParams);
+        this.props.apiFetchMilestoneCalendar({ study_id, subject_id });
         this.setState({ submittedApiFetchMilestoneCalendar: true });
       } else if (
         !apiCalendar.fetching && apiCalendar.fetched &&
@@ -264,7 +262,7 @@ class OverviewBirthFormScreen extends Component {
     const submittedSave = this.state.submittedSave
     const dateLabel = find(outcomes, ['value', this.state.outcome]);
     return (
-      <KeyboardAwareScrollView 
+      <KeyboardAwareScrollView
         ref={ref => this.scrollView = ref}
         enableOnAndroid
         enableAutomaticScroll
