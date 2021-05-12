@@ -45,6 +45,7 @@ class OverviewScreen extends React.Component {
 
     this.state = {
       currentIndexScreening: 0,
+      screeningEventsUpdated: false,
       sliderLoading: true,
     };
   }
@@ -55,8 +56,13 @@ class OverviewScreen extends React.Component {
   }
 
   componentDidUpdate() {
-    const { calendar } = this.props.milestones;
-    const { sliderLoading } = this.state;
+    const { calendar, api_calendar } = this.props.milestones;
+    const { sliderLoading, screeningEventsUpdated } = this.state;
+    if (api_calendar.fetched && !screeningEventsUpdated) {
+      this.props.fetchMilestoneCalendar();
+      this.setState({ screeningEventsUpdated: true });
+      return;
+    }
     if (!isEmpty(calendar.data) && sliderLoading) {
       this.setState({ sliderLoading: false });
     }
