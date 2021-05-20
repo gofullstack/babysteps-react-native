@@ -261,7 +261,7 @@ const mapStateToProps = ({ session, milestones, registration }) => ({
   milestones,
   registration,
 });
-const mapDispatchToProps = { updateSession }
+const mapDispatchToProps = { updateSession };
 
 export default connect(
   mapStateToProps,

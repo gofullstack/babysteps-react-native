@@ -393,38 +393,44 @@ export const fetchMilestoneSections = (params = {}) => {
     }
     sql += ' ORDER BY sections.position;';
 
-    return (
-      db.transaction(tx => {
-        tx.executeSql(
-          sql, [],
-          (_, response) => {dispatch(Response(FETCH_MILESTONE_SECTIONS_FULFILLED, response))},
-          (_, error) => { dispatch( Response(FETCH_MILESTONE_SECTIONS_REJECTED, error))}
-        );
-      })
-    );
+    return db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, response) => {
+          dispatch(Response(FETCH_MILESTONE_SECTIONS_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_MILESTONE_SECTIONS_REJECTED, error));
+        },
+      );
+    });
   };
 };
 
 export const resetMilestoneQuestions = () => {
-  return function (dispatch) {
-     dispatch(Pending(RESET_MILESTONE_QUESTIONS));
-  }
-}
+  return function(dispatch) {
+    dispatch(Pending(RESET_MILESTONE_QUESTIONS));
+  };
+};
 
 export const fetchMilestoneQuestions = (params = {}) => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_QUESTIONS_PENDING));
     const sql = `SELECT * FROM questions ORDER BY section_id, position;`;
 
-    return (
-      db.transaction(tx => {
-        tx.executeSql(
-          sql, [],
-          (_, response) => {dispatch(Response(FETCH_MILESTONE_QUESTIONS_FULFILLED, response))},
-          (_, error) => {dispatch(Response(FETCH_MILESTONE_QUESTIONS_REJECTED, error))}
-        );
-      })
-    );
+    return db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, response) => {
+          dispatch(Response(FETCH_MILESTONE_QUESTIONS_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_MILESTONE_QUESTIONS_REJECTED, error));
+        },
+      );
+    });
   };
 };
 
@@ -444,8 +450,12 @@ export const fetchMilestoneChoices = () => {
       tx.executeSql(
         sql,
         [],
-        (_, response) => {dispatch(Response(FETCH_MILESTONE_CHOICES_FULFILLED, response))},
-        (_, error) => {dispatch(Response(FETCH_MILESTONE_CHOICES_REJECTED, error))}
+        (_, response) => {
+          dispatch(Response(FETCH_MILESTONE_CHOICES_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_MILESTONE_CHOICES_REJECTED, error));
+        },
       );
     });
   };
@@ -484,10 +494,8 @@ export const fetchMilestoneAnswers = (params = {}) => {
         },
       );
     });
-
   };
 };
-
 
 export const createMilestoneAnswer = answer => {
   return dispatch => {
@@ -497,13 +505,13 @@ export const createMilestoneAnswer = answer => {
 
 export const updateMilestoneAnswer = (choice_id, data) => {
   return dispatch => {
-   dispatch( Response(UPDATE_MILESTONE_ANSWER_FULFILLED, {choice_id, data}))
+    dispatch(Response(UPDATE_MILESTONE_ANSWER_FULFILLED, {choice_id, data}));
   };
 };
 
 export const updateMilestoneAnswers = answers => {
   return dispatch => {
-   dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, answers))
+    dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, answers));
   };
 };
 
@@ -551,7 +559,7 @@ export const apiUpdateMilestoneAnswers = (session, data) => {
   // can not submit attachments on bulk update
   const answers = [];
   forEach(data, row => {
-    answers.push( omit(row, ['attachments']) );
+    answers.push(omit(row, ['attachments']));
   });
 
   return dispatch => {
