@@ -126,7 +126,6 @@ class OverviewScreen extends React.Component {
       screeningEvents,
       sliderLoading: false,
     });
-
   };
 
   renderScreeningItem = data => {

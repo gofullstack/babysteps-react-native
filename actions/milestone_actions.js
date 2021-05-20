@@ -497,7 +497,7 @@ export const createMilestoneAnswer = answer => {
 
 export const updateMilestoneAnswer = (choice_id, data) => {
   return dispatch => {
-   dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, {choice_id, data}))
+   dispatch( Response(UPDATE_MILESTONE_ANSWER_FULFILLED, {choice_id, data}))
   };
 };
 
