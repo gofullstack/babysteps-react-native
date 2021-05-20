@@ -229,8 +229,9 @@ class SettingsScreen extends React.Component {
   };
 
   handleUploadMediaFile = async attachment => {
+    const { user, subject } = this.props.registration;
     let { missingAPIAttachments } = this.state;
-    UploadMilestoneAttachment(attachment);
+    UploadMilestoneAttachment(user.data.api_id, subject.data.api_id, attachment);
     missingAPIAttachments = filter(missingAPIAttachments, missingAttachment => {
       return missingAttachment.id !== attachment.id;
     });

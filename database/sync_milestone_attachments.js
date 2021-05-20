@@ -2,20 +2,24 @@ import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
 
+import isEmpty from 'lodash/isEmpty';
+
+import store from '../store';
+
 import { getApiUrl, getAttachments } from './common';
 
 const baseURL = getApiUrl();
 const apiToken = Constants.manifest.extra.apiToken;
 
-const executeApiCall = async attachment => {
+const executeApiCall = async (userID, subjectID, attachment) => {
   const url = `${baseURL}/answers/attachments`;
   const uri = attachment.uri;
 
   const headers = {
     'Content-Type': attachment.content_type,
     'Content-File-Name': attachment.filename,
-    'User-ID': `${attachment.user_api_id}`,
-    'Subject-ID': `${attachment.subject_api_id}`,
+    'User-ID': `${userID}`,
+    'Subject-ID': `${subjectID}`,
     'Choice-ID': `${attachment.choice_id}`,
     milestone_token: apiToken,
   };
@@ -33,10 +37,10 @@ const executeApiCall = async attachment => {
   return response;
 };
 
-export const UploadMilestoneAttachment = async attachment => {
+export const UploadMilestoneAttachment = async (userID, subjectID, attachment) => {
   console.log('*** Begin Milestone Attachment Upload');
 
-  const response = await executeApiCall(attachment);
+  const response = await executeApiCall(userID, subjectID, attachment);
   if (response && response.status === 202) {
     console.log('*** Attachment uploaded successfully');
   } else {
@@ -46,13 +50,10 @@ export const UploadMilestoneAttachment = async attachment => {
   return null;
 };
 
-export const ConfirmAPIAttachment = async attachment => {
-
+export const ConfirmAPIAttachment = async (subject_id, choice_id) => {
   let has_attachment = false;
-
   const url = '/answers/has_attachment';
   const headers = { milestone_token: apiToken };
-  const { subject_api_id, choice_id } = attachment;
 
   await axios({
     method: 'get',
@@ -61,7 +62,7 @@ export const ConfirmAPIAttachment = async attachment => {
     url,
     headers,
     params: {
-      subject_id: subject_api_id,
+      subject_id,
       choice_id,
     },
   })
@@ -105,11 +106,18 @@ export const ConfirmAPIAttachments = async (subject_id, choice_ids) => {
 
 const SyncMilestoneAttachments = async () => {
   console.log('*** Begin Milestone Attachments Sync');
+
+  const state = store.getState();
+  const { user, subject } = state.registration;
+  if (isEmpty(user.data) || isEmpty(subject.data)) return;
+
+  const userID = user.data.api_id;
+  const subjectID = subject.data.api_id;
   const attachments = await getAttachments();
   for (const attachment of attachments) {
-    const has_attachment = await ConfirmAPIAttachment(attachment);
+    const has_attachment = await ConfirmAPIAttachment(subjectID, attachment.choice_id);
     if (!has_attachment) {
-      await UploadMilestoneAttachment(attachment);
+      await UploadMilestoneAttachment(userID, subjectID, attachment);
     } else {
       console.log(`*** Attachment ${attachment.filename} confirmed`);
     }

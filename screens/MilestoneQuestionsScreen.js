@@ -458,9 +458,8 @@ class MilestoneQuestionsScreen extends Component {
   handleConfirm = () => {
     const { section, answers, attachments } = this.state;
     const session = this.props.session;
-    const questions = this.props.milestones.questions.data;
-    const choices = this.props.milestones.choices.data;
-    const calendars = this.props.milestones.calendar.data;
+    const { questions, choices, calendar } = this.props.milestones;
+    const { user, subject } = this.props.registration;
     const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
 
     // TODO validation
@@ -476,16 +475,16 @@ class MilestoneQuestionsScreen extends Component {
       this.props.apiUpdateMilestoneAnswers(session, section.id, answers);
 
       // mark calendar entry as complete on api
-      const calendar = _.find(calendars, ['task_id', section.task_id]);
-      if (calendar && calendar.id) {
-        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: { completed_at }});
+      const trigger = _.find(calendar.data, ['task_id', section.task_id]);
+      if (trigger && trigger.id) {
+        this.props.apiUpdateMilestoneCalendar(trigger.id, { milestone_trigger: { completed_at } });
       }
     }
 
     // save attachments
     if (!_.isEmpty(attachments)) {
       _.map(attachments, attachment => {
-        const choice = _.find(choices, ['id', attachment.choice_id]);
+        const choice = _.find(choices.data, ['id', attachment.choice_id]);
 
         // cover of babybook will only be baby's face from overview timeline
         let cover = 0;
@@ -496,7 +495,7 @@ class MilestoneQuestionsScreen extends Component {
         this.props.updateMilestoneAttachment(attachment);
 
         if (inStudy) {
-          UploadMilestoneAttachment(attachment);
+          UploadMilestoneAttachment(user.data.api_id, subject.data.api_id, attachment);
         }
         if (
           attachment.content_type &&
@@ -512,7 +511,7 @@ class MilestoneQuestionsScreen extends Component {
 
     let message = '';
 
-    const unansweredQuestions = _.filter(questions, question => {
+    const unansweredQuestions = _.filter(questions.data, question => {
       return _.find(answers, { question_id: question.id }) === undefined;
     });
     this.props.updateMilestoneCalendar(section.task_id, {
