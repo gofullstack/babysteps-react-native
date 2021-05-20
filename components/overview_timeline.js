@@ -110,6 +110,7 @@ class OverviewTimeline extends Component {
     }
 
     // get choices which should appear on timeline
+
     let overviewTimelines = _.filter(choices.data, choice => {
       return ['during_pregnancy', 'birth', 'post_birth'].includes(choice.overview_timeline);
     });
@@ -138,6 +139,7 @@ class OverviewTimeline extends Component {
 
     // remove premature or outdated tasks
     overviewTimelines = _.filter(overviewTimelines, item => {
+
       if (item.overview_timeline === 'birth') {
         if (!postBirth) return true;
       }

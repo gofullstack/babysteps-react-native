@@ -111,7 +111,7 @@ export const createIndexes = async (tableName, schema) => {
       });
     });
   });
-}
+};
 
 export const insertRows = async (tableName, schema, data) => {
   if (typeof data !== 'object') {

@@ -66,17 +66,17 @@ export default class App extends Component {
     AppState.removeEventListener('change', () => {});
   }
 
-  _handleFinishLoading = () => {
+  handleFinishLoading = () => {
     this.setState({ isLoadingComplete: true });
   };
 
-  _handleLoadingError = error => {
+  handleLoadingError = error => {
     // In this case, you might want to report the error to your error
     // reporting service, for example Sentry
     console.warn(error);
   };
 
-  _loadResourcesAsync = async () => {
+  loadResourcesAsync = async () => {
 
     Player.load(soundLibrary);
 
@@ -144,14 +144,7 @@ export default class App extends Component {
       'Material Icons': require('./assets/fonts/MaterialIcons.ttf'),
     });
 
-    // async check of schemas
     await checkCustomDirectories();
-    //await checkRegistrationSchema();
-    //await checkNotificationsSchema();
-    //await checkMilestonesSchema();
-    //await checkMilestoneTriggersSchema();
-    //await checkAnswersSchema();
-    //await checkBabyBookSchema();
   };
 
   render() {
@@ -160,9 +153,9 @@ export default class App extends Component {
     if (!isLoadingComplete && !skipLoadingScreen) {
       return (
         <AppLoading
-          startAsync={this._loadResourcesAsync}
-          onError={this._handleLoadingError}
-          onFinish={this._handleFinishLoading}
+          startAsync={this.loadResourcesAsync}
+          onError={this.handleLoadingError}
+          onFinish={this.handleFinishLoading}
         />
       );
     }

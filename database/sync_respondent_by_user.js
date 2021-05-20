@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 
-import isEmpty from 'lodash/isEmpty';
+import { store } from '../store';
 
 import { store } from '../store';
 
@@ -53,8 +53,8 @@ const SyncRespondentByUser = async user_id => {
         if (isEmpty(respondents)) {
           const state = store.getState();
           const data = state.registration.respondent.data;
-          const id = data.id;
-          delete data.id;
+          const id = data.api_id;
+          delete data.api_id;
           executeApiCall(id, data);
         } else {
           console.log('*** Respondent Exists on Server');

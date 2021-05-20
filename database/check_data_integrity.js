@@ -6,23 +6,11 @@ import * as FileSystem from 'expo-file-system';
 import { _ } from 'lodash';
 
 import { connect } from 'react-redux';
-import { fetchSession, updateSession } from '../actions/session_actions';
+import { updateSession } from '../actions/session_actions';
+import { updateUser } from '../actions/registration_actions';
 import {
-  fetchUser,
-  updateUser,
-  fetchRespondent,
-  updateRespondent,
-  fetchSubject,
-  updateSubject,
-} from '../actions/registration_actions';
-import {
-  fetchMilestoneCalendar,
-  resetMilestoneAnswers,
-  fetchMilestoneAnswers,
-  updateMilestoneAnswer,
+  updateMilestoneAnswers,
   deleteMilestoneAnswer,
-  resetMilestoneAttachments,
-  fetchMilestoneAttachments,
   updateMilestoneAttachment,
   deleteMilestoneAttachment,
 } from '../actions/milestone_actions';
@@ -95,20 +83,18 @@ class CheckDataIntegrity extends Component {
       this.setState({ signatureFileUpdated: true });
     }
 
-    if (__DEV__ && resetAnswers && !answersReset) {
-      this.props.resetMilestoneAnswers();
-      this.props.resetMilestoneAttachments();
-      this.setState({ answersReset: true });
-      return;
-    }
-
     if (!_.isEmpty(answers.data) && !cleanDuplicateAnswersSubmitted) {
       this.cleanDuplicateAnswers();
       this.setState({ cleanDuplicateAnswersSubmitted: true });
       return;
     }
 
-    if (!_.isEmpty(attachments.data) && !cleanDuplicateAttachmentsSubmitted) {
+    if (
+      cleanDuplicateAnswersSubmitted &&
+      !_.isEmpty(attachments.data) &&
+      !cleanDuplicateAttachmentsSubmitted
+    ) {
+
       this.cleanDuplicateAttachments();
       this.setState({ cleanDuplicateAttachmentsSubmitted: true });
     }
@@ -202,6 +188,7 @@ class CheckDataIntegrity extends Component {
     console.log('*** Begin Confirm Session Attributes');
     const session = this.props.session;
     const { user } = this.props.registration;
+
     if (!_.isEmpty(user.data)) {
       if (
         (!session.uid && user.data.email) ||
@@ -347,21 +334,10 @@ const mapStateToProps = ({ session, registration, milestones, babybook }) => ({
   babybook,
 });
 const mapDispatchToProps = {
-  fetchSession,
   updateSession,
-  fetchUser,
   updateUser,
-  fetchRespondent,
-  updateRespondent,
-  fetchSubject,
-  updateSubject,
-  fetchMilestoneCalendar,
-  resetMilestoneAnswers,
-  fetchMilestoneAnswers,
-  updateMilestoneAnswer,
+  updateMilestoneAnswers,
   deleteMilestoneAnswer,
-  resetMilestoneAttachments,
-  fetchMilestoneAttachments,
   updateMilestoneAttachment,
   deleteMilestoneAttachment,
   fetchBabyBookEntries,

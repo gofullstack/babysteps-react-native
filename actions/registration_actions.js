@@ -305,6 +305,7 @@ export const updateSubject = data => {
 
 export const apiUpdateSubject = (session, study_id, subject) => {
   const id = subject.id;
+  delete subject.id;
 
   return function(dispatch) {
     dispatch({

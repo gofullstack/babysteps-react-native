@@ -73,7 +73,6 @@ import {
   CREATE_MILESTONE_ANSWER_FULFILLED,
   CREATE_MILESTONE_ANSWER_REJECTED,
 
-  UPDATE_MILESTONE_ANSWER_FULFILLED,
   UPDATE_MILESTONE_ANSWERS_FULFILLED,
 
   API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING,
@@ -508,7 +507,7 @@ const reducer = (state = initialState, action, data = []) => {
       };
     }
     case API_FETCH_MILESTONE_CALENDAR_FULFILLED: {
-      const data = syncTriggerData(action.payload.data, state.calendar.data);
+      const data = syncTriggerData(action.payload.data, state.calendar.data );
       return {
         ...state,
         api_calendar: {
@@ -864,9 +863,8 @@ const reducer = (state = initialState, action, data = []) => {
           ...state.answers,
           fetching: false,
           fetched: true,
-          data,
           error: null,
-        },
+          data,
       };
     };
 
