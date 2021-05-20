@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 
 import isEmpty from 'lodash/isEmpty';
 
-import store from '../store';
+import { store } from '../store';
 
 import { getApiUrl, getAttachments } from './common';
 

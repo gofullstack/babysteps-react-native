@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import { connect } from 'react-redux';
 import {
   updateSession,
-  apiDispatchTokenRefresh
+  apiDispatchTokenRefresh,
 } from '../actions/session_actions';
 
 import SyncConsentVersion from './sync_consent_version';

@@ -96,15 +96,11 @@ class OverviewScreen extends Component {
         </View>
 
         <View style={styles.slider_container}>
-          { false &&
           <OverviewScreeningEvents navigation={this.props.navigation} />
-          }
         </View>
 
         <View style={styles.slider_container}>
-        { false &&
           <OverviewMilestones navigation={this.props.navigation} />
-        }
         </View>
       </View>
     );
