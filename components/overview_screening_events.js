@@ -62,7 +62,7 @@ class OverviewScreen extends React.Component {
     this.setState({ screeningEventsUpdated: false });
   }
 
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps, nextState) {
     const { api_calendar } = nextProps.milestones;
     return !api_calendar.fetching;
   }

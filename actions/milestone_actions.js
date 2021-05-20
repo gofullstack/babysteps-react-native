@@ -124,20 +124,6 @@ const Response = (type, payload, formData = {}) => {
   return { type, payload, formData };
 };
 
-const getUpdateSQL = data => {
-  const allKeys = keys(data);
-  const updateSQL = [];
-
-  forEach(allKeys, key => {
-    if (_.isInteger(data[key])) {
-      updateSQL.push(`${key} = ${data[key]}`);
-    } else {
-      updateSQL.push(`${key} = '${data[key]}'`);
-    }
-  });
-  return updateSQL;
-};
-
 export const fetchMilestones = () => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONES_PENDING));
@@ -145,8 +131,12 @@ export const fetchMilestones = () => {
     return db.transaction(tx => {
       tx.executeSql(
         'SELECT * FROM milestones;', [],
-        (_, response) => { dispatch( Response(FETCH_MILESTONES_FULFILLED, response)) },
-        (_, error) => { dispatch( Response(FETCH_MILESTONES_REJECTED, error)) }
+        (_, response) => {
+          dispatch(Response(FETCH_MILESTONES_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_MILESTONES_REJECTED, error));
+        },
       );
     });
   };
@@ -386,8 +376,8 @@ export const fetchMilestoneTasks = () => {
 
 export const fetchMilestoneSections = (params = {}) => {
   return dispatch => {
-    dispatch( Pending(FETCH_MILESTONE_SECTIONS_PENDING) );
-    var sql = 'SELECT * FROM sections';
+    dispatch(Pending(FETCH_MILESTONE_SECTIONS_PENDING));
+    let sql = 'SELECT * FROM sections';
     if (params.task_id) {
       sql += ` WHERE sections.task_id = ${params.task_id}`;
     }
@@ -505,13 +495,13 @@ export const createMilestoneAnswer = answer => {
 
 export const updateMilestoneAnswer = (choice_id, data) => {
   return dispatch => {
-    dispatch(Response(UPDATE_MILESTONE_ANSWER_FULFILLED, {choice_id, data}));
+    dispatch(Response(UPDATE_MILESTONE_ANSWER_FULFILLED, { choice_id, data }));
   };
 };
 
 export const updateMilestoneAnswers = answers => {
   return dispatch => {
-    dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, answers));
+    dispatch(Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, answers));
   };
 };
 
