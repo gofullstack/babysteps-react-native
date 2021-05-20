@@ -18,7 +18,6 @@ import { connect } from 'react-redux';
 
 import { updateSession } from '../actions/session_actions';
 import {
-  resetSubject,
   createSubject,
   apiCreateSubject,
 } from '../actions/registration_actions';
@@ -85,8 +84,6 @@ class RegistrationSubjectForm extends Component {
       apiSubjectSubmitted: false,
       apiFetchCalendarSubmitted: false,
     };
-
-    this.props.resetSubject();
   }
 
   componentDidMount() {
@@ -97,21 +94,15 @@ class RegistrationSubjectForm extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const session = nextProps.session;
-    const { respondent, subject, apiSubject } = nextProps.registration;
-
-    return (
-      !session.fetching &&
-      !respondent.fetching &&
-      !subject.fetching &&
-      !apiSubject.fetching
-    );
+    const { apiSubject } = nextProps.registration;
+    const { api_calendar } = nextProps.milestones;
+    return !apiSubject.fetching && !api_calendar.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
     const { subject, apiSubject } = this.props.registration;
-    const { calendar } = this.props.milestones;
+    const { api_calendar, calendar } = this.props.milestones;
     const {
       isSubmitting,
       apiSubjectSubmitted,
@@ -129,7 +120,7 @@ class RegistrationSubjectForm extends Component {
         this.props.apiFetchMilestoneCalendar({ study_id, subject_id });
         this.setState({ apiFetchCalendarSubmitted: true });
       }
-      if (!isEmpty(calendar.data)) {
+      if (api_calendar.fetched && !isEmpty(calendar.data)) {
         const registration_state = States.REGISTERED_AS_IN_STUDY;
         this.props.updateSession({ registration_state });
       }
@@ -189,7 +180,7 @@ class RegistrationSubjectForm extends Component {
       video_sharing,
     } = this.props.session;
     if (values.date_of_birth) {
-      const newSubject = {
+      const subject = {
         ...values,
         respondent_ids: [respondent_id],
         screening_blood,
@@ -199,7 +190,7 @@ class RegistrationSubjectForm extends Component {
         video_presentation,
         video_sharing,
       };
-      this.props.createSubject(newSubject);
+      this.props.createSubject(subject);
       this.setState({ isSubmitting: true });
     } else {
       this.setState({ dobError: 'You must provide the Date of Birth' });
@@ -316,7 +307,6 @@ const mapStateToProps = ({ session, registration, milestones }) => ({
 
 const mapDispatchToProps = {
   updateSession,
-  resetSubject,
   createSubject,
   apiCreateSubject,
   apiFetchMilestoneCalendar,

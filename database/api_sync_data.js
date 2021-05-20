@@ -6,14 +6,8 @@ import isEmpty from 'lodash/isEmpty';
 import { connect } from 'react-redux';
 import {
   updateSession,
-  fetchSession,
-  apiDispatchTokenRefresh,
+  apiDispatchTokenRefresh
 } from '../actions/session_actions';
-import {
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
-} from '../actions/registration_actions';
 
 import SyncConsentVersion from './sync_consent_version';
 import SyncConsentSignature from './sync_consent_signature';
@@ -50,26 +44,11 @@ class ApiSyncData extends Component {
       uploadBabybookEntriesSubmitted: false,
     };
 
-    this.props.fetchSession();
-    this.props.fetchUser();
-    this.props.fetchRespondent();
-    this.props.fetchSubject();
   }
 
   componentDidMount() {
     console.log('*** API Data Sync');
     AppState.addEventListener('change', this.handleAppStateChange);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const session = nextProps.session;
-    const { user, respondent, subject } = nextProps.registration;
-    return (
-      !session.fetching &&
-      !user.fetching &&
-      !respondent.fetching &&
-      !subject.fetching
-    );
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -93,7 +72,6 @@ class ApiSyncData extends Component {
     } = this.state;
 
     if (
-      session.fetched &&
       !session.fetching_token &&
       session.email &&
       session.password &&
@@ -106,7 +84,7 @@ class ApiSyncData extends Component {
       });
     }
 
-    if (session.fetched && !updateConsentVersionSubmitted) {
+    if (!updateConsentVersionSubmitted) {
       SyncConsentVersion(
         CONSTANTS.STUDY_ID,
         session.consent_update_at,
@@ -224,22 +202,15 @@ class ApiSyncData extends Component {
   }
 }
 
-const mapStateToProps = ({
-  session,
-  milestones,
-  registration,
-}) => ({
+const mapStateToProps = ({ session, milestones, registration }) => ({
   session,
   milestones,
   registration,
 });
+
 const mapDispatchToProps = {
   updateSession,
-  fetchSession,
   apiDispatchTokenRefresh,
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
 };
 
 export default connect(

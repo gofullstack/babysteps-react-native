@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 
 import { connect } from 'react-redux';
@@ -9,7 +9,6 @@ import {
   fetchOverViewTimeline,
   fetchMilestoneCalendar,
 } from '../actions/milestone_actions';
-
 import { fetchSubject, updateSubject } from '../actions/registration_actions';
 
 import Colors from '../constants/Colors';
@@ -28,11 +27,12 @@ const wp = (percentage, direction) => {
 const containerHeight = wp(32, height);
 const timelineHeight = wp(26, height);
 
-class OverviewScreen extends React.Component {
+class OverviewScreen extends Component {
   static navigationOptions = {
     header: null,
   };
 
+<<<<<<< HEAD
   constructor(props) {
     super(props);
 
@@ -86,6 +86,8 @@ class OverviewScreen extends React.Component {
     }
   }
 
+=======
+>>>>>>> wip
   render() {
     return (
       <View style={styles.container}>
@@ -94,11 +96,15 @@ class OverviewScreen extends React.Component {
         </View>
 
         <View style={styles.slider_container}>
+          { false &&
           <OverviewScreeningEvents navigation={this.props.navigation} />
+          }
         </View>
 
         <View style={styles.slider_container}>
+        { false &&
           <OverviewMilestones navigation={this.props.navigation} />
+        }
         </View>
       </View>
     );
@@ -122,6 +128,7 @@ const styles = StyleSheet.create({
   },
 });
 
+<<<<<<< HEAD
 const mapStateToProps = ({ registration, milestones }) => ({
   registration,
   milestones,
@@ -139,3 +146,8 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps,
 )(OverviewScreen);
+=======
+const mapStateToProps = ({ milestones }) => ({ milestones });
+
+export default connect(mapStateToProps)(OverviewScreen);
+>>>>>>> wip

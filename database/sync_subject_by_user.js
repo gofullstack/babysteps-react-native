@@ -1,14 +1,16 @@
 import axios from 'axios';
-import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
 import isEmpty from 'lodash/isEmpty';
 
+<<<<<<< HEAD
 import store from '../store';
+=======
+import { store } from '../store';
+>>>>>>> wip
 
 import { getApiUrl } from './common';
 
-const db = SQLite.openDatabase('babysteps.db');
 const apiToken = Constants.manifest.extra.apiToken;
 const baseURL = getApiUrl();
 const headers = { milestone_token: apiToken };
@@ -52,6 +54,7 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
       .then(response => {
         const { subject } = response.data;
 
+<<<<<<< HEAD
         const state = store.getState();
         const session = state.session;
 
@@ -85,6 +88,21 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
               },
             );
           });
+=======
+        if (isEmpty(subject)) {
+          const state = store.getState();
+          let data = state.registration.subject.data;
+          const id = data.api_id;
+          delete data.api_id;
+          data = {
+            ...data,
+            respondent_ids: [respondent_id],
+          };
+          // defaults
+          if (!data.outcome) data.outcome = 'live_birth';
+          if (!data.conception_method) data.conception_method = 'natural';
+          executeApiCall(id, data);
+>>>>>>> wip
         } else {
           console.log('*** Subject Exists on Server');
         }

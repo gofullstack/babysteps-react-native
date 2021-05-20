@@ -1,25 +1,25 @@
 import axios from 'axios';
-import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
 import Moment from 'moment';
 
-import store from '../store';
+import { store } from '../store';
 
 import { updateSession } from '../actions/session_actions';
 import { apiFetchConsent } from '../actions/registration_actions';
 
-import isEmpty from 'lodash/isEmpty';
+import { getApiUrl } from './common';
 
-import { getApiUrl, insertRows } from './common';
-import schema from '../database/registration_schema.json';
 
-const db = SQLite.openDatabase('babysteps.db');
 const apiToken = Constants.manifest.extra.apiToken;
 const baseURL = getApiUrl();
 const headers = { milestone_token: apiToken };
 
-const SyncConsentVersion = async (study_id, consent_updated_at, consent_last_updated_at) => {
+const SyncConsentVersion = async (
+  study_id,
+  consent_updated_at,
+  consent_last_updated_at,
+) => {
   console.log('*** Begin Consent Version Sync');
   const url = '/consents/last_updated';
   const timeNow = Moment().utc();

@@ -8,7 +8,6 @@ import { connect } from 'react-redux';
 import isEmpty from 'lodash/isEmpty';
 
 import { updateSession } from '../actions/session_actions';
-import { fetchConsent } from '../actions/registration_actions';
 
 import States from '../actions/states';
 import Colors from '../constants/Colors';
@@ -21,13 +20,11 @@ let webViewHeight = height * 0.55;
 class ConsentSummaryVersion extends Component {
   constructor(props) {
     super(props);
-
-    this.props.fetchConsent();
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const { consent, apiConsent } = nextProps.registration;
-    return !apiConsent.fetching && !consent.fetching;
+    const { apiConsent } = nextProps.registration;
+    return !apiConsent.fetching;
   }
 
   handleSubmit = () => {
@@ -41,13 +38,13 @@ class ConsentSummaryVersion extends Component {
     if (!isEmpty(consent)) tos_expires_on = consent.tos_expires_on;
     return (
       <View style={styles.footerContainer}>
-        <Text style={styles.header}>
+        <Text style={styles.footer}>
           This Disclosure expires: {tos_expires_on}.
         </Text>
         <View style={styles.buttonContainer}>
           <Button
             title="CONTINUE"
-            onPress={() => this.handleSubmit()}
+            onPress={this.handleSubmit}
             color={Colors.pink}
             buttonStyle={styles.buttonNext}
             titleStyle={styles.buttonNextTitle}
@@ -78,7 +75,10 @@ class ConsentSummaryVersion extends Component {
       >
         <Text style={styles.header}>SUMMARY OF INFORMED CONSENT</Text>
         <Text style={styles.subHeader}>
-          IRB ID: {irb_id}.v{version_id} Approved: {tos_approved_on}
+          IRB ID: {irb_id}.v{version_id}
+        </Text>
+        <Text style={[styles.subHeader, styles.subHeaderBottom]}>
+          Approved: {tos_approved_on}
         </Text>
         <WebView
           originWhitelist={['*']}
@@ -120,9 +120,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.darkGrey,
     textAlign: 'center',
-    paddingBottom: 5,
     marginLeft: 5,
     marginRight: 5,
+  },
+  subHeaderBottom: {
+    paddingBottom: 5,
     marginBottom: 5,
     borderBottomColor: Colors.black,
     borderBottomWidth: 1,
@@ -130,6 +132,17 @@ const styles = StyleSheet.create({
   footerContainer: {
     flex: 1,
     justifyContent: 'center',
+  },
+  footer: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    paddingTop: 5,
+    marginLeft: 5,
+    marginRight: 5,
+    marginTop: 5,
+    borderTopColor: Colors.black,
+    borderTopWidth: 1,
   },
   buttonContainer: {
     flex: 1,
@@ -157,7 +170,7 @@ const mapStateToProps = ({ session, registration }) => ({
   registration,
 });
 
-const mapDispatchToProps = { updateSession, fetchConsent };
+const mapDispatchToProps = { updateSession };
 
 export default connect(
   mapStateToProps,

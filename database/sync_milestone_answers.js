@@ -1,14 +1,11 @@
 import axios from 'axios';
-import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
-import isEmpty from 'lodash/isEmpty';
-import forEach from 'lodash/forEach';
-import omit from 'lodash/omit';
+import { _ } from 'lodash';
+
+import { store } from '../store';
 
 import { getApiUrl } from './common';
-
-const db = SQLite.openDatabase('babysteps.db');
 
 const apiToken = Constants.manifest.extra.apiToken;
 const headers = { milestone_token: apiToken };
@@ -28,15 +25,7 @@ const executeApiCall = async answers => {
     .then(response => {
       if (response.data) {
         response.data.forEach(answer => {
-          const sql = `UPDATE answers SET api_id = ${answer.id} WHERE choice_id = ${answer.choice_id}`;
-          db.transaction(tx => {
-            tx.executeSql(
-              sql,
-              [],
-              (_, response) => console.log(`*** Answer API ID updated: ${answer.id}`),
-              (_, error) => console.log(`*** Error: Answer API ID update failed: ${error}`),
-            );
-          });
+          store.dispatch(updateMilestoneAnswer(answer.choice_id, { api_id: answer.id }));
         });
       } else {
         console.log('*** No answers were saved on server');
@@ -45,31 +34,6 @@ const executeApiCall = async answers => {
     .catch(error => {
       console.log(`*** Error: Update Answer API call failed: ${error}`);
     });
-};
-
-const UploadMilestoneAnswers = async data => {
-  const answers = [];
-  forEach(data, row => {
-    const answer = omit(row, [
-      'id',
-      'api_id',
-      'user_api_id',
-      'respondent_api_id',
-      'subject_api_id',
-      'attachments',
-    ]);
-    answers.push({
-      ...answer,
-      user_id: row.user_api_id,
-      respondent_id: row.respondent_api_id,
-      subject_id: row.subject_api_id,
-    });
-  });
-  if (isEmpty(answers)) {
-    console.log('*** All Answers Exist on Server');
-  } else {
-    await executeApiCall(answers);
-  }
 };
 
 const SyncMilestoneAnswers = subject_id => {
@@ -87,20 +51,32 @@ const SyncMilestoneAnswers = subject_id => {
     })
       .then(response => {
         const { choice_ids } = response.data;
-        const sql = `SELECT * FROM answers WHERE choice_id NOT IN (${choice_ids.join()}) ;`;
-        db.transaction(tx => {
-          tx.executeSql(
-            sql,
-            [],
-            (_, response) => {
-              const answers = response.rows['_array'];
-              UploadMilestoneAnswers(answers);
-            },
-            (_, error) => {
-              console.log(error);
-            },
-          );
+        const state = store.getState();
+        const answers = state.milestones.answers.data;
+
+        _.remove(answers, answer => {
+          return choice_ids.includes(answer.choice_id);
         });
+
+        if (_.isEmpty(answers)) {
+          console.log('*** All Answers Exist on Server');
+          return;
+        }
+
+        _.forEach(answers, answer => {
+          answer.user_id = answer.user_api_id;
+          answer.respondent_id = answer.respondent_api_id;
+          answer.subject_id = answer.subject_api_id;
+          _.omit(answer, [
+            'id',
+            'api_id',
+            'user_api_id',
+            'respondent_api_id',
+            'subject_api_id',
+            'attachments',
+          ]);
+        });
+        executeApiCall(answers);
       })
       .catch(error => {
         console.log(error);

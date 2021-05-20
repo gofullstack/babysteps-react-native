@@ -7,9 +7,9 @@ import Constants from 'expo-constants';
 import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
-import { fetchSession, updateSession } from '../actions/session_actions';
+import { updateSession } from '../actions/session_actions';
 import {
-  fetchRespondent,
+  //fetchRespondent,
   updateRespondent,
   apiUpdateRespondent,
 } from '../actions/registration_actions';
@@ -25,9 +25,6 @@ class RegisterForPushNotifications extends Component {
       permissionDeniedAlertDisplayed: false,
       requestedPushToken: false,
     };
-
-    //this.props.fetchSession();
-    //this.props.fetchRespondent();
   }
 
   componentDidMount() {
@@ -40,8 +37,6 @@ class RegisterForPushNotifications extends Component {
     const { requestedPushToken } = nextState;
 
     return (
-      !session.fetching &&
-      !respondent.fetching &&
       !apiRespondent.fetching &&
       !isEmpty(respondent.data) &&
       ![null, undefined].includes(respondent.data.api_id) &&
@@ -128,9 +123,7 @@ const mapStateToProps = ({ session, registration }) => ({
 });
 
 const mapDispatchToProps = {
-  fetchSession,
   updateSession,
-  fetchRespondent,
   updateRespondent,
   apiUpdateRespondent,
 };

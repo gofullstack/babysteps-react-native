@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import axios from 'axios';
 import { _ } from 'lodash';
 
-import store from '../store';
+import { store } from '../store';
 
 import { insertRows, getApiUrl } from '../database/common';
 
@@ -23,11 +23,7 @@ import {
   FETCH_SESSION_FULFILLED,
   FETCH_SESSION_REJECTED,
 
-  UPDATE_SESSION_PENDING,
   UPDATE_SESSION_FULFILLED,
-  UPDATE_SESSION_REJECTED,
-
-  UPDATE_CONNECTION_TYPE,
 
   UPDATE_SESSION_PENDING_ACTIONS_PENDING,
   UPDATE_SESSION_PENDING_ACTIONS_FULFILLED,
@@ -74,43 +70,16 @@ export const fetchSession = () => {
   };
 };
 
-const sendSessionUpdate = (dispatch, data) => {
-  dispatch(Pending(UPDATE_SESSION_PENDING));
-
-  if (data.registration_state) {
-    const registration_state = store.getState().session.registration_state;
-    data.last_registration_state = registration_state;
-  }
-
-  const keys = _.keys(data);
-  const updateSQL = [];
-  _.forEach(keys, key => {
-    if (typeof data[key] === 'boolean') {
-      const boolean = data[key] ? 1 : 0;
-      updateSQL.push(`${key} = ${boolean}`);
-    } else {
-      updateSQL.push(`${key} = '${data[key]}'`);
-    }
-  });
-
-  return db.transaction(tx => {
-    tx.executeSql(
-      `UPDATE sessions SET ${updateSQL.join(', ')};`,
-      [],
-      (_, response) => dispatch(Response(UPDATE_SESSION_FULFILLED, response, data)),
-      (_, error) => dispatch(Response(UPDATE_SESSION_REJECTED, error)),
-    );
-  });
-};
-
 export const updateSession = data => {
   return dispatch => {
-    sendSessionUpdate(dispatch, data);
+    dispatch(Response(UPDATE_SESSION_FULFILLED, data));
   };
 };
 
 export const apiUpdateSession = (dispatch, data) => {
-  return sendSessionUpdate(dispatch, data);
+  return dispatch => {
+    dispatch(Response(UPDATE_SESSION_FULFILLED, data));
+  };
 };
 
 export const apiTokenRefresh = (dispatch, session) => {
@@ -190,12 +159,6 @@ export const decodePendingAction = action => {
     }
   }
   return action;
-};
-
-export const updateConnectionType = type => {
-  return function(dispatch) {
-    dispatch(Response(UPDATE_CONNECTION_TYPE, type));
-  };
 };
 
 // this fetches acknowledgement of user from api

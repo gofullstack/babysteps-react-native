@@ -1,5 +1,7 @@
 import { _ } from 'lodash';
 
+import { syncTriggerData } from '../database/common';
+
 import {
   FETCH_MILESTONES_PENDING,
   FETCH_MILESTONES_FULFILLED,
@@ -73,9 +75,7 @@ import {
   CREATE_MILESTONE_ANSWER_FULFILLED,
   CREATE_MILESTONE_ANSWER_REJECTED,
 
-  UPDATE_MILESTONE_ANSWERS_PENDING,
   UPDATE_MILESTONE_ANSWERS_FULFILLED,
-  UPDATE_MILESTONE_ANSWERS_REJECTED,
 
   API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING,
   API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED,
@@ -114,10 +114,6 @@ import {
   DELETE_MILESTONE_ATTACHMENT_PENDING,
   DELETE_MILESTONE_ATTACHMENT_FULFILLED,
   DELETE_MILESTONE_ATTACHMENT_REJECTED,
-
-  FETCH_OVERVIEW_TIMELINE_PENDING,
-  FETCH_OVERVIEW_TIMELINE_FULFILLED,
-  FETCH_OVERVIEW_TIMELINE_REJECTED,
 
 } from '../actions/types';
 
@@ -175,23 +171,11 @@ const initialState = {
     data: [],
     error: null,
   },
-  answer: {
-    fetching: false,
-    fetched: false,
-    data: [],
-    error: null,
-  },
   answers: {
     fetching: false,
     fetched: false,
     data: [],
     error: null,
-  },
-  apiAnswer: {
-    fetching: false,
-    fetched: false,
-    error: null,
-    data: [],
   },
   apiAnswers: {
     fetching: false,
@@ -199,18 +183,7 @@ const initialState = {
     error: null,
     data: [],
   },
-  attachment: {
-    fetching: false,
-    fetched: false,
-    error: null,
-  },
   attachments: {
-    fetching: false,
-    fetched: false,
-    error: null,
-    data: [],
-  },
-  overview_timeline: {
     fetching: false,
     fetched: false,
     error: null,
@@ -501,6 +474,7 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
     case API_FETCH_MILESTONE_CALENDAR_FULFILLED: {
+      const data = syncTriggerData(action.payload.data, state.calendar.data );
       return {
         ...state,
         api_calendar: {
@@ -514,7 +488,7 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: false,
           fetched: true,
           error: null,
-          data: action.payload.data,
+          data,
         },
       };
     }
@@ -865,18 +839,16 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
 
-    case UPDATE_MILESTONE_ANSWERS_PENDING: {
-      return {
-        ...state,
-        answers: {
-          ...state.answers,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
-    case UPDATE_MILESTONE_ANSWERS_FULFILLED: {
+    case UPDATE_MILESTONE_ANSWER_FULFILLED: {
+      const answer = action.payload;
+      const data = state.answers.data;
+      const index = _.findIndex(data, ['choice_id', answer.choice_id]);
+      if (index === -1) {
+        console.log(`*** Answer Not Updated - Not Found: choice_id: ${answer.choice_id}`);
+      } else {
+        data[index] = {...data[index], ...answer.data};
+      }
+
       return {
         ...state,
         answers: {
@@ -884,17 +856,31 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: false,
           fetched: true,
           error: null,
-          data: action.formData,
+          data,
         },
       };
-    }
-    case UPDATE_MILESTONE_ANSWERS_REJECTED: {
+    };
+
+    case UPDATE_MILESTONE_ANSWERS_FULFILLED: {
+      const answers = action.payload;
+      const data = state.answers.data;
+      _.forEach(answers, answer => {
+        const index = _.findIndex(data, ['choice_id', answer.choice_id]);
+        if (index === -1) {
+          data.push(answer);
+        } else {
+          data[index] = answer;
+        }
+      });
+
       return {
         ...state,
         answers: {
           ...state.answers,
           fetching: false,
-          error: action.payload,
+          fetched: true,
+          error: null,
+          data,
         },
       };
     }
@@ -1225,43 +1211,6 @@ const reducer = (state = initialState, action, formData = []) => {
         ...state,
         attachment: {
           ...state.attachment,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
-        },
-      };
-    }
-
-    case FETCH_OVERVIEW_TIMELINE_PENDING: {
-      return {
-        ...state,
-        overview_timeline: {
-          ...state.overview_timeline,
-          fetching: true,
-          fetched: false,
-          error: null,
-          data: [],
-        },
-      };
-    }
-    case FETCH_OVERVIEW_TIMELINE_FULFILLED: {
-      const data = action.payload.rows['_array'];
-      return {
-        ...state,
-        overview_timeline: {
-          ...state.overview_timeline,
-          fetching: false,
-          fetched: true,
-          error: null,
-          data,
-        },
-      };
-    }
-    case FETCH_OVERVIEW_TIMELINE_REJECTED: {
-      return {
-        ...state,
-        overview_timeline: {
-          ...state.overview_timeline,
           fetching: false,
           fetched: false,
           error: action.payload,

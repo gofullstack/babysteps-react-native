@@ -47,7 +47,7 @@ export default class TourScreen extends Component {
 
   updateIndex = currentIndex => {
     this.setState({ currentIndex });
-  }
+  };
 
   renderItem(page) {
     if (page.item.key === '4') {

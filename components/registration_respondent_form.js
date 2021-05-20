@@ -21,14 +21,10 @@ import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
 import {
-  fetchUser,
-  fetchConsent,
-  resetRespondent,
   createRespondent,
   updateRespondent,
   apiCreateRespondent,
   apiUpdateRespondent,
-  apiSaveSignature,
 } from '../actions/registration_actions';
 import { updateSession } from '../actions/session_actions';
 
@@ -40,7 +36,6 @@ import States from '../constants/States';
 import Colors from '../constants/Colors';
 import AppStyles from '../constants/Styles';
 import IRBInformation from '../constants/IRB';
-import CONSTANTS from '../constants';
 
 import ActionStates from '../actions/states';
 
@@ -117,10 +112,6 @@ class RegistrationRespondentForm extends Component {
       apiErrorMessage: '',
       apiRespondentSubmitted: false,
     };
-
-    this.props.fetchUser();
-    this.props.fetchConsent();
-    this.props.resetRespondent();
   }
 
   componentDidMount() {
@@ -131,14 +122,8 @@ class RegistrationRespondentForm extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    const session = nextProps.session;
-    const { user, respondent, apiRespondent } = nextProps.registration;
-    return (
-      !session.fetching &&
-      !user.fetching &&
-      !respondent.fetching &&
-      !apiRespondent.fetching
-    );
+    const { apiRespondent } = nextProps.registration;
+    return !apiRespondent.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -401,14 +386,10 @@ const mapStateToProps = ({ session, registration }) => ({
 });
 
 const mapDispatchToProps = {
-  fetchUser,
-  fetchConsent,
-  resetRespondent,
   createRespondent,
   updateRespondent,
   apiCreateRespondent,
   apiUpdateRespondent,
-  apiSaveSignature,
   updateSession,
 };
 

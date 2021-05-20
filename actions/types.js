@@ -72,9 +72,8 @@ export const CREATE_MILESTONE_ANSWER_PENDING = 'create_milestone_answer_pending'
 export const CREATE_MILESTONE_ANSWER_FULFILLED = 'create_milestone_answer_fulfilled';
 export const CREATE_MILESTONE_ANSWER_REJECTED = 'create_milestone_answer_rejected';
 
-export const UPDATE_MILESTONE_ANSWERS_PENDING = 'update_milestone_answers_pending';
+export const UPDATE_MILESTONE_ANSWER_FULFILLED = 'update_milestone_answer_fulfilled';
 export const UPDATE_MILESTONE_ANSWERS_FULFILLED = 'update_milestone_answers_fulfilled';
-export const UPDATE_MILESTONE_ANSWERS_REJECTED = 'update_milestone_answers_rejected';
 
 export const API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING = 'api_fetch_milestone_choice_answer_pending';
 export const API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED = 'api_fetch_milestone_choice_answer_fulfilled';
@@ -118,10 +117,6 @@ export const API_FETCH_ANSWER_ATTACHMENTS_PENDING = 'api_fetch_answer_attachment
 export const API_FETCH_ANSWER_ATTACHMENTS_FULFILLED = 'api_fetch_answer_attachments_fulfilled';
 export const API_FETCH_ANSWER_ATTACHMENTS_REJECTED = 'api_fetch_answer_attachments_rejected';
 
-export const FETCH_OVERVIEW_TIMELINE_PENDING = 'fetch_overview_timeline_pending';
-export const FETCH_OVERVIEW_TIMELINE_FULFILLED = 'fetch_overview_timeline_fulfilled';
-export const FETCH_OVERVIEW_TIMELINE_REJECTED = 'fetch_overview_timeline_rejected';
-
 // Session actions
 export const SESSION_SYNC_MESSAGE = 'session_sync_message';
 
@@ -143,11 +138,7 @@ export const FETCH_SESSION_PENDING = 'fetch_session_pending';
 export const FETCH_SESSION_FULFILLED = 'fetch_session_fulfilled';
 export const FETCH_SESSION_REJECTED = 'fetch_session_rejected';
 
-export const UPDATE_SESSION_PENDING = 'update_session_pending';
 export const UPDATE_SESSION_FULFILLED = 'update_session_fulfilled';
-export const UPDATE_SESSION_REJECTED = 'update_session_rejected';
-
-export const UPDATE_CONNECTION_TYPE = 'update_connection_type';
 
 export const API_FETCH_SIGNIN_PENDING = 'api_fetch_signin_pending';
 export const API_FETCH_SIGNIN_FULFILLED = 'api_fetch_signin_fulfilled';
@@ -181,13 +172,9 @@ export const FETCH_USER_PENDING = 'fetch_user_pending';
 export const FETCH_USER_FULFILLED = 'fetch_user_fulfilled';
 export const FETCH_USER_REJECTED = 'fetch_user_rejected';
 
-export const CREATE_USER_PENDING = 'create_user_pending';
 export const CREATE_USER_FULFILLED = 'create_user_fulfilled';
-export const CREATE_USER_REJECTED = 'create_user_rejected';
 
-export const UPDATE_USER_PENDING = 'update_user_pending';
 export const UPDATE_USER_FULFILLED = 'update_user_fulfilled';
-export const UPDATE_USER_REJECTED = 'update_user_rejected';
 
 export const API_CREATE_USER_PENDING = 'api_create_user_pending';
 export const API_CREATE_USER_FULFILLED = 'api_create_user_fulfilled';
@@ -199,13 +186,9 @@ export const FETCH_RESPONDENT_PENDING = 'fetch_respondent_pending';
 export const FETCH_RESPONDENT_FULFILLED = 'fetch_respondent_fulfilled';
 export const FETCH_RESPONDENT_REJECTED = 'fetch_respondent_rejected';
 
-export const CREATE_RESPONDENT_PENDING = 'create_respondent_pending';
 export const CREATE_RESPONDENT_FULFILLED = 'create_respondent_fulfilled';
-export const CREATE_RESPONDENT_REJECTED = 'create_respondent_rejected';
 
-export const UPDATE_RESPONDENT_PENDING = 'update_respondent_pending';
 export const UPDATE_RESPONDENT_FULFILLED = 'update_respondent_fulfilled';
-export const UPDATE_RESPONDENT_REJECTED = 'update_respondent_rejected';
 
 export const API_FETCH_RESPONDENT_ATTACHMENTS_PENDING = 'api_fetch_respondent_attachment_pending';
 export const API_FETCH_RESPONDENT_ATTACHMENTS_FULFILLED = 'api_fetch_respondent_attachment_fulfilled';
@@ -225,13 +208,9 @@ export const FETCH_SUBJECT_PENDING = 'fetch_subject_pending';
 export const FETCH_SUBJECT_FULFILLED = 'fetch_subject_fulfilled';
 export const FETCH_SUBJECT_REJECTED = 'fetch_subject_rejected';
 
-export const CREATE_SUBJECT_PENDING = 'create_subject_pending';
 export const CREATE_SUBJECT_FULFILLED = 'create_subject_fulfilled';
-export const CREATE_SUBJECT_REJECTED = 'create_subject_rejected';
 
-export const UPDATE_SUBJECT_PENDING = 'update_subject_pending';
 export const UPDATE_SUBJECT_FULFILLED = 'update_subject_fulfilled';
-export const UPDATE_SUBJECT_REJECTED = 'update_subject_rejected';
 
 export const API_CREATE_SUBJECT_PENDING = 'api_create_subject_pending';
 export const API_CREATE_SUBJECT_FULFILLED = 'api_create_subject_fulfilled';

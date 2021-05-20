@@ -11,7 +11,7 @@ import keys from 'lodash/keys';
 import isInteger from 'lodash/isInteger';
 import isEmpty from 'lodash/isEmpty';
 
-import { insertRows, getApiUrl, saveTriggerData } from '../database/common';
+import { insertRows, getApiUrl } from '../database/common';
 
 import CONSTANTS from '../constants';
 
@@ -205,9 +205,6 @@ export const apiFetchMilestones = () => {
         params: { study_id },
       })
         .then(response => {
-          Object.keys(response.data).map(name => {
-            insertRows(name, schema[name], response.data[name]);
-          });
           dispatch(Response(API_FETCH_MILESTONES_FULFILLED, response));
         })
         .catch(error => {
@@ -359,7 +356,6 @@ export const apiFetchMilestoneCalendar = params => {
         params,
       })
         .then(response => {
-          saveTriggerData(response.data);
           dispatch(Response(API_FETCH_MILESTONE_CALENDAR_FULFILLED, response));
         })
         .catch(error => {
@@ -693,49 +689,15 @@ export const createMilestoneAnswer = answer => {
   }; // dispatch
 };
 
-export const updateMilestoneAnswers = (section, answers) => {
+export const updateMilestoneAnswer = (choice_id, data) => {
   return dispatch => {
-    dispatch(Pending(UPDATE_MILESTONE_ANSWERS_PENDING));
+   dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, {choice_id, data}))
+  };
+};
 
-    const choice_ids = [];
-    let insertSQL = '';
-    let updateSQL = '';
-    const insertValues = [];
-    let row = '';
-
-    map(answers, answer => {
-      if (answer.id !== undefined) {
-        updateSQL += `UPDATE answers SET ${parseUpdateFields(answer, answerFields)} WHERE id = ${answer.id}; `;
-      } else {
-        choice_ids.push(answer.choice_id);
-        row = parseInsertFields(answer, answerFields);
-        insertValues.push(`( ${row} )`);
-      }
-    });
-
-    if (!isEmpty(insertValues)) {
-      //insertSQL = `DELETE FROM answers WHERE choice_id = ${choice_ids.join(', ')}; `
-      insertSQL = `INSERT INTO answers ( ${answerFields.join(', ')} ) VALUES ${insertValues.join(', ')};`;
-    }
-
-    return db.transaction(tx => {
-      if (!isEmpty(insertSQL)) {
-        tx.executeSql(
-          insertSQL,
-          [],
-          (_, response) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, response, answers)),
-          (_, error) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_REJECTED, error))
-        );
-      }
-      if (!isEmpty(updateSQL)) {
-        tx.executeSql(
-          updateSQL,
-          [],
-          (_, response) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, response, answers)),
-          (_, error) => dispatch( Response(UPDATE_MILESTONE_ANSWERS_REJECTED, error))
-        );
-      }
-    });
+export const updateMilestoneAnswers = answers => {
+  return dispatch => {
+   dispatch( Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, answers))
   };
 };
 
@@ -1034,46 +996,3 @@ export const deleteMilestoneAttachment = attachment_id => {
   };
 };
 
-export const fetchOverViewTimeline = () => {
-  return dispatch => {
-    dispatch(Pending(FETCH_OVERVIEW_TIMELINE_PENDING));
-
-    const sql =
-      "SELECT DISTINCT \
-        ss.task_id AS task_id, \
-        ss.title AS title, \
-        mts.id AS milestone_trigger_id, \
-        cs.id AS choice_id, \
-        ans.id AS answer_id, \
-        cs.overview_timeline AS overview_timeline, \
-        mts.notify_at AS notify_at, \
-        mts.available_start_at, \
-        mts.available_end_at, \
-        ats.id AS attachment_id, \
-        ats.filename AS filename, \
-        ats.content_type AS content_type, \
-        ats.uri AS uri, \
-        ats.url AS url \
-      FROM choices AS cs \
-      INNER JOIN questions AS qs ON qs.id = cs.question_id \
-      INNER JOIN sections AS ss ON ss.id = qs.section_id \
-      INNER JOIN milestone_triggers AS mts ON ss.task_id = mts.task_id \
-      LEFT JOIN answers AS ans ON ans.choice_id = cs.id \
-      LEFT JOIN attachments AS ats ON ans.choice_id = ats.choice_id \
-      WHERE cs.overview_timeline IN ('during_pregnancy', 'birth', 'post_birth') \
-      ORDER BY mts.notify_at;";
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, response) => {
-          dispatch(Response(FETCH_OVERVIEW_TIMELINE_FULFILLED, response));
-        },
-        (_, error) => {
-          dispatch(Response(FETCH_OVERVIEW_TIMELINE_REJECTED, error));
-        },
-      );
-    });
-  };
-};

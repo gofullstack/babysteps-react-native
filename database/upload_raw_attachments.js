@@ -1,4 +1,3 @@
-import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
 
 import { getApiUrl } from './common';

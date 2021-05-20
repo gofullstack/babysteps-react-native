@@ -5,7 +5,6 @@ import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
-import { fetchConsent } from '../actions/registration_actions';
 
 import States from '../actions/states';
 
@@ -16,8 +15,6 @@ class ConfirmConsentVersion extends Component {
     this.state = {
       appState: AppState.currentState,
     };
-
-    this.props.fetchConsent();
   }
 
   componentDidMount() {
@@ -29,8 +26,6 @@ class ConfirmConsentVersion extends Component {
     const session = nextProps.session;
     const { consent } = nextProps.registration;
     return (
-      !session.fetching &&
-      !consent.fetching &&
       !isEmpty(consent.data) &&
       session.registration_state === States.REGISTERED_AS_IN_STUDY
     );
@@ -63,15 +58,14 @@ class ConfirmConsentVersion extends Component {
   }
 }
 
-const mapStateToProps = ({
-  session,
-  registration,
-}) => ({
+const mapStateToProps = ({ session, registration }) => ({
   session,
   registration,
 });
 
-const mapDispatchToProps = { updateSession, fetchConsent };
+const mapDispatchToProps = {
+  updateSession,
+};
 
 export default connect(
   mapStateToProps,

@@ -4,7 +4,6 @@ import { createAppContainer } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 
 import { connect } from 'react-redux';
-import { fetchSession } from '../actions/session_actions';
 
 import AppNavigator from './AppNavigator';
 import NavigationService from './NavigationService';
@@ -104,7 +103,6 @@ const TourNoStudyNavigationContainer = createAppContainer(TourNoStudyNavigator);
 class RootNavigator extends Component {
   constructor(props) {
     super(props);
-    this.props.fetchSession();
   }
 
   render() {
@@ -138,9 +136,5 @@ class RootNavigator extends Component {
 }
 
 const mapStateToProps = ({ session }) => ({ session });
-const mapDispatchToProps = { fetchSession };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(RootNavigator);
+export default connect( mapStateToProps )(RootNavigator);

@@ -14,7 +14,7 @@ import forEach from 'lodash/forEach';
 import isObject from 'lodash/isObject';
 import map from 'lodash/map';
 
-import store from '../store';
+import { store } from '../store';
 import { updateSession } from '../actions/session_actions';
 import { apiCreateMilestoneCalendar } from '../actions/milestone_actions';
 import { showMomentaryAssessment } from '../actions/notification_actions';

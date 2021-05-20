@@ -8,13 +8,9 @@ import {
   FETCH_USER_FULFILLED,
   FETCH_USER_REJECTED,
 
-  CREATE_USER_PENDING,
   CREATE_USER_FULFILLED,
-  CREATE_USER_REJECTED,
 
-  UPDATE_USER_PENDING,
   UPDATE_USER_FULFILLED,
-  UPDATE_USER_REJECTED,
 
   API_CREATE_USER_PENDING,
   API_CREATE_USER_FULFILLED,
@@ -26,9 +22,7 @@ import {
   FETCH_RESPONDENT_FULFILLED,
   FETCH_RESPONDENT_REJECTED,
 
-  CREATE_RESPONDENT_PENDING,
   CREATE_RESPONDENT_FULFILLED,
-  CREATE_RESPONDENT_REJECTED,
 
   UPDATE_RESPONDENT_PENDING,
   UPDATE_RESPONDENT_FULFILLED,
@@ -105,7 +99,7 @@ const initialState = {
   user: {
     fetching: false,
     fetched: false,
-    data: { id: null },
+    data: {},
     error: null,
   },
   apiUser: {
@@ -187,57 +181,8 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
 
-    // CREATE USER
-    case CREATE_USER_PENDING: {
-      return {
-        ...state,
-        user: {
-          ...state.user,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
     case CREATE_USER_FULFILLED: {
-      return {
-        ...state,
-        user: {
-          ...state.user,
-          fetching: false,
-          fetched: true,
-          data: {
-            ...action.formData,
-            id: action.payload.insertId,
-          },
-        },
-      };
-    }
-    case CREATE_USER_REJECTED: {
-      return {
-        ...state,
-        user: {
-          ...state.user,
-          fetching: false,
-          error: action.payload,
-        },
-      };
-    }
-
-    case UPDATE_USER_PENDING: {
-      return {
-        ...state,
-        user: {
-          ...state.user,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
-    case UPDATE_USER_FULFILLED: {
-      const formData = action.formData;
-      const data = { ...state.user.data, ...formData };
+      const data = action.payload;
       return {
         ...state,
         user: {
@@ -248,15 +193,16 @@ const reducer = (state = initialState, action, formData = {}) => {
         },
       };
     }
-    case UPDATE_USER_REJECTED: {
+
+    case UPDATE_USER_FULFILLED: {
+      const data = { ...state.user.data, ...action.payload };
       return {
         ...state,
         user: {
           ...state.user,
           fetching: false,
-          fetched: false,
-          data: {},
-          error: action.payload,
+          fetched: true,
+          data,
         },
       };
     }
@@ -267,12 +213,6 @@ const reducer = (state = initialState, action, formData = {}) => {
         apiUser: {
           ...state.apiUser,
           fetching: true,
-          fetched: false,
-          error: null,
-        },
-        user: {
-          ...state.user,
-          fetching: false,
           fetched: false,
           error: null,
         },
@@ -311,28 +251,12 @@ const reducer = (state = initialState, action, formData = {}) => {
         apiUser: {
           ...state.apiUser,
           fetching: false,
+          fetched: false,
           error,
         },
       };
     }
 
-    case RESET_RESPONDENT: {
-      return {
-        ...state,
-        respondent: {
-          ...state.respondent,
-          fetching: false,
-          fetched: false,
-          error: null,
-        },
-        apiRespondent: {
-          ...state.apiRespondent,
-          fetching: false,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
 
     // FETCH RESPONDENT
     case FETCH_RESPONDENT_PENDING: {
@@ -369,76 +293,33 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
 
-    // CREATE RESPONDENT
-    case CREATE_RESPONDENT_PENDING: {
-      return {
-        ...state,
-        respondent: {
-          ...state.respondent,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
     case CREATE_RESPONDENT_FULFILLED: {
-      const data = action.formData;
+      const data = action.payload;
       return {
         ...state,
         respondent: {
           ...state.respondent,
           fetching: false,
           fetched: true,
-          data,
-        },
-      };
-    }
-    case CREATE_RESPONDENT_REJECTED: {
-      return {
-        ...state,
-        respondent: {
-          ...state.respondent,
-          fetching: false,
-          error: action.payload,
-        },
-      };
-    }
-
-    // CREATE RESPONDENT
-    case UPDATE_RESPONDENT_PENDING: {
-      return {
-        ...state,
-        respondent: {
-          ...state.respondent,
-          fetching: true,
-          fetched: false,
           error: null,
+          data,
         },
       };
     }
+
     case UPDATE_RESPONDENT_FULFILLED: {
-      const data = Object.assign({}, state.respondent.data, action.formData);
+      const data = { ...state.respondent.data, ...action.payload };
       return {
         ...state,
         respondent: {
           ...state.respondent,
           fetching: false,
           fetched: true,
+          error: null,
           data,
         },
       };
     }
-    case UPDATE_RESPONDENT_REJECTED: {
-      return {
-        ...state,
-        respondent: {
-          ...state.respondent,
-          fetching: false,
-          error: action.payload,
-        },
-      };
-    }
-
 
     case API_FETCH_USER_RESPONDENT_PENDING: {
       return {
@@ -599,24 +480,13 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.subject,
           fetching: false,
           error: action.payload,
-        } 
+        }
       };
     }
 
-    // CREATE SUBJECT
-    case CREATE_SUBJECT_PENDING: {
-      return {
-        ...state,
-        subject: {
-          ...state.subject,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
+
     case CREATE_SUBJECT_FULFILLED: {
-      const data = action.formData;
+      const data = action.payload;
       return {
         ...state,
         subject: {
@@ -625,34 +495,12 @@ const reducer = (state = initialState, action, formData = {}) => {
           fetched: true,
           error: null,
           data,
-        },
-      };
-    }
-    case CREATE_SUBJECT_REJECTED: {
-      return {
-        ...state,
-        subject: {
-          ...state.subject,
-          fetching: false,
-          error: action.payload,
         },
       };
     }
 
-    // UPDATE SUBJECT
-    case UPDATE_SUBJECT_PENDING: {
-      return {
-        ...state,
-        subject: {
-          ...state.subject,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
     case UPDATE_SUBJECT_FULFILLED: {
-      const data = {...state.subject.data, ...action.formData};
+      const data = {...state.subject.data, ...action.payload};
       return {
         ...state,
         subject: {
@@ -660,16 +508,6 @@ const reducer = (state = initialState, action, formData = {}) => {
           fetching: false,
           fetched: true,
           data,
-        },
-      };
-    }
-    case UPDATE_SUBJECT_REJECTED: {
-      return {
-        ...state,
-        subject: {
-          ...state.subject,
-          fetching: false,
-          error: action.payload,
         },
       };
     }

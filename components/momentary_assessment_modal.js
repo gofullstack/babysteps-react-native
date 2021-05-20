@@ -5,20 +5,18 @@ import { ButtonGroup } from 'react-native-elements';
 import _ from 'lodash';
 
 import { connect } from 'react-redux';
-import {
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
-} from '../actions/registration_actions';
+//import {
+//  fetchUser,
+//  fetchRespondent,
+//  fetchSubject,
+//} from '../actions/registration_actions';
 import {
   createMilestoneAnswer,
   apiCreateMilestoneAnswer,
-  fetchMilestoneCalendar,
   updateMilestoneCalendar,
   apiUpdateMilestoneCalendar,
 } from '../actions/milestone_actions';
 import {
-  fetchMomentaryAssessment,
   hideMomentaryAssessment,
 } from '../actions/notification_actions';
 
@@ -39,10 +37,6 @@ class MomentaryAssessment extends Component {
       response_scale: 'one_to_five',
       momentaryAssessmentLoaded: false,
     };
-    this.props.fetchUser();
-    this.props.fetchRespondent();
-    this.props.fetchSubject();
-    this.props.fetchMilestoneCalendar();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -104,7 +98,7 @@ class MomentaryAssessment extends Component {
 
   getModalContent = task => {
     const selectedIndex = this.state.selectedIndex;
-    if(selectedIndex !== null){
+    if (selectedIndex !== null){
       return this.getThankYouContent(selectedIndex);
     }
     return this.getTaskContent(task);
@@ -235,13 +229,8 @@ const mapStateToProps = ({
   notifications,
 });
 const mapDispatchToProps = {
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
-  fetchMomentaryAssessment,
   createMilestoneAnswer,
   apiCreateMilestoneAnswer,
-  fetchMilestoneCalendar,
   updateMilestoneCalendar,
   apiUpdateMilestoneCalendar,
   hideMomentaryAssessment,

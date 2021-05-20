@@ -11,4 +11,4 @@ export default {
     title: 'Share with Friends and Family',
     body: "You can share special video and photo moments with family and friends."
   },
-}
+};

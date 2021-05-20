@@ -10,6 +10,7 @@ import {
 import FlashMessage from 'react-native-flash-message';
 
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 
 import AppLoading from 'expo-app-loading';
 import * as Font from 'expo-font';
@@ -33,14 +34,14 @@ import ApiSyncData from './database/api_sync_data';
 import ApiOfflineListener from './database/api_offline_listener';
 import Player from './components/Player';
 
-import store from './store';
+import { store, persistor } from './store';
 
-import checkRegistrationSchema from './database/check_registration_schema';
-import checkMilestonesSchema from './database/check_milestones_schema';
-import checkMilestoneTriggersSchema from './database/check_milestone_triggers_schema';
-import checkAnswersSchema from './database/check_answers_schema';
-import checkNotificationsSchema from './database/check_notifications_schema';
-import checkBabyBookSchema from './database/check_babybook_schema';
+//import checkRegistrationSchema from './database/check_registration_schema';
+//import checkMilestonesSchema from './database/check_milestones_schema';
+//import checkMilestoneTriggersSchema from './database/check_milestone_triggers_schema';
+//import checkAnswersSchema from './database/check_answers_schema';
+//import checkNotificationsSchema from './database/check_notifications_schema';
+//import checkBabyBookSchema from './database/check_babybook_schema';
 import checkCustomDirectories from './database/check_custom_directories';
 
 import Colors from './constants/Colors';
@@ -151,12 +152,12 @@ export default class App extends Component {
 
     // async check of schemas
     await checkCustomDirectories();
-    await checkRegistrationSchema();
-    await checkNotificationsSchema();
-    await checkMilestonesSchema();
-    await checkMilestoneTriggersSchema();
-    await checkAnswersSchema();
-    await checkBabyBookSchema();
+    //await checkRegistrationSchema();
+    //await checkNotificationsSchema();
+    //await checkMilestonesSchema();
+    //await checkMilestoneTriggersSchema();
+    //await checkAnswersSchema();
+    //await checkBabyBookSchema();
   };
 
   render() {
@@ -174,18 +175,20 @@ export default class App extends Component {
 
     return (
       <Provider store={store}>
-        <View style={styles.container}>
-          {Platform.OS === 'android' && <StatusBar barStyle="default" />}
-          <CheckDataIntegrity />
-          <ApiSyncData />
-          <ApiOfflineListener />
-          <RootNavigator />
-          <FlashMessage position="top" />
-          <RegisterForPushNotifications />
-          <HandleNotifications />
-          <MomentaryAssessment />
-          <ConfirmConsentVersion />
-        </View>
+        <PersistGate loading={null} persistor={persistor}>
+          <View style={styles.container}>
+            {Platform.OS === 'android' && <StatusBar barStyle="default" />}
+            <CheckDataIntegrity />
+            <ApiSyncData />
+            <ApiOfflineListener />
+            <RootNavigator />
+            <FlashMessage position="top" />
+            <RegisterForPushNotifications />
+            <HandleNotifications />
+            <MomentaryAssessment />
+            <ConfirmConsentVersion />
+          </View>
+        </PersistGate>
       </Provider>
     );
   }

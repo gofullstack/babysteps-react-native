@@ -310,9 +310,7 @@ export const getBabybookEntries = async () => {
   return entries;
 };
 
-export const saveTriggerData = async newTriggers => {
-  const schema = require('./milestone_triggers_schema.json');
-  const oldTriggers = await getMilestoneCalendar();
+export const syncTriggerData = (newTriggers, oldTriggers) => {
   for (const newTrigger of newTriggers) {
     const oldTrigger = _.find(oldTriggers, {id: newTrigger.id});
     if (!_.isEmpty(oldTrigger)) {
@@ -320,8 +318,7 @@ export const saveTriggerData = async newTriggers => {
       newTrigger.completed_at = oldTrigger.completed_at;
     }
   }
-  insertRows('milestone_triggers', schema['milestone_triggers'], newTriggers);
-  return null;
+  return newTriggers;
 };
 
 // Example use of delay

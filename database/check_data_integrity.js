@@ -5,18 +5,11 @@ import * as FileSystem from 'expo-file-system';
 import _ from 'lodash';
 
 import { connect } from 'react-redux';
-import { fetchSession, updateSession } from '../actions/session_actions';
+import { updateSession } from '../actions/session_actions';
+import { updateUser } from '../actions/registration_actions';
 import {
-  fetchUser,
-  updateUser,
-  fetchRespondent,
-  fetchSubject,
-} from '../actions/registration_actions';
-import {
-  fetchMilestoneAnswers,
   updateMilestoneAnswers,
   deleteMilestoneAnswer,
-  fetchMilestoneAttachments,
   updateMilestoneAttachment,
   deleteMilestoneAttachment,
 } from '../actions/milestone_actions';
@@ -34,32 +27,11 @@ class CheckDataIntegrity extends Component {
       userPasswordUpdated: false,
       signatureFileUpdated: false,
     };
-
-    this.props.fetchSession();
-    this.props.fetchUser();
-    this.props.fetchRespondent();
-    this.props.fetchSubject();
-    this.props.fetchMilestoneAnswers();
-    this.props.fetchMilestoneAttachments();
   }
 
   componentDidMount = async () => {
     console.log('*** Checking Data Integrity');
   };
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const session = this.props.session;
-    const { user, respondent, subject } = this.props.registration;
-    const { answers, attachments } = this.props.milestones;
-    return (
-      !session.fetching &&
-      !user.fetching &&
-      !respondent.fetching &&
-      !subject.fetching &&
-      !answers.fetching &&
-      !attachments.fetching
-    );
-  }
 
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
@@ -83,11 +55,7 @@ class CheckDataIntegrity extends Component {
       this.setState({ signatureFileUpdated: true });
     }
 
-    if (
-      answers.fetched &&
-      !_.isEmpty(answers.data) &&
-      !cleanDuplicateAnswersSubmitted
-    ) {
+    if (!_.isEmpty(answers.data) && !cleanDuplicateAnswersSubmitted) {
       this.cleanDuplicateAnswers();
       this.setState({ cleanDuplicateAnswersSubmitted: true });
       return;
@@ -95,7 +63,6 @@ class CheckDataIntegrity extends Component {
 
     if (
       cleanDuplicateAnswersSubmitted &&
-      attachments.fetched &&
       !_.isEmpty(attachments.data) &&
       !cleanDuplicateAttachmentsSubmitted
     ) {
@@ -124,7 +91,7 @@ class CheckDataIntegrity extends Component {
     const { user } = this.props.registration;
     const { userPasswordUpdated } = this.state;
 
-    if (user.fetched && !_.isEmpty(user.data)) {
+    if (!_.isEmpty(user.data)) {
       if (
         (!session.uid && user.data.email) ||
         (!session.user_api_id && user.data.api_id)
@@ -259,16 +226,10 @@ const mapStateToProps = ({ session, registration, milestones }) => ({
   milestones,
 });
 const mapDispatchToProps = {
-  fetchSession,
   updateSession,
-  fetchUser,
   updateUser,
-  fetchRespondent,
-  fetchSubject,
-  fetchMilestoneAnswers,
   updateMilestoneAnswers,
   deleteMilestoneAnswer,
-  fetchMilestoneAttachments,
   updateMilestoneAttachment,
   deleteMilestoneAttachment,
 };

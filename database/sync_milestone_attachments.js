@@ -1,5 +1,4 @@
 import axios from 'axios';
-import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
 
 import isEmpty from 'lodash/isEmpty';

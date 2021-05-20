@@ -5,7 +5,6 @@ import {
   UPDATE_SESSION_ACTION,
   UPDATE_ACCESS_TOKEN,
   SET_FETCHING_TOKEN,
-  UPDATE_CONNECTION_TYPE,
   RESET_SESSION,
 
   API_TOKEN_REFRESH_PENDING,
@@ -17,9 +16,7 @@ import {
   FETCH_SESSION_FULFILLED,
   FETCH_SESSION_REJECTED,
 
-  UPDATE_SESSION_PENDING,
   UPDATE_SESSION_FULFILLED,
-  UPDATE_SESSION_REJECTED,
 
   UPDATE_SESSION_PENDING_ACTIONS_PENDING,
   UPDATE_SESSION_PENDING_ACTIONS_FULFILLED,
@@ -150,12 +147,6 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
 
-    case UPDATE_CONNECTION_TYPE: {
-      return {
-        ...state,
-        connectionType: action.payload,
-      };
-    }
 
     case SET_FETCHING_TOKEN: {
       return {
@@ -231,27 +222,13 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
 
-    case UPDATE_SESSION_PENDING: {
-      return {
-        ...state,
-        fetching: true,
-        fetched: false,
-        error: null,
-      };
-    }
     case UPDATE_SESSION_FULFILLED: {
+      const attributes = action.payload;
       return {
         ...state,
         fetching: false,
         fetched: true,
-        ...action.session,
-      };
-    }
-    case UPDATE_SESSION_REJECTED: {
-      return {
-        ...state,
-        fetching: false,
-        error: action.payload,
+        ...attributes,
       };
     }
 
