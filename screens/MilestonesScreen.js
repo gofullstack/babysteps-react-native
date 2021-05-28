@@ -56,12 +56,13 @@ class MilestonesScreen extends Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate() {
     const session = this.props.session;
+    const navigation = this.props;
     const { sectionIndex } = this.state;
 
     // default to navigation param, then subject base group
-    let selectedGroupIndex = this.props.navigation.getParam('currentGroupIndex', null);
+    let selectedGroupIndex = navigation.getParam('currentGroupIndex', null);
     if (!selectedGroupIndex) {
       selectedGroupIndex = session.current_group_index;
     }
@@ -132,11 +133,13 @@ class MilestonesScreen extends Component {
           data.push(taskItem);
         }); // forEach IncludedTasks
       }); // forEach Included Milestones
+
       data = _.orderBy(
         data,
         ['study_only', 'days_since_baseline'],
         ['desc', 'asc'],
       );
+
       milestoneList.push({
         key: group.id,
         title: group.title,

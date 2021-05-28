@@ -351,15 +351,6 @@ export const apiSyncRegistration = user_id => {
         },
       })
         .then(response => {
-          if (response.status !== 404) {
-            const data = response.data;
-            if (data.respondents) {
-              const respondents = data.respondents;
-            }
-            if (data.subjects) {
-              const subjects = data.subjects;
-            }
-          }
           dispatch(Response(API_SYNC_REGISTRATION_FULFILLED, response));
         })
         .catch(error => {

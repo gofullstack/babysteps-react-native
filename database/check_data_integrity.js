@@ -326,6 +326,7 @@ class CheckDataIntegrity extends Component {
               ...attachment,
               user_id: user.data.id,
               subject_id: subject.data.id,
+
             };
             this.props.updateMilestoneAttachment(attachment);
           }

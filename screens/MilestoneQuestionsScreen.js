@@ -443,7 +443,7 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   render() {
-    const navigation = this.props.navigation;
+    const { navigation } = this.props;
     const {
       confirmed,
       task,
@@ -465,7 +465,7 @@ class MilestoneQuestionsScreen extends Component {
             errorMessage={errorMessage}
             extraData={this.state}
             saveResponse={this.saveResponse}
-            navigation={this.props.navigation}
+            navigation={navigation}
           />
         </View>
         <View

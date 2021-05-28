@@ -1,7 +1,5 @@
 import axios from 'axios';
 
-import pick from 'lodash/pick';
-
 import {
   updateSession,
   apiTokenRefresh,
@@ -102,17 +100,6 @@ export default store => next => action => {
   }
 
   const baseURL = getApiUrl();
-
-  //AnalyticsEvent(
-  //  'API',
-  //  action.type,
-  //  'headers',
-  //  JSON.stringify({
-  //    access_token: session.access_token,
-  //    uid: session.uid,
-  //    event_at: Date(),
-  //  }),
-  //);
 
   return axios({
     method: effect.method,
