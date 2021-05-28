@@ -12,21 +12,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { showMessage } from 'react-native-flash-message';
 
-import isEmpty from 'lodash/isEmpty';
-import filter from 'lodash/filter';
-import groupBy from 'lodash/groupBy';
-import orderBy from 'lodash/sortBy';
-import reduce from 'lodash/reduce';
-import find from 'lodash/find';
+import { _ } from 'lodash';
 
 import Moment from 'moment';
 
 import { connect } from 'react-redux';
-import {
-  fetchMilestoneGroups,
-  fetchMilestoneTasks,
-} from '../actions/milestone_actions';
-import { fetchUser } from '../actions/registration_actions';
 
 import Colors from '../constants/Colors';
 import States from '../actions/states';
@@ -47,127 +37,120 @@ class MilestonesScreen extends Component {
   constructor(props) {
     super(props);
 
-    const currentGroupIndex = this.props.session.current_group_index;
+    const session = this.props.session;
 
     this.state = {
-      tasksForList: [],
-      tasksSaved: false,
-      initialIndex: 0,
-      sectionIndex: currentGroupIndex,
-      sectionID: null,
-      scrollToComplete: false,
+      sectionIndex: session.current_group_index,
     };
-
-    this.props.fetchUser();
-    this.props.fetchMilestoneGroups();
-    this.props.fetchMilestoneTasks();
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    // trap section header render - don't update view
-    const newSectionID = nextState.sectionID !== this.state.sectionID;
-    const { tasks, calendar } = nextProps.milestones;
-    //const newSectionIndex = nextState.sectionIndex !== this.state.sectionIndex;
-    return !newSectionID && !tasks.fetching && !calendar.fetching;
+  componentDidMount() {
+    const session = this.props.session;
+    const { groups, milestones, tasks } = this.props.milestones;
+    if (
+      !_.isEmpty(groups.data) &&
+      !_.isEmpty(milestones.data) &&
+      !_.isEmpty(tasks.data)
+    ) {
+      this.setMilestoneList();
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const prevTasks = prevProps.milestones.tasks;
-    const { tasks } = this.props.milestones;
-    const { tasksForList, tasksSaved, sectionIndex } = this.state;
+    const session = this.props.session;
+    const { sectionIndex } = this.state;
+
     // default to navigation param, then subject base group
     let selectedGroupIndex = this.props.navigation.getParam('currentGroupIndex', null);
     if (!selectedGroupIndex) {
-      selectedGroupIndex = this.props.session.current_group_index;
+      selectedGroupIndex = session.current_group_index;
     }
-
-    if (tasks.fetched && !isEmpty(tasks.data)) {
-      if (prevTasks !== tasks || !tasksSaved) {
-        this._saveTasksData();
-      }
-    }
-    if (
-      tasksForList.length !== 0 &&
-      selectedGroupIndex !== null &&
-      sectionIndex !== selectedGroupIndex &&
-      prevProps.sectionIndex === this.props.sectionIndex
-    ) {
-      this.updateInitialIndex(selectedGroupIndex, tasksForList);
+    if (selectedGroupIndex !== sectionIndex) {
       this.setState({ sectionIndex: selectedGroupIndex });
+      return;
     }
   }
 
-  _saveTasksData = () => {
+  setMilestoneList = () => {
     const session = this.props.session;
-    const { groups, tasks } = this.props.milestones;
+    const { groups, milestones, tasks, calendar } = this.props.milestones;
     const { sectionIndex } = this.state;
-    let tasksForList = [...this.state.tasksForList];
+    const noStudy = session.registration_state === States.REGISTERED_AS_NO_STUDY;
 
-    tasksForList = filter(tasks.data, task => {
-      if (
-        session.registration_state === States.REGISTERED_AS_NO_STUDY &&
-        task.study_only === 1
-      ) {
-        return false;
-      }
-      // don't show task, linked by notification
-      if (task.milestone_always_visible !== 1) {
-        return false;
-      }
-      return true;
-    });
+    let includedGroups = _.filter(groups.data, {visible: true});
+    includedGroups = _.sortBy(includedGroups, ['position']);
 
-    tasksForList = groupBy(tasksForList, task => task.milestone_group_id);
+    const milestoneList = [];
 
-    // remove any tasks without a milestone group
-    tasksForList = reduce(
-      tasksForList,
-      (acc, data, index) => {
-        const group = find(groups.data, ['id', data[0].milestone_group_id]);
-        if (!isEmpty(group)) {
-          acc.push({ key: index, id: group.id, title: group.title, data });
-        }
-        return acc;
-      },
-      [],
-    );
+    _.forEach(includedGroups, group => {
 
-    // order by study_only, then days_since_baseline
-    tasksForList = tasksForList.map(group => {
-      const study_only = orderBy(
-        filter(group.data, { study_only: 1 }),
-        'milestone_days_since_baseline',
-      );
-      const included = orderBy(
-        filter(group.data, { study_only: 0 }),
-        'milestone_days_since_baseline',
-      );
-      group.data = [...study_only, ...included];
-      return group;
-    });
+      let includedMilestones = _.filter(milestones.data, milestone => {
+        return (
+          milestone.days_since_baseline >= group.baseline_range_days_start &&
+          milestone.days_since_baseline <= group.baseline_range_days_end &&
+          milestone.momentary_assessment === false
+        );
+      });
 
-    this.updateInitialIndex(sectionIndex, tasksForList);
-
-    this.setState({ tasksForList, tasksSaved: true });
-  };
-
-  updateInitialIndex = (sectionIndex, tasksForList) => {
-    if (isEmpty(tasksForList)) return;
-    let initialIndex = 0;
-    if (sectionIndex > 0) {
-      Array(sectionIndex)
-        .fill()
-        .forEach((_, current) => {
-          initialIndex += tasksForList[current].data.length + 2;
+      let data = [];
+      _.forEach(includedMilestones, milestone => {
+        let includedTasks = _.filter(tasks.data, task => {
+          if (
+            task.milestone_id !== milestone.id ||
+            task.milestone_always_visible === false ||
+            (task.study_only === false && noStudy)
+          ) {
+            return false;
+          }
+          return true;
         });
-      this.setState({ initialIndex });
-    }
+
+        let taskItem = {};
+        _.forEach(includedTasks, task => {
+          taskItem = {
+            id: task.id,
+            key: task.id,
+            name: task.name,
+            task_type: task.task_type,
+            study_only: task.study_only,
+            days_since_baseline: milestone.days_since_baseline,
+            available_start_at: null,
+            available_end_at: null,
+            questions_remaining: 0,
+            completed_at: null,
+          };
+          const trigger = _.find(calendar.data, ['task_id', task.id]);
+          if (!_.isEmpty(trigger)) {
+            taskItem = {
+              ...taskItem,
+              questions_remaining: trigger.questions_remaining,
+              completed_at: trigger.completed_at,
+              available_start_at: trigger.available_start_at,
+              available_end_at: trigger.available_end_at,
+            };
+          }
+          data.push(taskItem);
+        }); // forEach IncludedTasks
+      }); // forEach Included Milestones
+      data = _.orderBy(
+        data,
+        ['study_only', 'days_since_baseline'],
+        ['desc', 'asc'],
+      );
+      milestoneList.push({
+        key: group.id,
+        title: group.title,
+        data,
+      });
+    }); // forEach includedGroups
+    return milestoneList;
   };
 
-  handleOnPress = (task, calendar) => {
+  handleOnPress = task => {
+    const { navigate } = this.props.navigation;
     if (!CONSTANTS.TESTING_ENABLE_ALL_TASKS) {
-      if (Moment().isBefore(calendar.available_start_at)) {
-        const available = Moment(calendar.available_start_at).format('MM/DD/YYYY');
+      if (Moment().isBefore(task.available_start_at)) {
+        const available = Moment(task.available_start_at).format('MM/DD/YYYY');
         showMessage({
           message: `This task will be available ${available}. Please check back then.`,
           type: 'warning',
@@ -175,8 +158,8 @@ class MilestonesScreen extends Component {
         });
         return null;
       }
-      if (Moment().isAfter(calendar.available_end_at) && !calendar.completed_at) {
-        const ended = Moment(calendar.available_end_at).format('MM/DD/YYYY');
+      if (Moment().isAfter(task.available_end_at) && !task.completed_at) {
+        const ended = Moment(task.available_end_at).format('MM/DD/YYYY');
         showMessage({
           message: `Sorry, this task is expired on ${ended} and is no longer available.`,
           type: 'warning',
@@ -185,7 +168,6 @@ class MilestonesScreen extends Component {
         return null;
       }
     }
-    const navigate = this.props.navigation.navigate;
     if (task.task_type === 'pregnancy_history') {
       navigate('MilestonePregnancyHistory', { task });
     } else {
@@ -197,21 +179,19 @@ class MilestonesScreen extends Component {
     const task = item.item;
     let checkboxSource = require('../assets/images/milestones_checkbox.png');
     let color = Colors.grey;
-    const calendar = find(this.props.milestones.calendar.data, ['task_id', task.id]);
-    if (calendar) {
-      if (calendar.questions_remaining > 0) {
-        checkboxSource = require('../assets/images/milestones_checkbox_skipped.png');
-      } else if (calendar.completed_at) {
-        checkboxSource = require('../assets/images/milestones_checkbox_complete.png');
+    if (task.questions_remaining > 0) {
+      checkboxSource = require('../assets/images/milestones_checkbox_skipped.png');
+    }
+    if (task.completed_at) {
+      checkboxSource = require('../assets/images/milestones_checkbox_complete.png');
+    }
+    if (!CONSTANTS.TESTING_ENABLE_ALL_TASKS) {
+      if (
+        Moment().isBefore(task.available_start_at) ||
+        Moment().isAfter(task.available_end_at)
+      ) {
+        color = Colors.lightGrey;
       }
-      if (!CONSTANTS.TESTING_ENABLE_ALL_TASKS) {
-        if (Moment().isBefore(calendar.available_start_at) || Moment().isAfter(calendar.available_end_at)) {
-          color = Colors.lightGrey;
-        }
-      }
-    } else {
-      // if no calendar entry, don't show the task
-      return null;
     }
 
     let backgroundColor = 'white';
@@ -220,8 +200,8 @@ class MilestonesScreen extends Component {
     }
 
     return (
-      <View style={[ styles.itemContainer, { backgroundColor } ]}>
-        <TouchableOpacity onPress={() => this.handleOnPress(task, calendar)}>
+      <View style={[styles.itemContainer, { backgroundColor }]}>
+        <TouchableOpacity onPress={() => this.handleOnPress(task)}>
           <View style={styles.itemLeft}>
             <Image source={checkboxSource} style={styles.itemCheckBox} />
             <Text style={[styles.item, { color }]}>
@@ -269,8 +249,25 @@ class MilestonesScreen extends Component {
   };
 
   render() {
-    const { tasksForList, initialIndex } = this.state;
-    if (isEmpty(tasksForList)) return null;
+    const { groups, milestones, tasks } = this.props.milestones;
+    const { sectionIndex } = this.state;
+    let milestoneList = [];
+    if (
+      !_.isEmpty(groups.data) &&
+      !_.isEmpty(milestones.data) &&
+      !_.isEmpty(tasks.data)
+    ) {
+      milestoneList = this.setMilestoneList();
+    }
+
+    let initialIndex = 0;
+    if (sectionIndex > 0 && !_.isEmpty(milestoneList)) {
+      Array(sectionIndex)
+        .fill()
+        .forEach((_, current) => {
+          initialIndex += milestoneList[current].data.length + 2;
+        });
+    }
 
     return (
       <View style={styles.container}>
@@ -279,17 +276,17 @@ class MilestonesScreen extends Component {
           &nbsp; on a light green background indicates that the item is a
           research related task.
         </Text>
-        <SectionList
-          //debug={true}
-          initialNumToRender={12}
-          initialScrollIndex={initialIndex}
-          getItemLayout={this.getItemLayout}
-          onScrollToIndexFailed={info => console.log(info)}
-          renderSectionHeader={this.renderSectionHeader}
-          renderItem={this.renderItem}
-          sections={tasksForList}
-          keyExtractor={(item, index) => `key-${index}`}
-        />
+        {!_.isEmpty(milestoneList) && (
+          <SectionList
+            //debug={true}
+            onScrollToIndexFailed={info => console.log({ info })}
+            initialScrollIndex={initialIndex}
+            getItemLayout={this.getItemLayout}
+            renderSectionHeader={this.renderSectionHeader}
+            renderItem={this.renderItem}
+            sections={milestoneList}
+          />
+        )}
       </View>
     );
   }
@@ -353,13 +350,5 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = ({ session, milestones }) => ({ session, milestones });
-const mapDispatchToProps = {
-  fetchMilestoneGroups,
-  fetchMilestoneTasks,
-  fetchUser,
-};
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(MilestonesScreen);
+export default connect(mapStateToProps)(MilestonesScreen);

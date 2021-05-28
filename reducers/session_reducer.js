@@ -106,17 +106,19 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case UPDATE_SESSION_PENDING_ACTIONS_FULFILLED: {
+      const pending_actions = action.payload;
       return {
         ...state,
         dispatching_pending_actions: false,
-        pending_actions: action.payload,
+        pending_actions,
       };
     }
     case UPDATE_SESSION_PENDING_ACTIONS_REJECTED: {
+      const error = action.payload;
       return {
         ...state,
         dispatching_pending_actions: false,
-        error: action.payload,
+        error,
       };
     }
 
@@ -134,9 +136,10 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case DISPATCH_SESSION_PENDING_ACTIONS_REJECTED: {
+      const error = action.payload;
       return {
         ...state,
-        error: action.payload,
+        error,
       };
     }
 
@@ -146,7 +149,6 @@ const reducer = (state = initialState, action, formData = {}) => {
         access_token: action.payload,
       };
     }
-
 
     case SET_FETCHING_TOKEN: {
       return {
@@ -228,6 +230,7 @@ const reducer = (state = initialState, action, formData = {}) => {
         ...state,
         fetching: false,
         fetched: true,
+        error: null,
         ...attributes,
       };
     }

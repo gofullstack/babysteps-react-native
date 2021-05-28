@@ -52,7 +52,7 @@ const SyncMilestoneAnswers = subject_id => {
       .then(response => {
         const { choice_ids } = response.data;
         const state = store.getState();
-        const answers = state.milestones.answers.data;
+        const answers = [...state.milestones.answers.data];
 
         _.remove(answers, answer => {
           return choice_ids.includes(answer.choice_id);

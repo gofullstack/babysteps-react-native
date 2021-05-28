@@ -23,7 +23,6 @@ import withInputAutoFocus, {
 
 import { connect } from 'react-redux';
 import {
-  resetBabyBookEntries,
   createBabyBookEntry,
   apiCreateBabyBookEntry,
 } from '../actions/babybook_actions';
@@ -32,6 +31,7 @@ import registerForPermission, {
   renderNoPermissionsMessage,
   openSettingsDialog,
 } from './permissions';
+
 import TextFieldWithLabel from './textFieldWithLabel';
 import DatePicker from './datePickerInput';
 import CameraModal from './camera_modal';
@@ -103,9 +103,6 @@ class BabyBookEntryForm extends Component {
     }
   }
 
-  shouldComponentUpdate(nextProps) {
-    return !nextProps.babybook.entry.fetching;
-  }
 
   componentWillUnmount() {
     this._isMounted = false;
@@ -137,12 +134,15 @@ class BabyBookEntryForm extends Component {
   };
 
   render() {
-    const image = this.state.image;
-    const hasCameraPermission  = this.state.hasCameraPermission;
-    const hasCameraRollPermission = this.state.hasCameraRollPermission;
-    const permissionMessage = this.state.permissionMessage;
-    const user = this.props.registration.user.data;
     const session = this.props.session;
+    const user = this.props.registration.user.data;
+    const {
+      image,
+      hasCameraPermission,
+      hasCameraRollPermission,
+      permissionMessage,
+    } = this.state;
+
     let hasUri = false;
     let isVideo = false;
     let uri = null;
@@ -337,17 +337,12 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = ({
-  session,
-  babybook,
-  registration,
-}) => ({
+const mapStateToProps = ({ session, babybook, registration }) => ({
   session,
   babybook,
   registration,
 });
 const mapDispatchToProps = {
-  resetBabyBookEntries,
   createBabyBookEntry,
   apiCreateBabyBookEntry,
 };

@@ -24,7 +24,8 @@ export default store => next => action => {
     //const state = store.getState();
     //const user = state.registration.user.data;
     //if (!isEmpty(user)) {
-      store.dispatch(updateUser({ api_id: headers.user_id }));
+      const api_id = parseInt(headers.user_id, 10);
+      store.dispatch(updateUser({ api_id }));
     //}
   }
 

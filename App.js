@@ -36,12 +36,6 @@ import Player from './components/Player';
 
 import { store, persistor } from './store';
 
-//import checkRegistrationSchema from './database/check_registration_schema';
-//import checkMilestonesSchema from './database/check_milestones_schema';
-//import checkMilestoneTriggersSchema from './database/check_milestone_triggers_schema';
-//import checkAnswersSchema from './database/check_answers_schema';
-//import checkNotificationsSchema from './database/check_notifications_schema';
-//import checkBabyBookSchema from './database/check_babybook_schema';
 import checkCustomDirectories from './database/check_custom_directories';
 
 import Colors from './constants/Colors';

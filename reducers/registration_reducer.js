@@ -24,9 +24,7 @@ import {
 
   CREATE_RESPONDENT_FULFILLED,
 
-  UPDATE_RESPONDENT_PENDING,
   UPDATE_RESPONDENT_FULFILLED,
-  UPDATE_RESPONDENT_REJECTED,
 
   API_FETCH_USER_RESPONDENT_PENDING,
   API_FETCH_USER_RESPONDENT_FULFILLED,
@@ -46,13 +44,9 @@ import {
 
   RESET_SUBJECT,
 
-  CREATE_SUBJECT_PENDING,
   CREATE_SUBJECT_FULFILLED,
-  CREATE_SUBJECT_REJECTED,
 
-  UPDATE_SUBJECT_PENDING,
   UPDATE_SUBJECT_FULFILLED,
-  UPDATE_SUBJECT_REJECTED,
 
   API_FETCH_USER_SUBJECT_PENDING,
   API_FETCH_USER_SUBJECT_FULFILLED,
@@ -189,6 +183,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.user,
           fetching: false,
           fetched: true,
+          error: null,
           data,
         },
       };
@@ -202,6 +197,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.user,
           fetching: false,
           fetched: true,
+          error: null,
           data,
         },
       };
@@ -278,6 +274,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.respondent,
           fetching: false,
           fetched: true,
+          error: null,
           data,
         },
       };
@@ -438,6 +435,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.subject,
           fetching: false,
           fetched: false,
+          data: {},
           error: null,
         },
         apiSubject: {
@@ -469,6 +467,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.subject,
           fetching: false,
           fetched: true,
+          error: null,
           data,
         },
       };
@@ -480,7 +479,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.subject,
           fetching: false,
           error: action.payload,
-        }
+        },
       };
     }
 
@@ -507,6 +506,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.subject,
           fetching: false,
           fetched: true,
+          error: null,
           data,
         },
       };
@@ -531,6 +531,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.apiSubject,
           fetching: false,
           fetched: true,
+          error: null,
           data,
         },
       };
@@ -567,6 +568,7 @@ const reducer = (state = initialState, action, formData = {}) => {
           ...state.apiSubject,
           fetching: false,
           fetched: true,
+          error: null,
           data,
         },
       };
@@ -650,10 +652,12 @@ const reducer = (state = initialState, action, formData = {}) => {
         },
         respondent: {
           ...state.respondent,
+          error: null,
           data: respondent,
         },
         subject: {
           ...state.subject,
+          error: null,
           data: subject,
         },
       };

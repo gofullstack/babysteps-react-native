@@ -23,9 +23,7 @@ import {
   FETCH_MILESTONE_CALENDAR_FULFILLED,
   FETCH_MILESTONE_CALENDAR_REJECTED,
 
-  UPDATE_MILESTONE_CALENDAR_PENDING,
   UPDATE_MILESTONE_CALENDAR_FULFILLED,
-  UPDATE_MILESTONE_CALENDAR_REJECTED,
 
   RESET_API_MILESTONE_CALENDAR,
 
@@ -94,9 +92,7 @@ import {
   API_SYNC_MILESTONE_ANSWERS_FULFILLED,
   API_SYNC_MILESTONE_ANSWERS_REJECTED,
 
-  DELETE_MILESTONE_ANSWERS_PENDING,
-  DELETE_MILESTONE_ANSWERS_FULFILLED,
-  DELETE_MILESTONE_ANSWERS_REJECTED,
+  DELETE_MILESTONE_ANSWER_FULFILLED,
 
   RESET_MILESTONE_ATTACHMENTS,
 
@@ -104,17 +100,11 @@ import {
   FETCH_MILESTONE_ATTACHMENTS_FULFILLED,
   FETCH_MILESTONE_ATTACHMENTS_REJECTED,
 
-  CREATE_MILESTONE_ATTACHMENT_PENDING,
   CREATE_MILESTONE_ATTACHMENT_FULFILLED,
-  CREATE_MILESTONE_ATTACHMENT_REJECTED,
 
-  UPDATE_MILESTONE_ATTACHMENT_PENDING,
   UPDATE_MILESTONE_ATTACHMENT_FULFILLED,
-  UPDATE_MILESTONE_ATTACHMENT_REJECTED,
 
-  DELETE_MILESTONE_ATTACHMENT_PENDING,
   DELETE_MILESTONE_ATTACHMENT_FULFILLED,
-  DELETE_MILESTONE_ATTACHMENT_REJECTED,
 
 } from '../actions/types';
 
@@ -154,6 +144,12 @@ const initialState = {
     data: [],
     error: null,
   },
+  task_attachments: {
+    fetching: false,
+    fetched: false,
+    data: [],
+    error: null,
+  },
   sections: {
     fetching: false,
     fetched: false,
@@ -161,6 +157,12 @@ const initialState = {
     error: null,
   },
   questions: {
+    fetching: false,
+    fetched: false,
+    data: [],
+    error: null,
+  },
+  option_groups: {
     fetching: false,
     fetched: false,
     data: [],
@@ -192,7 +194,7 @@ const initialState = {
   },
 };
 
-const reducer = (state = initialState, action, formData = []) => {
+const reducer = (state = initialState, action, data = []) => {
   switch (action.type) {
     case FETCH_MILESTONES_PENDING: {
       return {
@@ -202,7 +204,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: [],
         },
       };
     }
@@ -254,7 +255,7 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
     case API_FETCH_MILESTONES_FULFILLED: {
-      const data = action.payload.data;
+      const { data } = action.payload;
       return {
         ...state,
         api_milestones: {
@@ -284,6 +285,13 @@ const reducer = (state = initialState, action, formData = []) => {
           error: null,
           data: data.tasks,
         },
+        task_attachments: {
+          ...state.task_attachments,
+          fetching: false,
+          fetched: true,
+          error: null,
+          data: data.task_attachments,
+        },
         sections: {
           ...state.sections,
           fetching: false,
@@ -297,6 +305,13 @@ const reducer = (state = initialState, action, formData = []) => {
           fetched: true,
           error: null,
           data: data.questions,
+        },
+        option_groups: {
+          ...state.option_groups,
+          fetching: false,
+          fetched: true,
+          error: null,
+          data: data.option_groups,
         },
         choices: {
           ...state.choices,
@@ -377,7 +392,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: [],
         },
       };
     }
@@ -400,6 +414,26 @@ const reducer = (state = initialState, action, formData = []) => {
           ...state.calendar,
           fetching: false,
           error: action.payload,
+        },
+      };
+    }
+
+    case UPDATE_MILESTONE_CALENDAR_FULFILLED: {
+      const { task_id, entry } = action.payload;
+      const data = [...state.calendar.data];
+      const index = _.findIndex(data, { task_id: task_id });
+      if (index === -1) {
+        console.log(`*** Calendar Not Updated - Not Found: task_id: ${task_id}`);
+      } else {
+        data[index] = { ...data[index], ...entry };
+      }
+      return {
+        ...state,
+        calendar: {
+          ...state.calendar,
+          fetching: false,
+          fetched: true,
+          data,
         },
       };
     }
@@ -470,12 +504,11 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: null,
         },
       };
     }
     case API_FETCH_MILESTONE_CALENDAR_FULFILLED: {
-      const data = syncTriggerData(action.payload.data, state.calendar.data );
+      const data = syncTriggerData(action.payload.data, state.calendar.data);
       return {
         ...state,
         api_calendar: {
@@ -508,7 +541,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: false,
           fetched: false,
           error: action.payload,
-          data: null,
         },
       };
     }
@@ -589,7 +621,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: [],
         },
       };
     }
@@ -626,7 +657,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: [],
         },
       };
     }
@@ -675,7 +705,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: [],
         },
       };
     }
@@ -724,7 +753,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: [],
         },
       };
     }
@@ -773,16 +801,11 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: [],
         },
       };
     }
     case FETCH_MILESTONE_ANSWERS_FULFILLED: {
       let data = action.payload.rows['_array'];
-      _.map(data, answer => {
-        answer.answer_boolean =
-          answer.answer_boolean === 1 || answer.answer_boolean === 'true';
-      });
       return {
         ...state,
         answers: {
@@ -806,48 +829,33 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
 
-    case CREATE_MILESTONE_ANSWER_PENDING: {
-      return {
-        ...state,
-        answer: {
-          ...state.answer,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
     case CREATE_MILESTONE_ANSWER_FULFILLED: {
+      const answer = action.payload;
+      const data = [...state.answers.data];
+      data.push(answer);
+
       return {
         ...state,
         answer: {
           ...state.answer,
           fetching: false,
           fetched: true,
+          data,
           error: null,
-        },
-      };
-    }
-    case CREATE_MILESTONE_ANSWER_REJECTED: {
-      return {
-        ...state,
-        answer: {
-          ...state.answer,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
         },
       };
     }
 
     case UPDATE_MILESTONE_ANSWER_FULFILLED: {
-      const answer = action.payload;
-      const data = state.answers.data;
+      let answer = action.payload;
+      const data = [...state.answers.data];
       const index = _.findIndex(data, ['choice_id', answer.choice_id]);
+
       if (index === -1) {
         console.log(`*** Answer Not Updated - Not Found: choice_id: ${answer.choice_id}`);
       } else {
-        data[index] = {...data[index], ...answer.data};
+        answer.data = {...data[index], ...answer.data};
+        data[index] = answer.data;
       }
 
       return {
@@ -856,21 +864,23 @@ const reducer = (state = initialState, action, formData = []) => {
           ...state.answers,
           fetching: false,
           fetched: true,
-          error: null,
           data,
+          error: null,
         },
       };
     };
 
     case UPDATE_MILESTONE_ANSWERS_FULFILLED: {
       const answers = action.payload;
-      const data = state.answers.data;
-      _.forEach(answers, answer => {
-        const index = _.findIndex(data, ['choice_id', answer.choice_id]);
-        if (index === -1) {
-          data.push(answer);
-        } else {
-          data[index] = answer;
+      const data = [...state.answers.data];
+      answers.forEach(answer => {
+        if (!_.isEmpty(answer) || answer.choice_id) {
+          const index = _.findIndex(data, ['choice_id', answer.choice_id]);
+          if (index === -1) {
+            data.push(answer);
+          } else {
+            data[index] = answer;
+          }
         }
       });
 
@@ -899,7 +909,7 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
     case API_FETCH_MILESTONE_CHOICE_ANSWERS_FULFILLED: {
-      const data = action.payload.data;
+      const { data } = action.payload;
       return {
         ...state,
         apiAnswers: {
@@ -937,7 +947,7 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
     case API_CREATE_MILESTONE_ANSWER_FULFILLED: {
-      const data = action.payload.data;
+      const { data } = action.payload;
       return {
         ...state,
         apiAnswer: {
@@ -974,7 +984,7 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
     case API_UPDATE_MILESTONE_ANSWERS_FULFILLED: {
-      const data = action.payload.data;
+      const { data } = action.payload;
       return {
         ...state,
         apiAnswers: {
@@ -1032,18 +1042,13 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
 
-    case DELETE_MILESTONE_ANSWERS_PENDING: {
-      return {
-        ...state,
-        answers: {
-          ...state.answers,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
-    case DELETE_MILESTONE_ANSWERS_FULFILLED: {
+    case DELETE_MILESTONE_ANSWER_FULFILLED: {
+      const { choice_id } = action.payload;
+      const data = [...state.answers.data];
+      const index = _.findIndex(data, ['choice_id', choice_id]);
+      if (index !== -1) {
+        data.splice(index, 1);
+      }
       return {
         ...state,
         answers: {
@@ -1051,18 +1056,7 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: false,
           fetched: false,
           error: null,
-          data: [],
-        },
-      };
-    }
-    case DELETE_MILESTONE_ANSWERS_REJECTED: {
-      return {
-        ...state,
-        answers: {
-          ...state.answers,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
+          data,
         },
       };
     }
@@ -1087,7 +1081,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: [],
         },
       };
     }
@@ -1116,105 +1109,60 @@ const reducer = (state = initialState, action, formData = []) => {
       };
     }
 
-    case CREATE_MILESTONE_ATTACHMENT_PENDING: {
-      return {
-        ...state,
-        attachment: {
-          ...state.attachment,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
     case CREATE_MILESTONE_ATTACHMENT_FULFILLED: {
+      const attachment = action.payload;
+      const data = [...state.attachments.data];
+      data.push(attachment);
       return {
         ...state,
-        attachment: {
-          ...state.attachment,
+        attachments: {
+          ...state.attachments,
           fetching: false,
           fetched: true,
+          data,
           error: null,
-        },
-      };
-    }
-    case CREATE_MILESTONE_ATTACHMENT_REJECTED: {
-      return {
-        ...state,
-        attachment: {
-          ...state.attachment,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
         },
       };
     }
 
-    case UPDATE_MILESTONE_ATTACHMENT_PENDING: {
-      return {
-        ...state,
-        attachment: {
-          ...state.attachment,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
     case UPDATE_MILESTONE_ATTACHMENT_FULFILLED: {
+      const attachment = action.payload;
+      const data = [...state.attachments.data];
+      const index = _.findIndex(data, ['choice_id', attachment.choice_id]);
+      if (index === -1) {
+        data.push(attachment);
+      } else {
+        data[index] = attachment;
+      }
+
       return {
         ...state,
-        attachment: {
-          ...state.attachment,
+        attachments: {
+          ...state.attachments,
           fetching: false,
           fetched: true,
+          data,
           error: null,
-        },
-      };
-    }
-    case UPDATE_MILESTONE_ATTACHMENT_REJECTED: {
-      return {
-        ...state,
-        attachment: {
-          ...state.attachment,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
         },
       };
     }
 
-    case DELETE_MILESTONE_ATTACHMENT_PENDING: {
-      return {
-        ...state,
-        attachment: {
-          ...state.attachment,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
     case DELETE_MILESTONE_ATTACHMENT_FULFILLED: {
+      const { choice_id } = action.payload;
+      const data = [...state.attachments.data];
+      const index = _.findIndex(data, ['choice_id', choice_id]);
+      if (index !== -1) {
+        data.splice(index, 1);
+      }
+
       return {
         ...state,
-        attachment: {
-          ...state.attachment,
+        attachments: {
+          ...state.attachments,
           fetching: false,
           fetched: false,
           error: null,
-          data: [],
-        },
-      };
-    }
-    case DELETE_MILESTONE_ATTACHMENT_REJECTED: {
-      return {
-        ...state,
-        attachment: {
-          ...state.attachment,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
+          data,
         },
       };
     }

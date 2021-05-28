@@ -58,21 +58,14 @@ class RegistrationNoStudyForm extends Component {
     };
   }
 
-  shouldComponentUpdate(nextProps) {
-    const respondent = nextProps.registration.respondent;
-    const subject = nextProps.registration.subject;
-    return (!respondent.fetching && !subject.fetching);
-  }
-
   componentDidUpdate(prevProps, prevState) {
-    const { respondent, subject } = this.props.registration;
-    const isSubmitting = this.state.isSubmitting;
-    if (respondent.fetched && subject.fetched && isSubmitting) {
-      this._fetchAPIMilestoneCalendar(subject);
+    const { isSubmitting } = this.state;
+    if (isSubmitting) {
+      this._fetchAPIMilestoneCalendar();
     }
   }
 
-  _fetchAPIMilestoneCalendar = subject => {
+  _fetchAPIMilestoneCalendar = () => {
     const { apiMilestoneCalendarSubmitted } = this.state;
     if (!apiMilestoneCalendarSubmitted) {
       this.setState({ apiMilestoneCalendarSubmitted: true });
@@ -97,7 +90,7 @@ class RegistrationNoStudyForm extends Component {
             this.props.createSubject({ expected_date_of_birth: values.expected_date_of_birth });
             this.setState({ isSubmitting: true });
           } else {
-            this.setState({ 
+            this.setState({
               isSubmitting: false,
               dobError: 'You must provide the Expected Date of Birth',
             });

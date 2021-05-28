@@ -63,7 +63,7 @@ class AutoHeightImage extends Component {
     const { source, style } = this.props;
 
     return (
-      <View>
+      <View style={{ flexGrow: 1 }}>
         <Image
           key={source.uri}
           source={source}

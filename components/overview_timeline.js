@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  AppState,
 } from 'react-native';
 
 import SideSwipe from 'react-native-sideswipe';
@@ -40,15 +41,22 @@ class OverviewTimeline extends Component {
     super(props);
 
     this.state = {
+      appState: AppState.currentState,
       sliderLoading: true,
       overviewTimelines: [],
       overviewTimelinesLoaded: false,
       currentTimeline: {},
     };
-    // returning from other screen
+
+    // returning from questions screen
     this.props.navigation.addListener('willFocus', () => {
       this.setState({ overviewTimelinesLoaded: false });
     });
+  }
+
+  componentDidMount() {
+    AppState.addEventListener('change', this.handleAppStateChange);
+    this.setState({ overviewTimelinesLoaded: false });
   }
 
   componentDidUpdate() {
@@ -58,9 +66,32 @@ class OverviewTimeline extends Component {
     }
   }
 
+  componentWillUnmount() {
+    AppState.removeEventListener('change');
+  }
+
+  handleAppStateChange = nextAppState => {
+    const { appState } = this.state;
+    console.log({ appState })
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.setState({ overviewTimelinesLoaded: false, appState: nextAppState });
+    } else {
+      this.setState({ appState: nextAppState });
+    }
+  };
+
   constructOverviewTimeline = () => {
-    const { date_of_birth, expected_date_of_birth } = this.props.registration.subject.data;
-    const { sections, questions, choices, answers, attachments, calendar } = this.props.milestones;
+    const {
+      date_of_birth,
+      expected_date_of_birth
+    } = this.props.registration.subject.data;
+    const {
+      sections,
+      questions,
+      choices,
+      answers,
+      attachments,calendar,
+    } = this.props.milestones;
 
     // leave verbose so it's easier to understand
     let baseDate = moment();
@@ -74,13 +105,19 @@ class OverviewTimeline extends Component {
     }
 
     // get choices which should appear on timeline
-    const overviewTimelines = _.filter(choices.data, choice => {
+    let overviewTimelines = _.filter(choices.data, choice => {
       return ['during_pregnancy', 'birth', 'post_birth'].includes(choice.overview_timeline);
     });
 
     // get attachment if exists
-    _.forEach(overviewTimelines, item => {
-      item = { ...item, attachment_id: '', filename: '', content_type: '', uri: ''};
+    for (const key in overviewTimelines) {
+      const item = {
+        ...overviewTimelines[key],
+        attachment_id: '',
+        filename: '',
+        content_type: '',
+        uri: '',
+      };
       const attachment = _.find(attachments.data, ['choice_id', item.id]);
       if (!_.isEmpty(attachment)) {
         item.attachment_id = attachment.id;
@@ -88,50 +125,54 @@ class OverviewTimeline extends Component {
         item.content_type = attachment.content_type;
         item.uri = attachment.uri;
       }
-    });
+      overviewTimelines[key] = item;
+    }
 
     // remove premature or outdated tasks
-    _.remove(overviewTimelines, item => {
+    overviewTimelines = _.filter(overviewTimelines, item => {
       if (item.overview_timeline === 'birth') {
-        if (!postBirth) return false;
+        if (!postBirth) return true;
       }
       // remove if not complete and after available_end_at
       if (!item.uri && moment().isAfter(item.available_end_at)) {
-        return true;
+        return false;
       }
       // tasks for pre-birth period
       if (item.overview_timeline === 'during_pregnancy') {
         // return all if during pre-birth or birth period
-        if (!postBirth) return false;
+        if (!postBirth) return true;
         // only completed pre-birth tasks after birth
-        if (postBirth && item.uri) return false;
+        if (postBirth && item.uri) return true;
       }
       // all post-birth tasks only if post-birth
       if (item.overview_timeline === 'post_birth') {
-        if (postBirth) return false;
+        if (postBirth) return true;
       }
-      // otherwise remove
-      return true;
+      // otherwise filter out
+      return false;
     });
 
     // add attributes
-    _.forEach(overviewTimelines, item => {
-      item.choice_id = item.id;
-      delete item.id;
+    for (const key in overviewTimelines) {
+      let item = overviewTimelines[key];
+
       const question = _.find(questions.data, ['id', item.question_id]);
       const section = _.find(sections.data, ['id', question.section_id]);
-      item.task_id = section.task_id;
-      item.title = section.title;
       const entry = _.find(calendar.data, ['task_id', section.task_id]);
-      item.milestone_trigger_id = entry.id;
-      item.notify_at = entry.notify_at;
-      item.available_start_at = entry.available_start_at;
-      item.available_end_at = entry.available_end_at;
-      const answer = _.find(answers.data, ['choice_id', item.choice_id]);
-      if (!_.isEmpty(answer)) {
-        item.answer_id = answer.id;
-      }
-    });
+
+      item = {
+        ...item,
+        task_id: section.task_id,
+        choice_id: item.id,
+        title: section.title,
+        milestone_trigger_id: entry.id,
+        notify_at: entry.notify_at,
+        available_start_at: entry.available_start_at,
+        available_end_at: entry.available_end_at,
+      };
+
+      overviewTimelines[key] = item;
+    }
 
     // calculate weeks
     _.forEach(overviewTimelines, item => {
@@ -148,8 +189,8 @@ class OverviewTimeline extends Component {
     });
 
     // move birth to end
-    const birth = _.remove(overviewTimelines, ['overview_timeline', 'birth']);
-    if (!_.isEmpty(birth)) overviewTimelines.push(birth[0]);
+    const birth = _.find(overviewTimelines, ['overview_timeline', 'birth']);
+    if (!_.isEmpty(birth)) overviewTimelines.push(birth);
 
     // find current incomplete task
     let currentIndexTimeline = _.findIndex(overviewTimelines, item => {

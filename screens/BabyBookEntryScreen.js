@@ -4,11 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import {
-  resetBabyBookEntries,
-  fetchBabyBookEntries,
-} from '../actions/babybook_actions';
-import { fetchUser } from '../actions/registration_actions';
 
 import Colors from '../constants/Colors';
 
@@ -47,21 +42,12 @@ class BabyBookEntryScreen extends Component {
     this.state = {
       submitted: false,
     };
-
-    this.props.resetBabyBookEntries();
-    this.props.fetchUser();
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return !nextProps.babybook.entry.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const entry = this.props.babybook.entry;
-    const submitted = this.state.submitted;
-    if (!submitted && !entry.fetching && entry.fetched) {
+    const { submitted } = this.state;
+    if (!submitted) {
       this.setState({ submitted: true });
-      this.props.fetchBabyBookEntries();
       this.props.navigation.navigate('BabyBook', { babybookEntries: true });
     }
   }
@@ -95,13 +81,5 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = ({ babybook }) => ({ babybook });
-const mapDispatchToProps = {
-  resetBabyBookEntries,
-  fetchBabyBookEntries,
-  fetchUser,
-};
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(BabyBookEntryScreen);
+export default connect(mapStateToProps)(BabyBookEntryScreen);

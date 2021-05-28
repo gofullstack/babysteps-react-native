@@ -80,7 +80,6 @@ const reducer = (state = initialState, action, formData = []) => {
           fetching: true,
           fetched: false,
           error: null,
-          data: {},
         },
       };
     }

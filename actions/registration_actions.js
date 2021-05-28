@@ -6,8 +6,7 @@ import { _ } from 'lodash';
 
 import { apiTokenRefresh } from './session_actions';
 
-import { insertRows, getApiUrl, getUpdateSQL } from '../database/common';
-import schema from '../database/registration_schema.json';
+import { getApiUrl } from '../database/common';
 
 import Constants from 'expo-constants';
 import CONSTANTS from '../constants';
@@ -378,13 +377,11 @@ export const apiSyncRegistration = user_id => {
               const respondents = data.respondents;
               // respondent id becomes api id in sqlite
               respondents[0].api_id = respondents[0].id;
-              insertRows('respondents', schema['respondents'], respondents);
             }
             if (data.subjects) {
               const subjects = data.subjects;
               // subject id becomes api id in sqlite
               subjects[0].api_id = subjects[0].id;
-              insertRows('subjects', schema['subjects'], subjects);
             }
           }
           dispatch(Response(API_SYNC_REGISTRATION_FULFILLED, response));

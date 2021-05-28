@@ -15,8 +15,11 @@ const headers = { milestone_token: apiToken };
 
 const UploadMilestoneCalendarsCompleted = async () => {
   const state = store.getState();
-  const calendar = state.milestone.calendar.data;
-  const triggers = reject(calendar, ['completed_at', null]);
+  const { calendar } = state.milestones;
+
+  if (isEmpty(calendar.data)) return;
+
+  const triggers = reject(calendar.data, ['completed_at', null]);
 
   const data = { triggers: [] };
 

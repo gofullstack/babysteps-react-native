@@ -94,11 +94,12 @@ class OverviewScreen extends React.Component {
     }
     const currentDay = moment().diff(baseDate, 'days');
 
-    let milestoneGroups = filter(groups.data, { visible: 1 });
+    let milestoneGroups = filter(groups.data, { visible: true });
     milestoneGroups = sortBy(milestoneGroups, ['position']);
     milestoneGroups.forEach(group => {
       group.uri = MilestoneGroupImages(group.baseline_range_days_end);
     });
+
     // locate index of current milestone group
     const currentGroupIndex = findIndex(milestoneGroups, group => {
       return (

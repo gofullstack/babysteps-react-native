@@ -20,9 +20,7 @@ export const FETCH_MILESTONE_CALENDAR_PENDING = 'fetch_milestone_calendar_pendin
 export const FETCH_MILESTONE_CALENDAR_FULFILLED = 'fetch_milestone_calendar_fulfilled';
 export const FETCH_MILESTONE_CALENDAR_REJECTED = 'fetch_milestone_calendar_rejected';
 
-export const UPDATE_MILESTONE_CALENDAR_PENDING = 'update_milestone_calendar_pending';
 export const UPDATE_MILESTONE_CALENDAR_FULFILLED = 'update_milestone_calendar_fulfilled';
-export const UPDATE_MILESTONE_CALENDAR_REJECTED = 'update_milestone_calendar_rejected';
 
 export const RESET_API_MILESTONE_CALENDAR = 'reset_api_milestone_calendar';
 
@@ -91,9 +89,7 @@ export const API_SYNC_MILESTONE_ANSWERS_PENDING = 'api_sync_milestone_answers_pe
 export const API_SYNC_MILESTONE_ANSWERS_FULFILLED = 'api_sync_milestone_answers_fulfilled';
 export const API_SYNC_MILESTONE_ANSWERS_REJECTED = 'api_sync_milestone_answers_rejected';
 
-export const DELETE_MILESTONE_ANSWERS_PENDING = 'delete_milestone_answers_pending';
-export const DELETE_MILESTONE_ANSWERS_FULFILLED = 'delete_milestone_answers_fulfilled';
-export const DELETE_MILESTONE_ANSWERS_REJECTED = 'delete_milestone_answers_fulfilled';
+export const DELETE_MILESTONE_ANSWER_FULFILLED = 'delete_milestone_answer_fulfilled';
 
 export const RESET_MILESTONE_ATTACHMENTS = 'reset_milestone_attachments';
 
@@ -105,9 +101,7 @@ export const CREATE_MILESTONE_ATTACHMENT_PENDING = 'create_milestone_attachment_
 export const CREATE_MILESTONE_ATTACHMENT_FULFILLED = 'create_milestone_attachment_fulfilled';
 export const CREATE_MILESTONE_ATTACHMENT_REJECTED = 'create_milestone_attachment_rejected';
 
-export const UPDATE_MILESTONE_ATTACHMENT_PENDING = 'update_milestone_attachment_pending';
 export const UPDATE_MILESTONE_ATTACHMENT_FULFILLED = 'update_milestone_attachment_fulfilled';
-export const UPDATE_MILESTONE_ATTACHMENT_REJECTED = 'update_milestone_attachment_rejected';
 
 export const DELETE_MILESTONE_ATTACHMENT_PENDING = 'delete_milestone_attachment_pending';
 export const DELETE_MILESTONE_ATTACHMENT_FULFILLED = 'delete_milestone_attachment_fulfilled';
@@ -248,13 +242,9 @@ export const FETCH_BABYBOOK_ENTRIES_PENDING = 'fetch_babybook_entries_pending';
 export const FETCH_BABYBOOK_ENTRIES_FULFILLED = 'fetch_babybook_entries_fulfilled';
 export const FETCH_BABYBOOK_ENTRIES_REJECTED = 'fetch_babybook_entries_rejected';
 
-export const CREATE_BABYBOOK_ENTRY_PENDING = 'create_babybook_entry_pending';
 export const CREATE_BABYBOOK_ENTRY_FULFILLED = 'create_babybook_entry_fulfilled';
-export const CREATE_BABYBOOK_ENTRY_REJECTED = 'create_babybook_entry_rejected';
 
-export const UPDATE_BABYBOOK_ENTRY_PENDING = 'update_babybook_entry_pending';
 export const UPDATE_BABYBOOK_ENTRY_FULFILLED = 'update_babybook_entry_fulfilled';
-export const UPDATE_BABYBOOK_ENTRY_REJECTED = 'update_babybook_entry_rejected';
 
 export const API_CREATE_BABYBOOK_ENTRY_PENDING = 'api_create_babybook_entry_pending';
 export const API_CREATE_BABYBOOK_ENTRY_FULFILLED = 'api_create_babybook_entry_fulfilled';

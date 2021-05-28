@@ -1,18 +1,8 @@
 import React, { Component } from 'react';
-import {
-  View,
-  Image,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  Platform,
-  AppState,
-} from 'react-native';
+import { View, StyleSheet, Dimensions, Platform, AppState } from 'react-native';
 
-import { Video } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { Text, Button } from 'react-native-elements';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { StackActions } from 'react-navigation';
 
@@ -23,37 +13,19 @@ import { isIphoneX } from 'react-native-iphone-x-helper';
 import { connect } from 'react-redux';
 
 import {
-  fetchMilestoneSections,
-  resetMilestoneQuestions,
-  fetchMilestoneQuestions,
-  resetMilestoneChoices,
-  fetchMilestoneChoices,
-  resetMilestoneAnswers,
-  fetchMilestoneAnswers,
   updateMilestoneAnswers,
   apiCreateMilestoneAnswer,
   apiUpdateMilestoneAnswers,
-  resetMilestoneAttachments,
-  fetchMilestoneAttachments,
   updateMilestoneAttachment,
-  fetchOverViewTimeline,
   updateMilestoneCalendar,
   apiUpdateMilestoneCalendar,
-  fetchMilestoneCalendar,
 } from '../actions/milestone_actions';
 import {
   createBabyBookEntry,
-  fetchBabyBookEntries,
   apiCreateBabyBookEntry,
 } from '../actions/babybook_actions';
-import {
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
-} from '../actions/registration_actions';
 
-import { RenderChoices } from '../components/milestone_question_components';
-
+import { RenderSections } from '../components/milestone_question_sections';
 import { UploadMilestoneAttachment } from '../database/sync_milestone_attachments';
 
 import Colors from '../constants/Colors';
@@ -75,7 +47,7 @@ class MilestoneQuestionsScreen extends Component {
 
   // Note that this component stores the active answers and questions in the state of
   // this component during the process of responding to the task.  Both are updated
-  // and the local database (and remote api) are updated when the user confirms the answers.
+  // and redux (and remote api) are updated when the user confirms the answers.
   // That means any image or video attachments are kept in both the state of the answers
   // and a full list of attachments.
 
@@ -87,72 +59,41 @@ class MilestoneQuestionsScreen extends Component {
     this.state = {
       appState: AppState.currentState,
       task,
-      section: {},
-      answersFetched: false,
-      attachmentsFetched: false,
+      questionData: [],
+      questionDataUpdated: false,
       answers: [],
       attachments: [],
-      data: [],
-      dataReady: false,
       errorMessage: '',
       confirmed: false,
     };
-
-    this.props.fetchUser();
-    this.props.fetchRespondent();
-    this.props.fetchSubject();
-
-    this.resetDataForTask(task);
 
     this.saveResponse = this.saveResponse.bind(this);
   }
 
   componentDidMount() {
     AppState.addEventListener('change', this.handleAppStateChange);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const { user, respondent, subject } = nextProps.registration;
-    const { sections, questions, choices, answers, attachments } = nextProps.milestones;
-    return (
-      !user.fetching &&
-      !respondent.fetching &&
-      !subject.fetching &&
-      !sections.fetching &&
-      !questions.fetching &&
-      !choices.fetching &&
-      !answers.fetching &&
-      !attachments.fetching
-    );
+    this.setQuestionsData();
+    this.setAnswerData();
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { sections, questions, answers, attachments } = this.props.milestones;
-    const { task, answersFetched, attachmentsFetched } = this.state;
-
+    const { task, questionDataUpdated } = this.state;
     const navTask = this.props.navigation.state.params.task;
 
     // capture notification links with incorrect task
     if (typeof(navTask) !== 'object' || navTask === null) {
       this.props.navigation.navigate('Milestones');
-      return;
     }
+
     // need to update sections for new task for remaining functions
     if (navTask.id !== task.id) {
       this.resetDataForTask(navTask);
       return;
     }
-    if (sections.fetched) {
-      this.saveSectionsData();
-    }
-    if (questions.fetched ) {
-      this.saveQuestionsData();
-    }
-    if (answers.fetched && !answersFetched) {
-      this.saveAnswersData();
-    }
-    if (attachments.fetched && !attachmentsFetched) {
-      this.saveAttachmentsData();
+
+    if (!questionDataUpdated) {
+      this.setQuestionsData();
+      this.setAnswerData();
     }
   }
 
@@ -171,123 +112,86 @@ class MilestoneQuestionsScreen extends Component {
   resetDataForTask = task => {
     this.setState({
       task,
-      section: { id: null },
-      answersFetched: false,
-      attachmentsFetched: false,
+      questionData: [],
+      questionDataUpdated: false,
       answers: [],
       attachments: [],
-      data: [],
-      dataReady: false,
       confirmed: false,
     });
-    this.props.resetMilestoneQuestions();
-    this.props.resetMilestoneChoices();
-    this.props.resetMilestoneAnswers();
-    this.props.resetMilestoneAttachments();
-    this.props.fetchMilestoneSections({ task_id: task.id });
   };
 
-  saveSectionsData = () => {
-    const sections = this.props.milestones.sections.data;
-    if (!_.isEmpty(sections)) {
-      // default to first section
-      // TODO extend UI to allow for multiple sections
-      const section = sections[0];
-      if (section.id !== this.state.section.id) {
-        this.setState({ section });
-        this.props.fetchMilestoneQuestions({ section_id: section.id });
-        this.props.fetchMilestoneAnswers({  section_id: section.id });
-        this.props.fetchMilestoneAttachments({ section_id: section.id });
-      }
-    }
-  };
+  setQuestionsData = () => {
+    const {
+      task_attachments,
+      sections,
+      questions,
+      option_groups,
+      choices,
+    } = this.props.milestones;
+    const { task } = this.state;
 
-  saveQuestionsData = () => {
-    const { questions, choices } = this.props.milestones;
-    const { firstQuestion, dataReady } = this.state;
-    if (!_.isEmpty(questions.data)) {
+    if (
+      !_.isEmpty(sections.data) &&
+      !_.isEmpty(questions.data) &&
+      !_.isEmpty(choices.data)
+    ) {
 
-      if (_.isEmpty(firstQuestion)) {
-        this.setState({ firstQuestion: questions.data[0] });
+      let attachment_url = null;
+      const task_attachment = _.find(task_attachments, { task_id: task.id });
+      if (!_.isEmpty(task_attachment)) {
+        attachment_url = task_attachment.attachment_url;
       }
-      if (!choices.fetched) {
-        // question IDs for repeat questions
-        const questionIDs = _.map(questions.data.slice(1), 'id');
-        this.setState({ questionIDs });
-        const question_ids = _.map(questions.data, 'id');
-        this.props.fetchMilestoneChoices({ question_ids });
-      }
-      if (choices.fetched && !dataReady) {
-        const data = _.map(questions.data, question => {
-          return _.extend({}, question, {
-            choices: _.filter(choices.data, ['question_id', question.id]),
+
+      let questionData = [];
+
+      let sectionsSet = _.filter(sections.data, {'task_id': task.id});
+      sectionsSet = _.sortBy(sectionsSet, ['position']);
+      _.forEach(sectionsSet, section => {
+        section.attachment_url = attachment_url;
+        const questionSet = [];
+        let sectionQuestions = _.filter(questions.data, { 'section_id': section.id })
+        sectionQuestions = _.sortBy(sectionQuestions, ['position']);
+
+        _.forEach(sectionQuestions, question => {
+          question.rn_input_type = null;
+          const option_group = _.find(option_groups.data, { 'id': question.option_group_id })
+          if (!_.isEmpty(option_group)) question.rn_input_type = option_group.rn_input_type;
+
+          let questionChoices = _.filter(choices.data, {'question_id': question.id})
+
+          questionChoices = _.sortBy(questionChoices, ['position']);
+          _.forEach(questionChoices, choice => {
+            choice.section_id = section.id;
+            choice.rn_input_type = null;
+            const option_group = _.find(option_groups.data, { 'id': choice.option_group_id })
+            if (!_.isEmpty(option_group)) choice.rn_input_type = option_group.rn_input_type;
           });
-        });
-        this.setState({ data, dataReady: true });
-      }
+          question.choices = questionChoices;
+        }); // forEach sectionQuestions
+
+        questionData = [
+          ...questionData,
+          { ...section, questions: sectionQuestions },
+        ];
+
+      }); // forEach sectionSet
+
+      this.setState({ questionData, questionDataUpdated: true });
     }
   };
 
-  saveAnswersData = () => {
-    let answers = this.props.milestones.answers.data;
-    answers = _.orderBy(answers, ['choice_id', 'id'], ['asc', 'desc']);
-    if (!_.isEmpty(answers)) {
-      this.setState({
-        answers,
-        answersFetched: true,
-      });
-    }
+  setAnswerData = () => {
+    const { answers, attachments } = this.props.milestones;
+    const { task } = this.state;
+    let lastAnswers = _.filter(answers.data, { 'task_id': task.id });
+    lastAnswers = _.sortBy(lastAnswers, ['section_id', 'question_id', 'choice_id']);
+    this.setState({ answers: lastAnswers, attachments: attachments.data });
   };
 
-  saveAttachmentsData = () => {
-    let attachments = this.props.milestones.attachments.data;
-    attachments = _.orderBy(attachments, ['choice_id', 'id'], ['asc', 'desc']);
-    if (!_.isEmpty(attachments)) {
-      this.setState({
-        attachments,
-        attachmentsFetched: true,
-      });
-    }
-  };
-
-  renderItem = item => {
-    const question = item.item;
-    const question_number = _.isEmpty(question.question_number)
-      ? String(question.position)
-      : question.question_number;
-    const title = `${question_number}. ${question.title}`;
-    const { answers, attachments, errorMessage } = this.state;
-    return (
-      <View key={question.id} style={styles.questionContainer}>
-        {question.attachment_url &&
-          this.renderAttachment(question.attachment_url)}
-        <View style={styles.questionLeft}>
-          <Text style={styles.question}>{title}</Text>
-          {!!question.body && (
-            <Text style={styles.questionBody}>{question.body}</Text>
-          )}
-        </View>
-        <RenderChoices
-          question={question}
-          answers={answers}
-          attachments={attachments}
-          navigation={this.props.navigation}
-          saveResponse={this.saveResponse}
-          errorMessage={errorMessage}
-        />
-      </View>
-    );
-  };
-
-  saveResponse = async (choice, response, options = {}) => {
+  saveResponse = (choice, response, options = {}) => {
     const { user, respondent, subject } = this.props.registration;
-    const { task, section } = this.state;
-    const attachments = response.attachments;
+    const { task, answers } = this.state;
 
-    delete response.attachments;
-
-    // all answers for this section
-    const answers = [...this.state.answers];
     const newAnswers = [];
 
     const format = options.format;
@@ -316,15 +220,12 @@ class MilestoneQuestionsScreen extends Component {
       answer_datetime: null,
       answer_numeric: null,
       answer_text: null,
-      user_id: user.data.id,
       user_api_id: user.data.api_id,
-      respondent_id: respondent.data.id,
       respondent_api_id: respondent.data.api_id,
-      subject_id: subject.data.id,
       subject_api_id: subject.data.api_id,
       milestone_id: task.milestone_id,
       task_id: task.id,
-      section_id: section.id,
+      section_id: choice.section_id,
       question_id: choice.question_id,
       choice_id: choice.id,
       score: choice.score,
@@ -332,17 +233,19 @@ class MilestoneQuestionsScreen extends Component {
       ...response,
     };
 
-    if (attachments) {
+    delete answer.attachments;
+
+    if (response.attachments) {
       answer.answer_boolean = true;
       // answer.attachments = await
-      this.mapAttachmentsAsync(answer, choice, attachments);
+      this.mapAttachmentsAsync(answer, choice, response.attachments);
     } // response.attachments
 
     newAnswers.push(answer);
 
     // update answers
     _.map(newAnswers, newAnswer => {
-      const index = _.findIndex(answers, {choice_id: newAnswer.choice_id});
+      const index = _.findIndex(answers, { choice_id: newAnswer.choice_id });
       if (index === -1) {
         // not in answers yet
         answers.push(newAnswer);
@@ -352,17 +255,13 @@ class MilestoneQuestionsScreen extends Component {
       }
     });
 
-    this.updateAnswersState(answers);
-  };
-
-  updateAnswersState = answers => {
     this.setState({ answers });
   };
 
   mapAttachmentsAsync = async (answer, choice, newAttachments) => {
     const { user, subject } = this.props.registration;
-    const { section } = this.state;
-    let attachments = [...this.state.attachments];
+    let { attachments } = this.state;
+
     // sort with highest id first
     attachments = _.reverse(_.sortBy(attachments, 'id'));
     // then find first match (with highest id)
@@ -378,15 +277,11 @@ class MilestoneQuestionsScreen extends Component {
         ...oldAttachment,
         user_api_id: user.data.api_id,
         subject_api_id: subject.data.api_id,
-        section_id: section.id,
         choice_id: choice.id,
         title: attachment.title,
         width: attachment.width,
         height: attachment.height,
       };
-      if (answer.id) {
-        newAttachment.answer_id = answer.id;
-      }
 
       newAttachment.filename = attachment.uri.substring(
         attachment.uri.lastIndexOf('/') + 1,
@@ -447,6 +342,8 @@ class MilestoneQuestionsScreen extends Component {
 
       attachments.push(newAttachment);
 
+      console.log({ attachments })
+
       this.updateAttachmentState(attachments);
     }); // map attachments
   };
@@ -456,8 +353,8 @@ class MilestoneQuestionsScreen extends Component {
   };
 
   handleConfirm = () => {
-    const { section, answers, attachments } = this.state;
     const session = this.props.session;
+    const { task, answers, attachments } = this.state;
     const { questions, choices, calendar } = this.props.milestones;
     const { user, subject } = this.props.registration;
     const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
@@ -467,15 +364,19 @@ class MilestoneQuestionsScreen extends Component {
     // TOTO don't mark task complete if any sections are incomplete
     this.setState({ confirmed: true });
 
-    this.props.updateMilestoneAnswers(section, answers);
+    this.props.updateMilestoneAnswers(answers);
+
+    const entry = _.find(calendar.data, { task_id: task.id });
     const completed_at = new Date().toISOString();
-    this.props.updateMilestoneCalendar(section.task_id, { completed_at });
+    if (!_.isEmpty(entry)) {
+      this.props.updateMilestoneCalendar(task.id, { completed_at });
+    }
 
     if (inStudy) {
-      this.props.apiUpdateMilestoneAnswers(session, section.id, answers);
+      this.props.apiUpdateMilestoneAnswers(session, answers);
 
       // mark calendar entry as complete on api
-      const trigger = _.find(calendar.data, ['task_id', section.task_id]);
+      const trigger = _.find(calendar.data, ['task_id', task.id]);
       if (trigger && trigger.id) {
         this.props.apiUpdateMilestoneCalendar(trigger.id, { milestone_trigger: { completed_at } });
       }
@@ -510,11 +411,11 @@ class MilestoneQuestionsScreen extends Component {
     }
 
     let message = '';
-
-    const unansweredQuestions = _.filter(questions.data, question => {
+    const taskQuestions = _.filter(questions.data, { task_id: task.id });
+    const unansweredQuestions = _.filter(taskQuestions, question => {
       return _.find(answers, { question_id: question.id }) === undefined;
     });
-    this.props.updateMilestoneCalendar(section.task_id, {
+    this.props.updateMilestoneCalendar(task.id, {
       questions_remaining: unansweredQuestions.length,
     });
 
@@ -522,7 +423,7 @@ class MilestoneQuestionsScreen extends Component {
       message = 'Please note that not all questions were completed.';
     }
     // add condolences message to confirmation screen
-    if (section.task_id === CONSTANTS.TASK_BIRTH_QUESTIONAIRE_ID) {
+    if (task.id === CONSTANTS.TASK_BIRTH_QUESTIONAIRE_ID) {
       const answer = _.find(answers, ['choice_id', CONSTANTS.CHOICE_BABY_ALIVE_ID]);
       if (answer && answer.answer_boolean) {
         message =
@@ -530,187 +431,80 @@ class MilestoneQuestionsScreen extends Component {
       }
     }
 
-    this.props.resetMilestoneAnswers();
-    this.props.fetchMilestoneCalendar();
-    this.props.fetchBabyBookEntries();
-    this.props.fetchOverViewTimeline();
-
     this.props.navigation.navigate('MilestoneQuestionConfirm', { message });
-  };
-
-  renderImageAttachement = uri => {
-    return (
-      <Image
-        style={styles.image}
-        source={{ uri }}
-        resizeMethod="scale"
-        resizeMode="contain"
-      />
-    );
-  };
-
-  renderVideoAttachment = uri => {
-    return (
-      <Video
-        source={{ uri }}
-        resizeMode={Video.RESIZE_MODE_COVER}
-        shouldPlay={false}
-        isLooping={false}
-        useNativeControls
-        ref={ref => (this.videoPlayer = ref)}
-        style={styles.video}
-      />
-    );
-  };
-
-  renderAttachment = attachment_url => {
-    const fileExtension = attachment_url.split('.').pop();
-    if (_.has(VideoFormats, fileExtension)) {
-      return this.renderVideoAttachment(attachment_url);
-    }
-    return this.renderImageAttachement(attachment_url);
   };
 
   render() {
     const navigation = this.props.navigation;
     const {
-      dataReady,
       confirmed,
-      section,
-      task_name,
-      data,
+      task,
+      questionData,
+      answers,
+      attachments,
+      errorMessage,
     } = this.state;
+
     return (
       <View style={{ height }}>
-        <KeyboardAwareScrollView
-          contentContainerStyle={styles.container}
-          enableResetScrollToCoords={false}
-          enableAutomaticScroll
-          enableOnAndroid
-          extraScrollHeight={50}
-          innerRef={ref => {this.scroll = ref}}
+        <View style={styles.listContainer}>
+          <Text style={styles.taskHeader}>{task.name}</Text>
+          <RenderSections
+            task={task}
+            questionData={questionData}
+            answers={answers}
+            attachments={attachments}
+            errorMessage={errorMessage}
+            extraData={this.state}
+            saveResponse={this.saveResponse}
+            navigation={this.props.navigation}
+          />
+        </View>
+        <View
+          style={[
+            styles.buttonContainer,
+            Platform.OS === 'android'
+              ? styles.buttonContainerAndroid
+              : styles.buttonContainerIOS,
+          ]}
         >
-          <View style={styles.listContainer}>
-            <Text style={styles.taskHeader}>{task_name}</Text>
-            {!!section && !!section.body && (
-              <View style={styles.instructions}>
-                <Text style={styles.instructionsLabel}>
-                  Instructions: &nbsp;
-                </Text>
-                <Text>{section.body}</Text>
-              </View>
-            )}
-            <FlatList
-              renderItem={this.renderItem}
-              data={data}
-              keyExtractor={item => String(item.id)}
-              extraData={this.state}
-            />
-          </View>
-        </KeyboardAwareScrollView>
-
-        {dataReady && (
-          <View
-            style={[
-              styles.buttonContainer,
-              Platform.OS === 'android'
-                ? styles.buttonContainerAndroid
-                : styles.buttonContainerIOS,
-            ]}
-          >
-            <Button
-              color={Colors.grey}
-              buttonStyle={styles.buttonOneStyle}
-              titleStyle={styles.buttonTitleStyle}
-              onPress={() => {
-                navigation.dispatch(StackActions.popToTop());
-              }}
-              title="Cancel"
-            />
-            <Button
-              color={Colors.pink}
-              buttonStyle={styles.buttonTwoStyle}
-              titleStyle={styles.buttonTitleStyle}
-              onPress={this.handleConfirm}
-              title="Mark Completed"
-              disabled={confirmed}
-            />
-          </View>
-        )}
+          <Button
+            color={Colors.grey}
+            buttonStyle={styles.buttonOneStyle}
+            titleStyle={styles.buttonTitleStyle}
+            onPress={() => {
+              navigation.dispatch(StackActions.popToTop());
+            }}
+            title="Cancel"
+          />
+          <Button
+            color={Colors.pink}
+            buttonStyle={styles.buttonTwoStyle}
+            titleStyle={styles.buttonTitleStyle}
+            onPress={this.handleConfirm}
+            title="Mark Completed"
+            disabled={confirmed}
+          />
+        </View>
       </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingBottom: 300,
-  },
   listContainer: {
-    flex: 1,
+    flexDirection: 'column',
     backgroundColor: Colors.background,
+    paddingBottom: 280,
   },
   taskHeader: {
     fontSize: 18,
     paddingHorizontal: 10,
-    paddingVertical: 20,
+    paddingVertical: 15,
     color: Colors.white,
     width,
     backgroundColor: Colors.mediumGrey,
     textAlign: 'center',
-  },
-  instructions: {
-    flex: 1,
-    fontSize: 14,
-    margin: 10,
-  },
-  instructionsLabel: {
-    fontWeight: 'bold',
-  },
-  questionContainer: {
-    flexDirection: 'column',
-    padding: 5,
-    justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.lightGrey,
-  },
-  questionLeft: {
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    width: itemWidth,
-  },
-  question: {
-    fontSize: 14,
-    paddingVertical: 2,
-    paddingLeft: 5,
-    color: Colors.tint,
-    width: itemWidth,
-  },
-  questionBody: {
-    fontSize: 12,
-    paddingVertical: 2,
-    paddingLeft: 20,
-    color: Colors.tint,
-  },
-  image: {
-    flex: 1,
-    width: itemWidth,
-    height: itemWidth * 0.66,
-    alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: Colors.lightGrey,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  video: {
-    flex: 1,
-    width: itemWidth,
-    height: itemWidth * 0.66,
-    alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: Colors.lightGrey,
-    borderRadius: 10,
-    marginBottom: 10,
   },
   buttonContainer: {
     flex: 1,
@@ -757,28 +551,13 @@ const mapStateToProps = ({ session, milestones, registration }) => ({
   registration,
 });
 const mapDispatchToProps = {
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
-  fetchMilestoneSections,
-  resetMilestoneQuestions,
-  fetchMilestoneQuestions,
-  resetMilestoneChoices,
-  fetchMilestoneChoices,
-  resetMilestoneAnswers,
-  fetchMilestoneAnswers,
   updateMilestoneAnswers,
   apiCreateMilestoneAnswer,
   apiUpdateMilestoneAnswers,
-  resetMilestoneAttachments,
-  fetchMilestoneAttachments,
   updateMilestoneAttachment,
   createBabyBookEntry,
-  fetchBabyBookEntries,
-  fetchOverViewTimeline,
   updateMilestoneCalendar,
   apiUpdateMilestoneCalendar,
-  fetchMilestoneCalendar,
   apiCreateBabyBookEntry,
 };
 

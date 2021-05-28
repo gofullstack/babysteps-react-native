@@ -10,11 +10,7 @@ import * as WebBrowser from 'expo-web-browser';
 import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
-import {
-  resetSession,
-  apiFetchSignin,
-  updateSession,
-} from '../actions/session_actions';
+import { apiFetchSignin, updateSession} from '../actions/session_actions';
 
 import {
   apiFetchMilestones,
@@ -23,14 +19,11 @@ import {
 
 import {
   apiFetchConsent,
-  resetRespondent,
-  resetSubject,
   apiSyncRegistration,
   apiSyncSignature,
 } from '../actions/registration_actions';
 
 import { getApiUrl } from '../database/common';
-import { UploadMilestones } from '../database/sync_milestones';
 
 import States from '../actions/states';
 import Colors from '../constants/Colors';
@@ -50,15 +43,8 @@ class SignInScreen extends Component {
       password: '',
       isSubmitting: false,
       errorMessages: [],
-      syncMilestones: false,
-      syncRegistration: false,
-      syncCalendar: false,
-      syncAnswers: false,
     };
 
-    this.props.resetSession();
-    this.props.resetRespondent();
-    this.props.resetSubject();
     this.props.apiFetchMilestones();
   }
 
@@ -71,7 +57,6 @@ class SignInScreen extends Component {
     const session = nextProps.session;
     const { apiSyncRegistration, apiSignature } = nextProps.registration;
     return (
-      !session.fetching &&
       !session.signinFetching &&
       !apiSyncRegistration.fetching &&
       !apiSignature.fetching
@@ -233,25 +218,18 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = ({
-  session,
-  registration,
-  milestones,
-}) => ({
+const mapStateToProps = ({ session, registration, milestones }) => ({
   session,
   registration,
   milestones,
 });
 
 const mapDispatchToProps = {
-  resetSession,
   updateSession,
   apiFetchSignin,
   apiFetchConsent,
   apiFetchMilestones,
   apiFetchMilestoneCalendar,
-  resetRespondent,
-  resetSubject,
   apiSyncRegistration,
   apiSyncSignature,
 };

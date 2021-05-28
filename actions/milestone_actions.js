@@ -4,14 +4,11 @@ import Constants from 'expo-constants';
 
 import axios from 'axios';
 
-import map from 'lodash/map';
 import forEach from 'lodash/forEach';
 import omit from 'lodash/omit';
 import keys from 'lodash/keys';
-import isInteger from 'lodash/isInteger';
-import isEmpty from 'lodash/isEmpty';
 
-import { insertRows, getApiUrl } from '../database/common';
+import { getApiUrl } from '../database/common';
 
 import CONSTANTS from '../constants';
 
@@ -38,9 +35,7 @@ import {
   FETCH_MILESTONE_CALENDAR_FULFILLED,
   FETCH_MILESTONE_CALENDAR_REJECTED,
 
-  UPDATE_MILESTONE_CALENDAR_PENDING,
   UPDATE_MILESTONE_CALENDAR_FULFILLED,
-  UPDATE_MILESTONE_CALENDAR_REJECTED,
 
   RESET_API_MILESTONE_CALENDAR,
 
@@ -105,9 +100,7 @@ import {
   API_SYNC_MILESTONE_ANSWERS_FULFILLED,
   API_SYNC_MILESTONE_ANSWERS_REJECTED,
 
-  DELETE_MILESTONE_ANSWERS_PENDING,
-  DELETE_MILESTONE_ANSWERS_FULFILLED,
-  DELETE_MILESTONE_ANSWERS_REJECTED,
+  DELETE_MILESTONE_ANSWER_FULFILLED,
 
   RESET_MILESTONE_ATTACHMENTS,
 
@@ -119,13 +112,9 @@ import {
   CREATE_MILESTONE_ATTACHMENT_FULFILLED,
   CREATE_MILESTONE_ATTACHMENT_REJECTED,
 
-  UPDATE_MILESTONE_ATTACHMENT_PENDING,
   UPDATE_MILESTONE_ATTACHMENT_FULFILLED,
-  UPDATE_MILESTONE_ATTACHMENT_REJECTED,
 
-  DELETE_MILESTONE_ATTACHMENT_PENDING,
   DELETE_MILESTONE_ATTACHMENT_FULFILLED,
-  DELETE_MILESTONE_ATTACHMENT_REJECTED,
 
   API_FETCH_ANSWER_ATTACHMENTS_PENDING,
   API_FETCH_ANSWER_ATTACHMENTS_FULFILLED,
@@ -138,9 +127,6 @@ import {
 } from './types';
 
 const db = SQLite.openDatabase('babysteps.db');
-const schema = require('../database/milestones_schema.json');
-const trigger_schema = require('../database/milestone_triggers_schema.json');
-const answers_schema = require('../database/answers_schema.json');
 
 const Pending = type => {
   return { type };
@@ -241,7 +227,7 @@ export const fetchMilestoneCalendar = (pregnancy_period = null) => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_CALENDAR_PENDING));
     let sql = 'SELECT * FROM milestone_triggers ';
-    sql += 'WHERE momentary_assessment = 0 ';
+    // sql += 'WHERE momentary_assessment = 0 ';
     if (pregnancy_period) {
       sql += `WHERE pregnancy_period = '${pregnancy_period}' `;
     }
@@ -261,37 +247,10 @@ export const fetchMilestoneCalendar = (pregnancy_period = null) => {
   };
 };
 
-export const updateMilestoneCalendar = (task_id, data) => {
+export const updateMilestoneCalendar = (task_id, entry) => {
+  const response = { task_id, entry };
   return dispatch => {
-    dispatch(Pending(UPDATE_MILESTONE_CALENDAR_PENDING));
-
-    delete data.id;
-
-    const keys = Object.keys(data);
-    const values = Object.values(data);
-    let updateSQL = [];
-
-    forEach(keys, key => {
-      if (isInteger(data[key])) {
-        updateSQL.push(`${key} = ${data[key]}`);
-      } else {
-        updateSQL.push(`${key} = '${data[key]}'`);
-      }
-    });
-    const sql = `UPDATE milestone_triggers SET ${updateSQL.join(', ')} WHERE task_id = ${task_id};`;
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, response) => {
-          dispatch(Response(UPDATE_MILESTONE_CALENDAR_FULFILLED, response));
-        },
-        (_, error) => {
-          dispatch(Response(UPDATE_MILESTONE_CALENDAR_REJECTED, error));
-        },
-      );
-    });
+    dispatch(Response(UPDATE_MILESTONE_CALENDAR_FULFILLED, response));
   };
 };
 
@@ -322,7 +281,6 @@ export const apiNewMilestoneCalendar = params => {
         headers: { milestone_token: apiToken },
       })
         .then(response => {
-          insertRows('milestone_triggers', trigger_schema.milestone_triggers, response.data);
           dispatch(Response(API_NEW_MILESTONE_CALENDAR_FULFILLED, response));
         })
         .catch(error => {
@@ -421,27 +379,7 @@ export const apiUpdateMilestoneCalendar = (id, data) => {
 export const fetchMilestoneTasks = () => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_TASKS_PENDING));
-    const sql =
-      'SELECT ts.*, \
-        mg.id AS milestone_group_id, \
-        mg.position AS milestone_group_position, \
-        mg.visible AS milestone_group_visible, \
-        mg.id AS milestone_group_id, \
-        ms.position AS milestone_position, \
-        ms.days_since_baseline AS milestone_days_since_baseline, \
-        ms.always_visible AS milestone_always_visible, \
-        ms.title AS milestone_title, \
-        ms.momentary_assessment AS momentary_assessment, \
-        ms.response_scale AS response_scale, \
-        ta.attachment_url as attachment_url, \
-        ta.content_type as attachment_content_type \
-      FROM tasks AS ts \
-      INNER JOIN milestones AS ms ON ms.id = ts.milestone_id \
-      INNER JOIN milestone_groups AS mg ON \
-        mg.baseline_range_days_start <= ms.days_since_baseline AND \
-        mg.baseline_range_days_end >= ms.days_since_baseline \
-      LEFT JOIN task_attachments AS ta ON ts.id = ta.task_id \
-      ORDER BY milestone_group_position, milestone_position, position;';
+    const sql = 'SELECT * FROM tasks';
 
     return db.transaction(tx => {
       tx.executeSql(
@@ -488,18 +426,17 @@ export const resetMilestoneQuestions = () => {
 export const fetchMilestoneQuestions = (params = {}) => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_QUESTIONS_PENDING));
-    const sql =
-      `SELECT qs.*, \
-        ops.input_type, \
-        ops.rn_input_type, \
-        ta.attachment_url, \
-        ta.content_type \
-      FROM questions AS qs \
-      INNER JOIN option_groups AS ops ON qs.option_group_id = ops.id \
-      INNER JOIN sections AS ss ON qs.section_id = ss.id \
-      LEFT JOIN task_attachments AS ta ON ss.task_id = ta.task_id \
-      WHERE ss.id = '${params['section_id']}' \
-      ORDER BY qs.position;`;
+    const sql = `SELECT * FROM questions ORDER BY section_id, position;`;
+    //    ops.input_type, \
+    //    ops.rn_input_type, \
+    //    ta.attachment_url, \
+    //    ta.content_type \
+    //  FROM questions AS qs \
+    //  INNER JOIN option_groups AS ops ON qs.option_group_id = ops.id \
+    //  INNER JOIN sections AS ss ON qs.section_id = ss.id \
+    //  LEFT JOIN task_attachments AS ta ON ss.task_id = ta.task_id \
+    //  WHERE ss.id = '${params['section_id']}' \
+    //  ORDER BY qs.position;`;
 
     return (
       db.transaction(tx => {
@@ -519,32 +456,33 @@ export const resetMilestoneChoices = () => {
   };
 };
 
-export const fetchMilestoneChoices = (params = {}) => {
+export const fetchMilestoneChoices = () => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_CHOICES_PENDING));
 
-    let question_ids = null;
+    const sql = 'SELECT * FROM choices ORDER BY question_id, position';
 
-    if (params.question_ids) {
-      question_ids = `( ${params.question_ids.join(', ')} )`;
-    }
+    //let question_ids = null;
 
-    let sql = 'SELECT cs.*, og.rn_input_type FROM choices AS cs';
-    sql += ' LEFT JOIN option_groups AS og ON og.id = cs.option_group_id';
-    if (question_ids) {
-      sql += ` WHERE cs.question_id IN ${question_ids}`;
-    }
-    sql += ' ORDER BY cs.question_id, cs.position;';
+    //if (params.question_ids) {
+    //  question_ids = `( ${params.question_ids.join(', ')} )`;
+    //}
 
-    return (
-      db.transaction(tx => {
-        tx.executeSql(
-          sql, [],
-          (_, response) => {dispatch(Response(FETCH_MILESTONE_CHOICES_FULFILLED, response))},
-          (_, error) => {dispatch(Response(FETCH_MILESTONE_CHOICES_REJECTED, error))}
-        );
-      })
-    );
+    //let sql = 'SELECT cs.*, og.rn_input_type FROM choices AS cs';
+    //sql += ' LEFT JOIN option_groups AS og ON og.id = cs.option_group_id';
+    //if (question_ids) {
+    //  sql += ` WHERE cs.question_id IN ${question_ids}`;
+    //}
+    //sql += ' ORDER BY cs.question_id, cs.position;';
+
+    return db.transaction(tx => {
+      tx.executeSql(
+        sql,
+        [],
+        (_, response) => {dispatch(Response(FETCH_MILESTONE_CHOICES_FULFILLED, response))},
+        (_, error) => {dispatch(Response(FETCH_MILESTONE_CHOICES_REJECTED, error))}
+      );
+    });
   };
 };
 
@@ -585,106 +523,10 @@ export const fetchMilestoneAnswers = (params = {}) => {
   };
 };
 
-const answerFields = [
-  'answer_boolean',
-  'answer_datetime',
-  'answer_numeric',
-  'answer_text',
-  'api_id',
-  'choice_id',
-  'milestone_id',
-  'notified_at',
-  'pregnancy',
-  'question_id',
-  'respondent_api_id',
-  'respondent_id',
-  'score',
-  'section_id',
-  'subject_api_id',
-  'subject_id',
-  'task_id',
-  'user_id',
-  'user_api_id',
-];
-
-const attachmentFields = [
-  'answer_id',
-  'api_id',
-  'checksum',
-  'choice_id',
-  'content_type',
-  'filename',
-  'height',
-  'section_id',
-  'size',
-  'subject_api_id',
-  'uri',
-  'url',
-  'user_api_id',
-  'width',
-];
-
-const parseInsertFields = (object, fields) => {
-  delete object.id;
-  let row = [];
-  map(fields, field => {
-    if (object[field] === undefined || object[field] === null) {
-      row.push('null');
-    } else if (field === 'answer_text') {
-      row.push(`'${object[field]}'`);
-    } else if (field === 'answer_numeric') {
-      row.push(object[field]);
-    } else if (field === 'answer_datetime') {
-      row.push(`'${object[field]}'`);
-    } else if (field === 'answer_boolean') {
-      if (object[field] === true) {
-        row.push(1);
-      } else {
-        row.push(0);
-      }
-    } else if (typeof object[field] === 'string') {
-      row.push(`'${object[field]}'`);
-    } else {
-      row.push(object[field]);
-    }
-  });
-  return row.join(', ');
-};
-
-const parseUpdateFields = (object, fields) => {
-  let row = [];
-  map(fields, field => {
-    if (object[field] === undefined || object[field] === null) {
-      row.push(`${field} = null`);
-    } else if (field === 'answer_text') {
-      row.push(`${field} = '${object[field]}'`);
-    } else if (field === 'answer_numeric') {
-      row.push(`${field} = ${object[field]}`);
-    } else if (field === 'answer_boolean') {
-      row.push(object[field] ? 1 : 0);
-    } else if (typeof object[field] === 'string') {
-      row.push(`${field} ='${object[field]}'`);
-    } else {
-      row.push(`${field} = ${object[field]}`);
-    }
-  });
-  return row.join(', ');
-};
 
 export const createMilestoneAnswer = answer => {
   return dispatch => {
-    dispatch(Pending(CREATE_MILESTONE_ANSWER_PENDING));
-    const values = parseInsertFields(answer, answerFields);
-    const sql =`INSERT INTO answers ( ${answerFields.join(', ')} ) VALUES (${values});`;
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, response) => dispatch(Response(CREATE_MILESTONE_ANSWER_FULFILLED, response)),
-        (_, error) => dispatch(Response(CREATE_MILESTONE_ANSWER_REJECTED, error))
-      );
-    }) // transaction
+    dispatch(Response(CREATE_MILESTONE_ANSWER_FULFILLED, answer));
   }; // dispatch
 };
 
@@ -754,7 +596,7 @@ export const apiCreateMilestoneAnswer = (session, data) => {
   }; // return dispatch
 };
 
-export const apiUpdateMilestoneAnswers = (session, section_id, data) => {
+export const apiUpdateMilestoneAnswers = (session, data) => {
   // can not submit attachments on bulk update
   const answers = [];
   forEach(data, row => {
@@ -778,6 +620,8 @@ export const apiUpdateMilestoneAnswers = (session, section_id, data) => {
   });
 
   return dispatch => {
+    const apiToken = Constants.manifest.extra.apiToken;
+    const headers = { milestone_token: apiToken };
     dispatch({
       type: API_UPDATE_MILESTONE_ANSWERS_PENDING,
       payload: {
@@ -787,8 +631,9 @@ export const apiUpdateMilestoneAnswers = (session, section_id, data) => {
       meta: {
         offline: {
           effect: {
-            method: 'PUT',
-            url: '/answers/bulk_update/' + section_id,
+            method: 'POST',
+            url: '/answers/bulk_upload',
+            headers,
             fulfilled: API_UPDATE_MILESTONE_ANSWERS_FULFILLED,
             rejected: API_UPDATE_MILESTONE_ANSWERS_REJECTED,
           },
@@ -804,6 +649,7 @@ export const apiSyncMilestoneAnswers = user_id => {
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
     const fileUri = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY;
+    const headers = { milestone_token: apiToken };
 
     return new Promise((resolve, reject) => {
       axios({
@@ -811,9 +657,7 @@ export const apiSyncMilestoneAnswers = user_id => {
         responseType: 'json',
         baseURL,
         url: '/sync_answers',
-        headers: {
-          milestone_token: apiToken,
-        },
+        headers,
         data: {
           user_id,
         },
@@ -827,31 +671,15 @@ export const apiSyncMilestoneAnswers = user_id => {
             answer.user_api_id = answer.user_id;
           });
           // primary key on sqlite becomes id from api
-          insertRows('answers', answers_schema.answers, answers);
 
           const attachments = response.data.attachments;
-          db.transaction(tx => {
-            tx.executeSql( 'DELETE FROM attachments', [],
-              (_, response) => console.log('*** Clear Answer Attachments table'),
-              (_, error) => console.log('*** Error in clearing Answer Attachments table'),
-            );
-          });
 
           attachments.forEach(attachment => {
             attachment.api_id = attachment.id;
             attachment.uri = `${fileUri}/${attachment.filename}`;
             FileSystem.downloadAsync(attachment.url, attachment.uri)
               .then(response => {
-                const values = parseInsertFields(attachment, attachmentFields);
-                const sql =`INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
-                db.transaction(tx => {
-                  tx.executeSql(
-                    sql,
-                    [],
-                    (_, response) => console.log(`*** Answer Attachment sync'd ${attachment.filename}`),
-                    (_, error) => console.log(`*** Error: Answer Attachment sync ${attachment.filename}`),
-                  );
-                });
+                console.log(`*** Answer Attachment sync'd ${attachment.filename}`);
               })
               .catch(error => {
                 dispatch(Response(API_SYNC_MILESTONE_ANSWERS_REJECTED, error));
@@ -866,25 +694,9 @@ export const apiSyncMilestoneAnswers = user_id => {
   }; // return dispatch
 };
 
-export const deleteMilestoneAnswer = answer_id => {
+export const deleteMilestoneAnswer = choice_id => {
   return dispatch => {
-    dispatch(Pending(DELETE_MILESTONE_ANSWERS_PENDING));
-
-    let sql = `DELETE FROM answers WHERE id = ${answer_id}`;
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, response) => {
-          dispatch(Response(DELETE_MILESTONE_ANSWERS_FULFILLED, response));
-        },
-        (_, error) => {
-          dispatch(Response(DELETE_MILESTONE_ANSWERS_REJECTED, error));
-        },
-      );
-    });
-
+    dispatch(Response(DELETE_MILESTONE_ANSWER_FULFILLED, { choice_id }));
   };
 };
 
@@ -921,77 +733,18 @@ export const fetchMilestoneAttachments = (params = {}) => {
 
 export const createMilestoneAttachment = attachment => {
   return dispatch => {
-    dispatch(Pending(CREATE_MILESTONE_ATTACHMENT_PENDING));
-
-    const values = parseInsertFields(attachment, attachmentFields);
-    const sql =`INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        sql, [],
-        (_, response) => dispatch(Response(CREATE_MILESTONE_ATTACHMENT_FULFILLED, response)),
-        (_, error) => dispatch(Response(CREATE_MILESTONE_ATTACHMENT_REJECTED, error))
-      );
-    }) // transaction
-  }; // dispatch
+    dispatch(Response(CREATE_MILESTONE_ATTACHMENT_FULFILLED, attachment));
+  };
 };
 
 export const updateMilestoneAttachment = attachment => {
   return dispatch => {
-    dispatch(Pending(UPDATE_MILESTONE_ATTACHMENT_PENDING));
-
-    let insertSQL = '';
-    let updateSQL = '';
-
-    if (attachment.id !== undefined) {
-      updateSQL = `UPDATE attachments SET ${parseUpdateFields(attachment, attachmentFields)} WHERE id = ${attachment.id}; `;
-    } else {
-      const values = parseInsertFields(attachment, attachmentFields);
-      //insertSQL = `DELETE FROM attachments WHERE choice_id = ${attachment.choice_id}; `;
-      insertSQL = `INSERT INTO attachments ( ${attachmentFields.join(', ')} ) VALUES (${values});`;
-    }
-    return db.transaction(tx => {
-      if (!isEmpty(updateSQL)) {
-        tx.executeSql(
-          updateSQL, [],
-          (_, response) => {
-            dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_FULFILLED, response));
-          },
-          (_, error) => dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_REJECTED, error))
-        );
-      }
-      if (!isEmpty(insertSQL)) {
-        tx.executeSql(
-          insertSQL, [],
-          (_, response) => {
-            dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_FULFILLED, response));
-          },
-          (_, error) => dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_REJECTED, error))
-        );
-      }
-    }) // transaction
-  }; // dispatch
-};
-
-export const deleteMilestoneAttachment = attachment_id => {
-  return dispatch => {
-    dispatch(Pending(DELETE_MILESTONE_ATTACHMENT_PENDING));
-
-    let sql = `DELETE FROM attachments WHERE id = ${attachment_id}`;
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, response) => {
-          dispatch(Response(DELETE_MILESTONE_ATTACHMENT_FULFILLED, response));
-        },
-        (_, error) => {
-          dispatch(Response(DELETE_MILESTONE_ATTACHMENT_REJECTED, error));
-        },
-      );
-    });
-
+    dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_FULFILLED, attachment));
   };
 };
 
+export const deleteMilestoneAttachment = choice_id => {
+  return dispatch => {
+    dispatch(Response(DELETE_MILESTONE_ATTACHMENT_FULFILLED, { choice_id }));
+  };
+};

@@ -6,9 +6,7 @@ import { _ } from 'lodash';
 
 import { store } from '../store';
 
-import { insertRows, getApiUrl } from '../database/common';
-
-import schema from '../database/registration_schema.json';
+import { getApiUrl } from '../database/common';
 
 import {
   API_TOKEN_REFRESH_PENDING,
@@ -37,6 +35,7 @@ import {
   API_FETCH_SIGNIN_FULFILLED,
   API_FETCH_SIGNIN_REJECTED,
 
+  CREATE_USER_FULFILLED,
 } from './types';
 
 const db = SQLite.openDatabase('babysteps.db');
@@ -116,33 +115,21 @@ export const apiTokenRefreshFailed = () => {
   };
 };
 
-export const updatePendingActions = (dispatch, actions) => {
+export const updatePendingActions = actions => {
+  const dispatch = store.dispatch;
   dispatch(Pending(UPDATE_SESSION_PENDING_ACTIONS_PENDING));
-  return db.transaction(tx => {
-    tx.executeSql(
-      'UPDATE sessions SET pending_actions = ?;',
-      [JSON.stringify(actions)],
-      (_, response) => dispatch(Response(UPDATE_SESSION_PENDING_ACTIONS_FULFILLED, actions)),
-      (_, error) => dispatch(Response(UPDATE_SESSION_PENDING_ACTIONS_REJECTED, error)),
-    );
-  });
+  return function(dispatch) {
+    dispatch(Response(UPDATE_SESSION_PENDING_ACTIONS_FULFILLED, JSON.stringify(actions)));
+  };
 };
 
 export const dispatchPendingActions = pending_actions => {
   return function(dispatch) {
-    dispatch(Pending(DISPATCH_SESSION_PENDING_ACTIONS_PENDING));
+    dispatch(Pending(UPDATE_SESSION_PENDING_ACTIONS_PENDING));
     _.forEach(pending_actions, action => {
       dispatch(decodePendingAction(action));
     });
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        'UPDATE sessions SET pending_actions = ?;',
-        [JSON.stringify([])],
-        (_, response) => dispatch(Response(DISPATCH_SESSION_PENDING_ACTIONS_FULFILLED, response)),
-        (_, error) => dispatch(Response(DISPATCH_SESSION_PENDING_ACTIONS_REJECTED, error)),
-      );
-    });
+    dispatch(Response(DISPATCH_SESSION_PENDING_ACTIONS_FULFILLED));
   };
 };
 
@@ -181,27 +168,8 @@ export const apiFetchSignin = (email, password) => {
         .then(response => {
           const { data } = response.data;
           const user = {...data, api_id: data.id, email, password}
-
-          db.transaction(tx => {
-            tx.executeSql(
-              'UPDATE sessions SET email = ?, password = ?, uid = ?, user_api_id = ?;',
-              [email, password, data.uid, data.id],
-              (_, response) => {
-                dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, user));
-              },
-              (_, error) => dispatch(Response(API_FETCH_SIGNIN_REJECTED, error)),
-            );
-          });
-          insertRows('users', schema.users, [
-            {
-              first_name: data.first_name,
-              last_name: data.last_name,
-              api_id: data.id,
-              email,
-              uid: data.uid,
-              password,
-            },
-          ]);
+          dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, user));
+          dispatch(Response(CREATE_USER_FULFILLED, user));
         })
         .catch(error => {
           dispatch(Response(API_FETCH_SIGNIN_REJECTED, error));

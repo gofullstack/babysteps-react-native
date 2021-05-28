@@ -1,15 +1,11 @@
 import * as FileSystem from 'expo-file-system';
 import * as SQLite from 'expo-sqlite';
-
-import { insertRows, getApiUrl } from '../database/common';
-import schema from '../database/babybook_schema.json';
+import Constants from 'expo-constants';
 
 import forEach from 'lodash/forEach';
-import omit from 'lodash/omit';
-import keys from 'lodash/keys';
-import values from 'lodash/values';
 
-import Constants from 'expo-constants';
+import { getApiUrl } from '../database/common';
+
 import CONSTANTS from '../constants';
 
 import {
@@ -19,13 +15,9 @@ import {
   FETCH_BABYBOOK_ENTRIES_FULFILLED,
   FETCH_BABYBOOK_ENTRIES_REJECTED,
 
-  CREATE_BABYBOOK_ENTRY_PENDING,
   CREATE_BABYBOOK_ENTRY_FULFILLED,
-  CREATE_BABYBOOK_ENTRY_REJECTED,
 
-  UPDATE_BABYBOOK_ENTRY_PENDING,
   UPDATE_BABYBOOK_ENTRY_FULFILLED,
-  UPDATE_BABYBOOK_ENTRY_REJECTED,
 
   API_CREATE_BABYBOOK_ENTRY_PENDING,
   API_CREATE_BABYBOOK_ENTRY_FULFILLED,
@@ -39,7 +31,6 @@ import {
 
 import VideoFormats from '../constants/VideoFormats';
 import ImageFormats from '../constants/ImageFormats';
-import AudioFormats from '../constants/AudioFormats';
 
 const db = SQLite.openDatabase('babysteps.db');
 
@@ -59,18 +50,19 @@ export const resetBabyBookEntries = () => {
 
 export const fetchBabyBookEntries = () => {
   return function(dispatch) {
-
     dispatch(Pending(FETCH_BABYBOOK_ENTRIES_PENDING));
 
-    return (
-      db.transaction(tx => {
-        tx.executeSql(
-          'SELECT * FROM babybook_entries;', [],
-          (_, response) => {dispatch(Response(FETCH_BABYBOOK_ENTRIES_FULFILLED, response)) },
-          (_, error) => {dispatch(Response(FETCH_BABYBOOK_ENTRIES_REJECTED, error))}
-        );
-      })
-    )
+    return db.transaction(tx => {
+      tx.executeSql(
+        'SELECT * FROM babybook_entries;', [],
+        (_, response) => {
+          dispatch(Response(FETCH_BABYBOOK_ENTRIES_FULFILLED, response));
+        },
+        (_, error) => {
+          dispatch(Response(FETCH_BABYBOOK_ENTRIES_REJECTED, error));
+        },
+      );
+    });
   };
 };
 
@@ -105,73 +97,20 @@ const parseImageMetaData = (data, image) => {
 };
 
 export const createBabyBookEntry = (data, image) => {
-  data = parseImageMetaData(data, image);
+  let entry = parseImageMetaData(data, image);
+  if (!entry.created_at) {
+    entry.created_at = new Date().toISOString();
+  }
+  FileSystem.copyAsync({ from: image.uri, to: entry.uri });
+
   return function(dispatch) {
-    dispatch(Pending(CREATE_BABYBOOK_ENTRY_PENDING));
-
-    if (!data.created_at) {
-      data.created_at = new Date().toISOString();
-    }
-
-    return FileSystem.copyAsync({ from: image.uri, to: data.uri })
-      .then(() => {
-        db.transaction(tx => {
-          tx.executeSql(
-            'INSERT INTO babybook_entries (user_id, choice_id, title, detail, cover, file_name, file_type, uri, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
-            [
-              data.user_id,
-              data.choice_id,
-              data.title,
-              data.detail,
-              data.cover,
-              data.file_name,
-              data.file_type,
-              data.uri,
-              data.created_at,
-            ],
-            (_, response) => {
-              dispatch(Response(CREATE_BABYBOOK_ENTRY_FULFILLED, response, data));
-            },
-            (_, error) => {
-              dispatch(Response(CREATE_BABYBOOK_ENTRY_REJECTED, error));
-            },
-          );
-        });
-      })
-      .catch(error => {
-        dispatch(Response(CREATE_BABYBOOK_ENTRY_REJECTED, error));
-      });
+    dispatch(Response(CREATE_BABYBOOK_ENTRY_FULFILLED, entry));
   }; // dispatch
 };
 
-export const updateBabyBookEntry = (id, data, image = null) => {
+export const updateBabyBookEntry = (choice_id, data, image = null) => {
   return function(dispatch) {
-    dispatch(Pending(UPDATE_BABYBOOK_ENTRY_PENDING));
-
-    delete data.id;
-
-    const keys = keys(data);
-    const values = values(data);
-    let updateSQL = [];
-
-    forEach(keys, key => {
-      updateSQL.push(key + " = '" + data[key] + "'");
-    });
-
-    updateSQL = `UPDATE babybook_entries SET ${updateSQL.join(', ')} WHERE babybook_entries.id = ${id};`
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        updateSQL,
-        [],
-        (_, response) => {
-          dispatch(Response(UPDATE_BABYBOOK_ENTRY_FULFILLED, response, data));
-        },
-        (_, error) => {
-          dispatch(Response(UPDATE_BABYBOOK_ENTRY_REJECTED, error))
-        }
-      );
-    })
+    dispatch(Response(UPDATE_BABYBOOK_ENTRY_FULFILLED, { choice_id, data }));
   };
 };
 
@@ -264,7 +203,6 @@ export const apiSyncBabybookEntries = (user_id) => {
             delete entry.url;
           }); // forEach
           // primary key on sqlite becomes id from api
-          insertRows('babybook_entries', schema.babybook_entries, entries);
           dispatch(Response(API_SYNC_BABYBOOK_ENTRIES_FULFILLED, entries));
         })
         .catch(error => {

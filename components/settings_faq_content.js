@@ -114,7 +114,7 @@ class SettingsFAQContent extends Component {
         </ScrollView>
       </SafeAreaView>
     );
-  };
+  }
 }
 
 const styles = StyleSheet.create({
@@ -139,15 +139,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 5,
   },
-
   text: {
     //textAlign: 'center',
     fontSize: 12,
     paddingRight: 5,
     marginLeft: 15,
-  },
-  bold: {
-    fontWeight: '600',
   },
   elevated: {
     flex: 1,
@@ -161,7 +157,7 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = ({ session }) => ({
-  session
+  session,
 });
 
 export default connect(mapStateToProps)(SettingsFAQContent);

@@ -2,21 +2,21 @@ import * as SQLite from 'expo-sqlite';
 import { _ } from 'lodash';
 
 import { API_UPDATE_MILESTONE_ANSWERS_FULFILLED } from '../actions/types';
+import { updateMilestoneAnswers } from '../actions/milestone_actions';
 
-const db = SQLite.openDatabase('babysteps.db');
-
-const getUpdateSQL = data => {
-  const keys = _.keys(data);
-  const updateSQL = [];
-
-  _.forEach(keys, key => {
-    if (_.isInteger(data[key])) {
-      updateSQL.push(`${key} = ${data[key]}`);
-    } else {
-      updateSQL.push(`${key} = "${data[key]}"`);
-    }
+export default store => next => action => {
+  if (!action || !action.type) {
+    return null;
+  }
+  if (action.type !== API_UPDATE_MILESTONE_ANSWERS_FULFILLED) {
+    return next(action);
+  }
+  const data = action.payload.data;
+  const answers = _.map(data, answer => {
+    return createAPIKeys(answer);
   });
-  return updateSQL;
+
+  return store.dispatch(updateMilestoneAnswers(answers));
 };
 
 // rename field names for local table
@@ -41,25 +41,4 @@ const createAPIKeys = answer => {
   delete answer.subject;
   delete answer.created_at;
   return answer;
-};
-
-export default store => next => action => {
-  if (!action || !action.type) {
-    return null;
-  }
-  if (action.type !== API_UPDATE_MILESTONE_ANSWERS_FULFILLED) {
-    return next(action);
-  }
-  const data = action.payload.data;
-
-  return _.map(data, answer => {
-    answer = createAPIKeys(answer);
-    const sql = `UPDATE answers SET ${getUpdateSQL(answer).join(', ')} WHERE answers.choice_id = ${answer.choice_id}`;
-    db.transaction(tx => {
-      tx.executeSql(sql, [],
-        (_, response) => console.log(`Answer for choice ${answer.choice_id} updated from api`),
-        (_, error) => console.log(`ERROR - Answer for choice ${answer.choice_id} not updated from api: ${error}`),
-      );
-    });
-  }); // map(data)
 };

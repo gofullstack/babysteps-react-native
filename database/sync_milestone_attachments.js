@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
+import * as FileSystem from 'expo-file-system';
 
 import isEmpty from 'lodash/isEmpty';
 
@@ -108,18 +109,23 @@ const SyncMilestoneAttachments = async () => {
 
   const state = store.getState();
   const { user, subject } = state.registration;
+  const { attachments } = state.milestones;
   if (isEmpty(user.data) || isEmpty(subject.data)) return;
 
   const userID = user.data.api_id;
   const subjectID = subject.data.api_id;
-  const attachments = await getAttachments();
-  for (const attachment of attachments) {
-    const has_attachment = await ConfirmAPIAttachment(subjectID, attachment.choice_id);
-    if (!has_attachment) {
-      await UploadMilestoneAttachment(userID, subjectID, attachment);
-    } else {
-      console.log(`*** Attachment ${attachment.filename} confirmed`);
-    }
+  for (const attachment of attachments.data) {
+    if (!isEmpty(attachment) && attachment.choice_id) {
+      const has_attachment = await ConfirmAPIAttachment(
+        subjectID,
+        attachment.choice_id,
+      );
+      if (!has_attachment) {
+        await UploadMilestoneAttachment(userID, subjectID, attachment);
+      } else {
+        console.log(`*** Attachment ${attachment.choice_id} confirmed`);
+      }
+    } // if isEmpty attachment
   }
   return null;
 };

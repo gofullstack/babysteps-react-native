@@ -16,7 +16,6 @@ import ExpoPixi from 'expo-pixi';
 import { connect } from 'react-redux';
 
 import { updateSession } from '../actions/session_actions';
-import { fetchConsent } from '../actions/registration_actions';
 
 import { SaveConsentSignature } from '../database/sync_consent_signature';
 
@@ -45,7 +44,6 @@ class UpdateConsentScreen extends Component {
       errorMessage: null,
       consentModalVisible: false,
     };
-    this.props.fetchConsent();
   }
 
   handleNestedScrollEvent = scrollEnabled => {
@@ -86,7 +84,7 @@ class UpdateConsentScreen extends Component {
   };
 
   renderSignature = () => {
-    const remoteDebug = this.state.remoteDebug;
+    const { remoteDebug, errorMessage } = this.state;
     return (
       <View>
         <Text style={styles.signatureHeader}>
@@ -113,9 +111,9 @@ class UpdateConsentScreen extends Component {
           )}
         </View>
 
-        {this.state.errorMessage && (
+        {errorMessage && (
           <View style={styles.textErrorContainer}>
-            <Text style={styles.textError}>{this.state.errorMessage}</Text>
+            <Text style={styles.textError}>{errorMessage}</Text>
           </View>
         )}
 
@@ -140,7 +138,7 @@ class UpdateConsentScreen extends Component {
   };
 
   handleResetSignature = () => {
-    const remoteDebug = this.state.remoteDebug;
+    const { remoteDebug } = this.state;
     if (!remoteDebug) {
       this.signature.clear();
     }
@@ -150,7 +148,7 @@ class UpdateConsentScreen extends Component {
     const session = this.props.session;
     const consent = this.props.registration.consent.data;
     const respondent = this.props.registration.respondent.data;
-    const remoteDebug = this.state.remoteDebug;
+    const { remoteDebug } = this.state;
     let image = null;
     if (!remoteDebug) {
       image = await this.signature.takeSnapshotAsync({
@@ -356,10 +354,7 @@ const mapStateToProps = ({ session, registration }) => ({
   registration,
 });
 
-const mapDispatchToProps = {
-  fetchConsent,
-  updateSession,
-};
+const mapDispatchToProps = { updateSession };
 
 export default connect(
   mapStateToProps,

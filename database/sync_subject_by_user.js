@@ -3,11 +3,7 @@ import Constants from 'expo-constants';
 
 import isEmpty from 'lodash/isEmpty';
 
-<<<<<<< HEAD
-import store from '../store';
-=======
 import { store } from '../store';
->>>>>>> wip
 
 import { getApiUrl } from './common';
 
@@ -54,7 +50,6 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
       .then(response => {
         const { subject } = response.data;
 
-<<<<<<< HEAD
         const state = store.getState();
         const session = state.session;
 
@@ -64,32 +59,7 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
           subject.screening_blood_physician_notification;
 
         if (isEmpty(subject) || updateSubject) {
-          db.transaction(tx => {
-            tx.executeSql(
-              `SELECT * FROM subjects LIMIT 1;`,
-              [],
-              (_, response) => {
-                const subject = response.rows['_array'][0];
-                const data = {
-                  ...subject,
-                  id: subject.api_id,
-                  respondent_ids: [respondent_id],
-                };
-                delete data.api_id;
-                // defaults
-                // temporary call to update screening_blood_physician_notification
-                data.screening_blood_physician_notification = session.screening_blood_physician_notification;
-                if (!data.outcome) data.outcome = 'live_birth';
-                if (!data.conception_method) data.conception_method = 'natural';
-                executeApiCall(subject.api_id, data);
-              },
-              (_, error) => {
-                console.log(error);
-              },
-            );
-          });
-=======
-        if (isEmpty(subject)) {
+
           const state = store.getState();
           let data = state.registration.subject.data;
           const id = data.api_id;
@@ -98,11 +68,15 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
             ...data,
             respondent_ids: [respondent_id],
           };
+
           // defaults
+          // temporary call to update screening_blood_physician_notification
+          data.screening_blood_physician_notification =
+            session.screening_blood_physician_notification;
           if (!data.outcome) data.outcome = 'live_birth';
           if (!data.conception_method) data.conception_method = 'natural';
-          executeApiCall(id, data);
->>>>>>> wip
+
+          executeApiCall(subject.api_id, data);
         } else {
           console.log('*** Subject Exists on Server');
         }
