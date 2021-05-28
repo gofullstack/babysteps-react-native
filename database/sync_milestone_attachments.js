@@ -111,7 +111,6 @@ const SyncMilestoneAttachments = async () => {
   const { user, subject } = state.registration;
   const { attachments } = state.milestones;
   if (isEmpty(user.data) || isEmpty(subject.data)) return;
-
   const user_id = user.data.id;
   const subject_id = subject.data.id;
   for (const attachment of attachments.data) {

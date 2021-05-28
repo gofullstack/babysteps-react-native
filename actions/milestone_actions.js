@@ -408,7 +408,6 @@ export const fetchMilestoneQuestions = (params = {}) => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_QUESTIONS_PENDING));
     const sql = `SELECT * FROM questions ORDER BY section_id, position;`;
-
     return db.transaction(tx => {
       tx.executeSql(
         sql,
@@ -435,7 +434,6 @@ export const fetchMilestoneChoices = () => {
     dispatch(Pending(FETCH_MILESTONE_CHOICES_PENDING));
 
     const sql = 'SELECT * FROM choices ORDER BY question_id, position';
-
     return db.transaction(tx => {
       tx.executeSql(
         sql,
