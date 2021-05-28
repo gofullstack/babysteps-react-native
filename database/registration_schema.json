@@ -81,6 +81,7 @@
       "days_premature": "INTEGER",
       "screening_blood": "INTEGER",
       "screening_blood_notification": "INTEGER",
+      "screening_blood_physician_notification": "INTEGER",
       "screening_blood_other": "INTEGER",
       "video_presentation": "TEXT",
       "video_sharing": "TEXT",

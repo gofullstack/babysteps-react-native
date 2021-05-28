@@ -141,6 +141,7 @@ class RegistrationSubjectForm extends Component {
       screening_blood,
       screening_blood_other,
       screening_blood_notification,
+      screening_blood_physician_notification,
       video_presentation,
       video_sharing,
     } = this.props.session;
@@ -169,6 +170,7 @@ class RegistrationSubjectForm extends Component {
       screening_blood,
       screening_blood_other,
       screening_blood_notification,
+      screening_blood_physician_notification,
       video_presentation,
       video_sharing,
     };
@@ -182,6 +184,7 @@ class RegistrationSubjectForm extends Component {
       screening_blood,
       screening_blood_other,
       screening_blood_notification,
+      screening_blood_physician_notification,
       video_presentation,
       video_sharing,
     } = this.props.session;
@@ -192,6 +195,7 @@ class RegistrationSubjectForm extends Component {
         screening_blood,
         screening_blood_other,
         screening_blood_notification,
+        screening_blood_physician_notification,
         video_presentation,
         video_sharing,
       };

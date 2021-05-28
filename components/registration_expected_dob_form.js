@@ -103,6 +103,7 @@ class RegistrationExpectedDOB extends Component {
       screening_blood,
       screening_blood_other,
       screening_blood_notification,
+      screening_blood_physician_notification,
       video_presentation,
       video_sharing,
     } = this.props.session;
@@ -114,6 +115,7 @@ class RegistrationExpectedDOB extends Component {
         screening_blood,
         screening_blood_other,
         screening_blood_notification,
+        screening_blood_physician_notification,
         video_presentation,
         video_sharing,
       };

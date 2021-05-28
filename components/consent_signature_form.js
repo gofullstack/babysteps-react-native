@@ -142,7 +142,7 @@ class ConsentSignatureForm extends Component {
   };
 
   render() {
-    // GLView won't run with remote debugging running.  Shut off remote debugging or you will get a Can't Find Property 0 error message.
+    // GLView won't run with remote debugging running.  Shut off remote debugging to test signature area.
 
     const {
       screening_blood,

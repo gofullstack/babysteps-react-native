@@ -369,10 +369,11 @@ export const createSubject = subject => {
         days_premature, \
         screening_blood, \
         screening_blood_notification, \
+        screening_blood_physician_notification, \
         screening_blood_other, \
         video_presentation, \
         video_sharing \
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
 
     const values = [
       subject.first_name,
@@ -385,6 +386,7 @@ export const createSubject = subject => {
       subject.days_premature,
       subject.screening_blood,
       subject.screening_blood_notification,
+      subject.screening_blood_physician_notification,
       subject.screening_blood_other,
       subject.video_presentation,
       subject.video_sharing,

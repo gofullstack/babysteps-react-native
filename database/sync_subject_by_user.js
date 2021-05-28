@@ -4,6 +4,8 @@ import Constants from 'expo-constants';
 
 import isEmpty from 'lodash/isEmpty';
 
+import store from '../store';
+
 import { getApiUrl } from './common';
 
 const db = SQLite.openDatabase('babysteps.db');
@@ -50,7 +52,15 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
       .then(response => {
         const { subject } = response.data;
 
-        if (isEmpty(subject)) {
+        const state = store.getState();
+        const session = state.session;
+
+        // temporary call to update screening_blood_physician_notification
+        const updateSubject =
+          (session.screening_blood_physician_notification === 1) !==
+          subject.screening_blood_physician_notification;
+
+        if (isEmpty(subject) || updateSubject) {
           db.transaction(tx => {
             tx.executeSql(
               `SELECT * FROM subjects LIMIT 1;`,
@@ -64,9 +74,12 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
                 };
                 delete data.api_id;
                 // defaults
+                // temporary call to update screening_blood_physician_notification
+                data.screening_blood_physician_notification = session.screening_blood_physician_notification;
                 if (!data.outcome) data.outcome = 'live_birth';
                 if (!data.conception_method) data.conception_method = 'natural';
 
+                console.log({ data })
                 executeApiCall(subject.api_id, data);
               },
               (_, error) => {
