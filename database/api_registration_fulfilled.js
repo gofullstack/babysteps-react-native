@@ -21,7 +21,6 @@ export default store => next => action => {
 
   if (action.type === API_CREATE_USER_FULFILLED) {
     const headers = action.payload.headers;
-
     const id = parseInt(headers.user_id, 10);
     store.dispatch(updateUser({ id }));
   }

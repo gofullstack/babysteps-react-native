@@ -50,8 +50,16 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
       .then(response => {
         const { subject } = response.data;
 
-        if (isEmpty(subject)) {
-          const state = store.getState();
+        const state = store.getState();
+        const session = state.session;
+
+        // temporary call to update screening_blood_physician_notification
+        const updateSubject =
+          (session.screening_blood_physician_notification === 1) !==
+          subject.screening_blood_physician_notification;
+
+        if (isEmpty(subject) || updateSubject) {
+
           let data = state.registration.subject.data;
           const id = data.api_id;
           delete data.api_id;
@@ -60,6 +68,15 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
             ...data,
             respondent_ids: [respondent_id],
           };
+
+          // defaults
+          // temporary call to update screening_blood_physician_notification
+          data.screening_blood_physician_notification =
+            session.screening_blood_physician_notification;
+          if (!data.outcome) data.outcome = 'live_birth';
+          if (!data.conception_method) data.conception_method = 'natural';
+
+          executeApiCall(subject.api_id, data);
         } else {
           console.log('*** Subject Exists on Server');
         }

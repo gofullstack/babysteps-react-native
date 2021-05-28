@@ -15,7 +15,6 @@ const headers = { milestone_token: apiToken };
 
 const UploadMilestoneCalendarsCompleted = async () => {
   const state = store.getState();
-
   const { calendar } = state.milestones;
 
   if (isEmpty(calendar.data)) return;

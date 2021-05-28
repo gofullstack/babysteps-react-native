@@ -508,7 +508,7 @@ const reducer = (state = initialState, action, data = []) => {
       };
     }
     case API_FETCH_MILESTONE_CALENDAR_FULFILLED: {
-      const data = syncTriggerData(action.payload.data, state.calendar.data );
+      const data = syncTriggerData(action.payload.data, state.calendar.data);
       return {
         ...state,
         api_calendar: {
@@ -866,6 +866,7 @@ const reducer = (state = initialState, action, data = []) => {
           fetched: true,
           error: null,
           data,
+        },
       };
     };
 

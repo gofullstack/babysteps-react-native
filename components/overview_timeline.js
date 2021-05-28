@@ -110,14 +110,12 @@ class OverviewTimeline extends Component {
     }
 
     // get choices which should appear on timeline
-
     let overviewTimelines = _.filter(choices.data, choice => {
       return ['during_pregnancy', 'birth', 'post_birth'].includes(choice.overview_timeline);
     });
 
     // get attachment if exists
     for (const key in overviewTimelines) {
-
       const item = {
         ...overviewTimelines[key],
         choice_id: null,

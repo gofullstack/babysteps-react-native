@@ -6,11 +6,21 @@ import * as FileSystem from 'expo-file-system';
 import { _ } from 'lodash';
 
 import { connect } from 'react-redux';
-import { updateSession } from '../actions/session_actions';
-import { updateUser } from '../actions/registration_actions';
+import { fetchSession, updateSession } from '../actions/session_actions';
 import {
-  updateMilestoneAnswers,
+  fetchUser,
+  updateUser,
+  fetchRespondent,
+  fetchSubject,
+} from '../actions/registration_actions';
+import {
+  fetchMilestoneCalendar,
+  resetMilestoneAnswers,
+  fetchMilestoneAnswers,
+  updateMilestoneAnswer,
   deleteMilestoneAnswer,
+  resetMilestoneAttachments,
+  fetchMilestoneAttachments,
   updateMilestoneAttachment,
   deleteMilestoneAttachment,
 } from '../actions/milestone_actions';
@@ -25,6 +35,7 @@ class CheckDataIntegrity extends Component {
 
     this.state = {
       appState: AppState.currentState,
+
       // TEMPORARY: PULL DATA FROM SQLITE IF ALREADY REGISTERED
       stateFetchedFromSQLite: false,
       //
@@ -33,6 +44,7 @@ class CheckDataIntegrity extends Component {
       signatureFileUpdated: false,
       cleanDuplicateAnswersSubmitted: false,
       cleanDuplicateAttachmentsSubmitted: false,
+
       // THIS PERMENANTLY AND REPEATEDLY REMOVES ALL ANSWER DATA
       resetAnswers: false,
       //
@@ -83,6 +95,13 @@ class CheckDataIntegrity extends Component {
       this.setState({ signatureFileUpdated: true });
     }
 
+    if (__DEV__ && resetAnswers && !answersReset) {
+      this.props.resetMilestoneAnswers();
+      this.props.resetMilestoneAttachments();
+      this.setState({ answersReset: true });
+      return;
+    }
+
     if (!_.isEmpty(answers.data) && !cleanDuplicateAnswersSubmitted) {
       this.cleanDuplicateAnswers();
       this.setState({ cleanDuplicateAnswersSubmitted: true });
@@ -94,7 +113,6 @@ class CheckDataIntegrity extends Component {
       !_.isEmpty(attachments.data) &&
       !cleanDuplicateAttachmentsSubmitted
     ) {
-
       this.cleanDuplicateAttachments();
       this.setState({ cleanDuplicateAttachmentsSubmitted: true });
     }
@@ -334,10 +352,19 @@ const mapStateToProps = ({ session, registration, milestones, babybook }) => ({
   babybook,
 });
 const mapDispatchToProps = {
+  fetchSession,
   updateSession,
+  fetchUser,
   updateUser,
-  updateMilestoneAnswers,
+  fetchRespondent,
+  fetchSubject,
+  fetchMilestoneCalendar,
+  resetMilestoneAnswers,
+  fetchMilestoneAnswers,
+  updateMilestoneAnswer,
   deleteMilestoneAnswer,
+  resetMilestoneAttachments,
+  fetchMilestoneAttachments,
   updateMilestoneAttachment,
   deleteMilestoneAttachment,
   fetchBabyBookEntries,
