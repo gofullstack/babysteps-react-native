@@ -36,7 +36,7 @@ const { width } = Dimensions.get('window');
 
 const itemWidth = width - 60;
 
-const ITEM_HEIGHT = 50;
+const ITEM_HEIGHT = 55;
 const SECTION_HEIGHT = 50;
 
 class MilestonesScreen extends Component {
@@ -340,9 +340,13 @@ const styles = StyleSheet.create({
     height: 14,
   },
   item: {
+    flex: 1,
+    flexWrap: 'wrap',
+    flexShrink: 1,
     fontSize: 14,
     paddingLeft: 10,
     color: Colors.tint,
+    justifyContent: 'center',
   },
 });
 
