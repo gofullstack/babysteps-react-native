@@ -116,6 +116,7 @@ class OverviewTimeline extends Component {
 
     // get attachment if exists
     for (const key in overviewTimelines) {
+
       const item = {
         ...overviewTimelines[key],
         choice_id: null,
