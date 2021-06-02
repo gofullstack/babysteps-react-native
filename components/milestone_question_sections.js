@@ -21,8 +21,8 @@ export class RenderSections extends Component {
   renderSection = section => {
     const { task, extraData } = this.props;
     return (
-      <View key={section.id} style={{flexGrow: 1}}>
-        {section.body && (
+      <View key={section.id} style={{ flexGrow: 1 }}>
+        {!!section.body && (
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsLabel}>Instructions: &nbsp;</Text>
             <Text>{section.body}</Text>
@@ -57,7 +57,7 @@ export class RenderSections extends Component {
     return (
       <View key={question.id} style={styles.questionContainer}>
         <View style={styles.questionLeft}>
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row' }}>
             <Text style={styles.questionNumber}>{question_number}</Text>
             <Text style={styles.question}>{question.title}</Text>
           </View>

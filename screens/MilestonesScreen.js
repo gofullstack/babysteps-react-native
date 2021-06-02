@@ -243,7 +243,7 @@ class MilestonesScreen extends Component {
     }
     return {
       length: ITEM_HEIGHT,
-      offset: (ITEM_HEIGHT - 7.3) * index,
+      offset: (ITEM_HEIGHT - 8.0) * index,
       index,
     };
   };

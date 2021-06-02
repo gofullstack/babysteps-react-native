@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  AppState,
 } from 'react-native';
 
 import SideSwipe from 'react-native-sideswipe';
@@ -43,37 +44,48 @@ class OverviewScreen extends React.Component {
     super(props);
 
     this.state = {
+      appState: AppState.currentState,
       currentIndexScreening: 0,
       screeningEvents: [],
       screeningEventsUpdated: false,
       sliderLoading: true,
     };
+
+    // returning from questions screen
+    this.props.navigation.addListener('willFocus', () => {
+      this.setState({ screeningEventsUpdated: false });
+    });
   }
 
   componentDidMount() {
-    const { calendar } = this.props.milestones;
-    if (!isEmpty(calendar.data)) {
-      this.setScreeningEvents();
-    }
+    AppState.addEventListener('change', this.handleAppStateChange);
+    this.setState({ screeningEventsUpdated: false });
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps) {
     const { api_calendar } = nextProps.milestones;
     return !api_calendar.fetching;
   }
 
   componentDidUpdate() {
-    const { api_calendar, calendar } = this.props.milestones;
     const { screeningEventsUpdated } = this.state;
-    if (
-      api_calendar.fetched &&
-      !isEmpty(calendar.data) &&
-      !screeningEventsUpdated
-    ) {
+    if (!screeningEventsUpdated) {
       this.setScreeningEvents();
-      this.setState({ screeningEventsUpdated: true });
     }
   }
+
+  componentWillUnmount() {
+    AppState.removeEventListener('change');
+  }
+
+  handleAppStateChange = nextAppState => {
+    const { appState } = this.state;
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.setState({ screeningEventsUpdated: false, appState: nextAppState });
+    } else {
+      this.setState({ appState: nextAppState });
+    }
+  };
 
   handleOnPress = task => {
     const navigate = this.props.navigation.navigate;
@@ -109,7 +121,12 @@ class OverviewScreen extends React.Component {
       return start_at.toISOString();
     });
 
-    this.setState({ screeningEvents, sliderLoading: false });
+    this.setState({
+      screeningEventsUpdated: true,
+      screeningEvents,
+      sliderLoading: false,
+    });
+
   };
 
   renderScreeningItem = data => {

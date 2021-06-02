@@ -57,6 +57,7 @@ const mediaTypes = {
   file_video_frustration: 'Videos',
 };
 
+// eslint-disable-next-line react/prefer-stateless-function
 export class RenderCheckBox extends Component {
   render() {
     const { choices, answers, pregnancy, format } = this.props;
@@ -81,7 +82,6 @@ export class RenderCheckBox extends Component {
             containerStyle={styles.checkBoxChoiceContainer}
             checked={checked}
             onPress={() => {
-              console.log({ checked });
               this.props.saveResponse(
                 choice,
                 { answer_boolean: !checked },
@@ -94,13 +94,13 @@ export class RenderCheckBox extends Component {
               autoCapitalize="words"
               inputStyle={styles.textInput}
               defaultValue={text}
-              onChangeText={value =>
+              onChangeText={value => {
                 this.props.saveResponse(
                   choice,
                   { answer_text: value },
                   { preserve: true },
-                )
-              }
+                );
+              }}
               containerStyle={{ borderBottomColor: Colors.lightGrey }}
               underlineColorAndroid={Colors.lightGrey}
             />
@@ -115,13 +115,13 @@ export class RenderCheckBox extends Component {
                 minimumValue={0}
                 maximumValue={30}
                 step={1}
-                onSlidingComplete={value =>
+                onSlidingComplete={value => {
                   this.props.saveResponse(
                     choice,
-                    { answer_text: value },
+                    { answer_text: `${value} years` },
                     { preserve: true },
-                  )
-                }
+                  );
+                }}
               />
             </View>
           )}
@@ -132,6 +132,7 @@ export class RenderCheckBox extends Component {
   } // render
 }
 
+// eslint-disable-next-line react/prefer-stateless-function
 export class RenderCheckYesNo extends Component {
   render() {
     const { choices, answers, pregnancy } = this.props;
@@ -149,13 +150,13 @@ export class RenderCheckYesNo extends Component {
           textStyle={styles.checkBoxChoiceText}
           containerStyle={styles.checkBoxChoiceContainer}
           checked={checked}
-          onPress={() =>
+          onPress={() => {
             this.props.saveResponse(
               choice,
               { answer_boolean: !checked },
               { format: 'single' },
-            )
-          }
+            );
+          }}
         />
       );
     });
@@ -163,7 +164,7 @@ export class RenderCheckYesNo extends Component {
   } // render
 }
 
-
+// eslint-disable-next-line react/prefer-stateless-function
 export class RenderTextShort extends Component {
   render() {
     const { choices, answers, pregnancy } = this.props;
@@ -179,9 +180,9 @@ export class RenderTextShort extends Component {
             autoCapitalize="words"
             inputStyle={styles.textInput}
             defaultValue={text}
-            onChangeText={value =>
-              this.props.saveResponse(choice, { answer_text: value })
-            }
+            onChangeText={value => {
+              this.props.saveResponse(choice, { answer_text: value });
+            }}
             containerStyle={{ borderBottomColor: Colors.lightGrey }}
             underlineColorAndroid={Colors.lightGrey}
           />
@@ -192,6 +193,7 @@ export class RenderTextShort extends Component {
   } // render
 }
 
+// eslint-disable-next-line react/prefer-stateless-function
 export class RenderTextLong extends Component {
   render() {
     const { choices, answers, pregnancy } = this.props;
@@ -209,9 +211,9 @@ export class RenderTextLong extends Component {
             defaultValue={text}
             multiline={true}
             numberOfLines={4}
-            onChangeText={value =>
-              this.props.saveResponse(choice, { answer_text: value })
-            }
+            onChangeText={value => {
+              this.props.saveResponse(choice, { answer_text: value });
+            }}
             containerStyle={{ borderBottomColor: Colors.lightGrey }}
             underlineColorAndroid={Colors.lightGrey}
           />
@@ -222,6 +224,7 @@ export class RenderTextLong extends Component {
   } // render
 }
 
+// eslint-disable-next-line react/prefer-stateless-function
 export class RenderTextNumeric extends Component {
   render() {
     const { choices, answers, pregnancy } = this.props;
@@ -236,9 +239,9 @@ export class RenderTextNumeric extends Component {
             inputStyle={styles.textInput}
             defaultValue={text}
             keyboardType="numeric"
-            onChangeText={ value =>
-              this.props.saveResponse(choice, { answer_text: value })
-            }
+            onChangeText={value => {
+              this.props.saveResponse(choice, { answer_text: value });
+            }}
             containerStyle={{ borderBottomColor: Colors.lightGrey }}
             underlineColorAndroid={Colors.lightGrey}
           />
@@ -249,6 +252,7 @@ export class RenderTextNumeric extends Component {
   } // render
 }
 
+// eslint-disable-next-line react/prefer-stateless-function
 export class RenderDate extends Component {
   render() {
     const { choices, answers, pregnancy } = this.props;
@@ -258,23 +262,22 @@ export class RenderDate extends Component {
       value = answer ? answer.answer_text : null;
       return (
         <View key={choice.id}>
-        <DatePicker
-          label={choice.body}
-          date={value}
-          style={styles.dateInput}
-          handleChange={ value => {
-            console.log("Choosen Date", value)
-            this.props.saveResponse(choice, { answer_text: value })
-          }}
-          showIcon={false}
-          customStyles={{
-            dateInput: {
-              borderWidth: 0,
-              borderBottomWidth: 1,
-              borderBottomColor: Colors.lightGrey,
-            }
-          }}
-        />
+          <DatePicker
+            label={choice.body}
+            date={value}
+            style={styles.dateInput}
+            handleChange={value => {
+              this.props.saveResponse(choice, { answer_text: value });
+            }}
+            showIcon={false}
+            customStyles={{
+              dateInput: {
+                borderWidth: 0,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.lightGrey,
+              },
+            }}
+          />
         </View>
       );
     });
@@ -282,6 +285,7 @@ export class RenderDate extends Component {
   } // render
 }
 
+// eslint-disable-next-line react/prefer-stateless-function
 export class RenderFile extends Component {
   constructor(props) {
     super(props);
@@ -300,10 +304,7 @@ export class RenderFile extends Component {
 
   async componentDidMount() {
     const { question } = this.props;
-    const isFileVideo = [
-      'file_video',
-      'file_video_frustration',
-    ].includes(question.rn_input_type);
+    const isFileVideo = ['file_video', 'file_video_frustration'].includes(question.rn_input_type);
     const isFileImage = question.rn_input_type === 'file_image';
     const isFileAudio = [
       'file_audio',
@@ -699,8 +700,8 @@ const styles = StyleSheet.create({
     color: Colors.tintColor,
   },
   sliderContainer: {
-    marginLeft: 20,
-    marginRight: 10,
+    marginLeft: 30,
+    marginRight: 20,
   },
   sliderThumb: {
     backgroundColor: Colors.darkGreen,

@@ -59,6 +59,11 @@ class OverviewTimeline extends Component {
     this.setState({ overviewTimelinesLoaded: false });
   }
 
+  shouldComponentUpdate(nextProps) {
+    const { api_milestones, api_calendar } = nextProps.milestones;
+    return !api_milestones.fetching && !api_calendar.fetching;
+  }
+
   componentDidUpdate() {
     const { overviewTimelinesLoaded } = this.state;
     if (!overviewTimelinesLoaded) {
@@ -72,7 +77,6 @@ class OverviewTimeline extends Component {
 
   handleAppStateChange = nextAppState => {
     const { appState } = this.state;
-    console.log({ appState })
     if (appState.match(/inactive|background/) && nextAppState === 'active') {
       this.setState({ overviewTimelinesLoaded: false, appState: nextAppState });
     } else {
@@ -90,7 +94,8 @@ class OverviewTimeline extends Component {
       questions,
       choices,
       answers,
-      attachments,calendar,
+      attachments,
+      calendar,
     } = this.props.milestones;
 
     // leave verbose so it's easier to understand
@@ -111,13 +116,16 @@ class OverviewTimeline extends Component {
 
     // get attachment if exists
     for (const key in overviewTimelines) {
+
       const item = {
         ...overviewTimelines[key],
-        attachment_id: '',
+        choice_id: null,
+        attachment_id: null,
         filename: '',
         content_type: '',
         uri: '',
       };
+
       const attachment = _.find(attachments.data, ['choice_id', item.id]);
       if (!_.isEmpty(attachment)) {
         item.attachment_id = attachment.id;
@@ -154,11 +162,15 @@ class OverviewTimeline extends Component {
 
     // add attributes
     for (const key in overviewTimelines) {
+
       let item = overviewTimelines[key];
 
       const question = _.find(questions.data, ['id', item.question_id]);
+      if (_.isEmpty(question)) return;
+
       const section = _.find(sections.data, ['id', question.section_id]);
       const entry = _.find(calendar.data, ['task_id', section.task_id]);
+      if (_.isEmpty(section) || _.isEmpty(entry)) return;
 
       item = {
         ...item,

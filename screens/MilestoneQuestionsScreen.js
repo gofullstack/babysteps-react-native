@@ -195,6 +195,7 @@ class MilestoneQuestionsScreen extends Component {
     const newAnswers = [];
 
     const format = options.format;
+    const preserve = options.preserve;
 
     if (format === 'single') {
       // reset all answers to false for this question
@@ -213,13 +214,20 @@ class MilestoneQuestionsScreen extends Component {
     // check for response in this session
     let answer = _.find(answers, {choice_id: choice.id});
 
+    // reset response unless require explanation
+    if (!preserve) {
+      answer = {
+        ...answer,
+        answer_boolean: null,
+        answer_datetime: null,
+        answer_numeric: null,
+        answer_text: null,
+      };
+    }
+
     // update object with data
     answer = {
       ...answer,
-      answer_boolean: null,
-      answer_datetime: null,
-      answer_numeric: null,
-      answer_text: null,
       user_api_id: user.data.api_id,
       respondent_api_id: respondent.data.api_id,
       subject_api_id: subject.data.api_id,
