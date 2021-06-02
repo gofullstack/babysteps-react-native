@@ -62,28 +62,15 @@ class OverviewScreen extends React.Component {
     this.setState({ screeningEventsUpdated: false });
   }
 
-  componentDidMount() {
-    const { calendar } = this.props.milestones;
-    if (!isEmpty(calendar.data)) {
-      this.setScreeningEvents();
-    }
-  }
-
   shouldComponentUpdate(nextProps) {
     const { api_calendar } = nextProps.milestones;
     return !api_calendar.fetching;
   }
 
   componentDidUpdate() {
-    const { api_calendar, calendar } = this.props.milestones;
     const { screeningEventsUpdated } = this.state;
-    if (
-      api_calendar.fetched &&
-      !isEmpty(calendar.data) &&
-      !screeningEventsUpdated
-    ) {
+    if (!screeningEventsUpdated) {
       this.setScreeningEvents();
-      this.setState({ screeningEventsUpdated: true });
     }
   }
 
@@ -322,6 +309,5 @@ const mapStateToProps = ({ session, milestones, registration }) => ({
   milestones,
   registration,
 });
-
 
 export default connect(mapStateToProps)(OverviewScreen);

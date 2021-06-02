@@ -304,10 +304,7 @@ export class RenderFile extends Component {
 
   async componentDidMount() {
     const { question } = this.props;
-    const isFileVideo = [
-      'file_video',
-      'file_video_frustration',
-    ].includes(question.rn_input_type);
+    const isFileVideo = ['file_video', 'file_video_frustration'].includes(question.rn_input_type);
     const isFileImage = question.rn_input_type === 'file_image';
     const isFileAudio = [
       'file_audio',

@@ -171,6 +171,7 @@ class OverviewTimeline extends Component {
 
       const section = _.find(sections.data, ['id', question.section_id]);
       const entry = _.find(calendar.data, ['task_id', section.task_id]);
+      if (_.isEmpty(section) || _.isEmpty(entry)) return;
 
       if (_.isEmpty(section) || _.isEmpty(entry)) return;
 

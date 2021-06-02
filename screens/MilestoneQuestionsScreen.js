@@ -245,7 +245,6 @@ class MilestoneQuestionsScreen extends Component {
 
     if (response.attachments) {
       answer.answer_boolean = true;
-      // answer.attachments = await
       this.mapAttachmentsAsync(answer, choice, response.attachments);
     } // response.attachments
 
