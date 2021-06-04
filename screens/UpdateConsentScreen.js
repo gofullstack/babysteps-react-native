@@ -13,6 +13,8 @@ import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system';
 import ExpoPixi from 'expo-pixi';
 
+import isEmpty from 'lodash/isEmpty';
+
 import { connect } from 'react-redux';
 
 import { updateSession } from '../actions/session_actions';
@@ -146,46 +148,52 @@ class UpdateConsentScreen extends Component {
 
   handleSubmitSignature = async () => {
     const session = this.props.session;
-    const consent = this.props.registration.consent.data;
-    const respondent = this.props.registration.respondent.data;
+    const { consent, respondent } = this.props.registration;
     const { remoteDebug } = this.state;
-    let image = null;
-    if (!remoteDebug) {
-      image = await this.signature.takeSnapshotAsync({
-        format: 'png',
-        quality: 0.8,
-        result: 'file',
-      });
-    }
+
+    if (isEmpty(consent.data) || isEmpty(respondent.data)) return;
+    const consent_last_version_id = consent.data.version_id;
+    const respondent_api_id = respondent.data.api_id;
+
     const signatureDir =
       FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY;
     const resultDir = await FileSystem.getInfoAsync(signatureDir);
+    const registration_state = States.REGISTERED_AS_IN_STUDY;
+    const uri = signatureDir + `/signature_${consent_last_version_id}.png`;
     let errorMessage = null;
+    let image = null;
 
     if (resultDir.exists) {
-      const uri = signatureDir + `/signature_${consent.version_id}.png`;
       if (!remoteDebug) {
+
+        image = await this.signature.takeSnapshotAsync({
+          format: 'png',
+          quality: 0.8,
+          result: 'file',
+        });
+
         await FileSystem.copyAsync({ from: image.uri, to: uri });
         const resultFile = await FileSystem.getInfoAsync(uri, { size: true });
 
         if (resultFile.exists) {
-          SaveConsentSignature(consent.version_id, respondent.id);
-          const registration_state = States.REGISTERED_AS_IN_STUDY;
-          this.props.updateSession({
-            registration_state,
-            consent_last_version_id: consent.version_id,
-          });
+          SaveConsentSignature(consent_last_version_id, respondent_api_id);
+        } else {
+          errorMessage = '*** Error: file not saved. No file found.';
+          this.setState({ errorMessage });
           return;
         } // resultFile exists
 
-        errorMessage = '*** Error: file not saved. No file found.';
-      } else {
-        errorMessage = '*** Cannot submit signature file when debugger is enabled';
       } // !remoteDebug
+
+      this.props.updateSession({
+        registration_state,
+        consent_last_version_id,
+      });
+
     } else {
       errorMessage = '*** Error: no directory - ' + resultDir;
+      this.setState({ errorMessage });
     } // resultDir exists
-    this.setState({ errorMessage });
   };
 
   render() {
@@ -300,6 +308,7 @@ const styles = StyleSheet.create({
   dummySignature: {
     color: Colors.grey,
     height: 150,
+    padding: 20,
   },
   signatureHeader: {
     fontSize: 14,

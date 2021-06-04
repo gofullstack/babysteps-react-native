@@ -54,11 +54,10 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
         const session = state.session;
 
         // temporary call to update screening_blood_physician_notification
-        const updateSubject =
-          (session.screening_blood_physician_notification === 1) !==
-          subject.screening_blood_physician_notification;
+        let updateSubject = session.screening_blood_physician_notification === 1;
+        updateSubject = isEmpty(subject) || !subject.screening_blood_physician_notification;
 
-        if (isEmpty(subject) || updateSubject) {
+        if (updateSubject) {
 
           let data = state.registration.subject.data;
           const id = data.id;

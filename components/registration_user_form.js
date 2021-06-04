@@ -77,12 +77,16 @@ class RegistrationUserForm extends Component {
     if (isSubmitting) {
       if (!isEmpty(user.data) && !apiUserSubmitted) {
         this.props.apiCreateUser(user.data);
-        this.setState({ apiUserSubmitted: true });
+        this.setState({ apiUserSubmitted: true, apiErrorMessage: ''});
         return;
       }
       if (apiUser.error) {
         const apiErrorMessage = apiUser.error;
-        this.setState({ isSubmitting: false, apiErrorMessage });
+        this.setState({
+          isSubmitting: false,
+          apiUserSubmitted: false,
+          apiErrorMessage,
+        });
         return;
       }
       if (apiUser.fetched) {

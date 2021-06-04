@@ -425,6 +425,14 @@ const reducer = (state = initialState, action, data = []) => {
       if (index === -1) {
         console.log(`*** Calendar Not Updated - Not Found: task_id: ${task_id}`);
       } else {
+        // updated open feedbacks if completed
+        if (entry.completed_at) {
+          _.forEach(data[index].milestone_feedbacks, feedback => {
+            if (!feedback.completed_at) {
+              feedback.completed_at = entry.completed_at;
+            }
+          });
+        }
         data[index] = { ...data[index], ...entry };
       }
       return {

@@ -59,6 +59,7 @@ class MilestoneQuestionsScreen extends Component {
     this.state = {
       appState: AppState.currentState,
       task,
+      trigger: null,
       questionData: [],
       questionDataUpdated: false,
       answers: [],
@@ -72,12 +73,14 @@ class MilestoneQuestionsScreen extends Component {
 
   componentDidMount() {
     AppState.addEventListener('change', this.handleAppStateChange);
+    this.setTriggerData();
     this.setQuestionsData();
     this.setAnswerData();
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { task, questionDataUpdated } = this.state;
+    const { calendar } = this.props.milestones;
+    const { task, trigger, questionDataUpdated } = this.state;
     const navTask = this.props.navigation.state.params.task;
 
     // capture notification links with incorrect task
@@ -91,7 +94,18 @@ class MilestoneQuestionsScreen extends Component {
       return;
     }
 
+    // refresh if new feedback
+    if (questionDataUpdated) {
+      const entry = _.find(calendar.data, ['task_id', task.id]);
+      if (
+        trigger.milestone_feedbacks.length !== entry.milestone_feedbacks.length
+      ) {
+        this.setTriggerData();
+      }
+    }
+
     if (!questionDataUpdated) {
+      this.setTriggerData();
       this.setQuestionsData();
       this.setAnswerData();
     }
@@ -109,15 +123,23 @@ class MilestoneQuestionsScreen extends Component {
     this.setState({ appState: nextAppState });
   };
 
-  resetDataForTask = task => {
+  resetDataForTask = (task, trigger) => {
     this.setState({
       task,
+      trigger,
       questionData: [],
       questionDataUpdated: false,
       answers: [],
       attachments: [],
       confirmed: false,
     });
+  };
+
+  setTriggerData = () => {
+    const { calendar } = this.props.milestones;
+    const { task } = this.state;
+    const trigger = _.find(calendar.data, { task_id: task.id });
+    this.setState({ trigger });
   };
 
   setQuestionsData = () => {
@@ -127,8 +149,9 @@ class MilestoneQuestionsScreen extends Component {
       questions,
       option_groups,
       choices,
+      calendar,
     } = this.props.milestones;
-    const { task } = this.state;
+    const { task, trigger } = this.state;
 
     if (
       !_.isEmpty(sections.data) &&
@@ -446,6 +469,7 @@ class MilestoneQuestionsScreen extends Component {
     const {
       confirmed,
       task,
+      trigger,
       questionData,
       answers,
       attachments,
@@ -458,6 +482,7 @@ class MilestoneQuestionsScreen extends Component {
           <Text style={styles.taskHeader}>{task.name}</Text>
           <RenderSections
             task={task}
+            trigger={trigger}
             questionData={questionData}
             answers={answers}
             attachments={attachments}

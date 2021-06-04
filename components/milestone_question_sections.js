@@ -19,19 +19,35 @@ const itemWidth = width - numberWidth;
 export class RenderSections extends Component {
 
   renderSection = section => {
-    const { task, extraData } = this.props;
+    const { task, trigger, extraData } = this.props;
+    const feedbacks = _.filter(trigger.milestone_feedbacks, ['completed_at', null]);
     return (
       <View key={section.id} style={{ flexGrow: 1 }}>
         {!!section.body && (
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsLabel}>Instructions: &nbsp;</Text>
             <Text>{section.body}</Text>
+            {this.renderFeedback(feedbacks)}
             {section.attachment_url && this.renderAttachment(section.attachment_url)}
           </View>
         )}
         {this.renderQuestions(section.questions)}
       </View>
     );
+  };
+
+  renderFeedback = feedbacks => {
+    if (_.isEmpty(feedbacks)) return [];
+    let feedbackLayout = [<Text key={0} style={styles.feedbackLabel}>Babysteps Feedback</Text>];
+    _.forEach(feedbacks, (feedback, index) => {
+      feedbackLayout.push(
+        <Text key={feedback.id} style={styles.feedback}>
+          {`${String.fromCharCode(index + 97)}. `}
+          {feedback.content}
+        </Text>,
+      );
+    });
+    return feedbackLayout;
   };
 
   renderQuestions = questions => {
@@ -136,6 +152,19 @@ const styles = StyleSheet.create({
   },
   instructionsLabel: {
     fontWeight: 'bold',
+  },
+  feedbackLabel: {
+    fontSize: 15,
+    color: Colors.red,
+    marginTop: 10,
+  },
+  feedback: {
+    fontSize: 14,
+    marginTop: 5,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.red,
+    borderRadius:10,
   },
   questionContainer: {
     flexGrow: 1,
