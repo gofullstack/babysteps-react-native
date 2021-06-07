@@ -21,31 +21,19 @@ export default store => next => action => {
 
   if (action.type === API_CREATE_USER_FULFILLED) {
     const headers = action.payload.headers;
-    //const state = store.getState();
-    //const user = state.registration.user.data;
-    //if (!isEmpty(user)) {
-      const api_id = parseInt(headers.user_id, 10);
-      store.dispatch(updateUser({ api_id }));
-    //}
+    const api_id = parseInt(headers.user_id, 10);
+    store.dispatch(updateUser({ api_id }));
   }
 
   if (action.type === API_CREATE_RESPONDENT_FULFILLED) {
-    const data = action.payload.data;
-    //const state = store.getState();
-    //const respondent = state.registration.respondent.data;
-    //if (!isEmpty(respondent)) {
-      store.dispatch(updateRespondent({ api_id: data.id }));
-      SaveSignature(data.id);
-    //}
+    const api_id = action.payload.data.id;
+    store.dispatch(updateRespondent({ api_id }));
+    SaveSignature(api_id);
   }
 
   if (action.type === API_CREATE_SUBJECT_FULFILLED) {
-    const data = action.payload.data;
-    //const state = store.getState();
-    //const subject = state.registration.subject.data;
-    //if (!isEmpty(subject)) {
-      store.dispatch(updateSubject({ api_id: data.id }));
-    //}
+    const api_id = action.payload.data.id;
+    store.dispatch(updateSubject({ api_id }));
   }
 
   return next(action);
