@@ -638,9 +638,16 @@ const reducer = (state = initialState, action, formData = {}) => {
     case API_SYNC_REGISTRATION_FULFILLED: {
       const data = action.payload.data;
       let respondent = {};
-      if (data.respondents) respondent = data.respondents[0];
+      if (data.respondents) {
+        respondent = data.respondents[0];
+        respondent.api_id = respondent.id;
+      }
       let subject = {};
-      if (data.subjects) subject = data.subjects[0];
+      if (data.subjects) {
+        subject = data.subjects[0];
+        subject.api_id = subject.id;
+      }
+
       return {
         ...state,
         apiSyncRegistration: {

@@ -253,6 +253,7 @@ const reducer = (state = initialState, action, formData = {}) => {
         email,
         password,
         uid,
+        error: null,
       };
     }
     case API_FETCH_SIGNIN_REJECTED: {
