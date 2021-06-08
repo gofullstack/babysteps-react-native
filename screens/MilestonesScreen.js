@@ -117,12 +117,13 @@ class MilestonesScreen extends Component {
             days_since_baseline: milestone.days_since_baseline,
             available_start_at: null,
             available_end_at: null,
+            feedback_count: 0,
             questions_remaining: 0,
             completed_at: null,
           };
           const trigger = _.find(calendar.data, ['task_id', task.id]);
           if (!_.isEmpty(trigger)) {
-            const feedback_count = trigger.milestone_feedbacks.length;
+            const feedback_count = _.filter(trigger.milestone_feedbacks, { completed_at: null }).length;
             taskItem = {
               ...taskItem,
               questions_remaining: trigger.questions_remaining,
