@@ -6,6 +6,7 @@ import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 
 import TabBarIcon from '../components/tab_bar_icon';
+import TabBarIconWithBadge from '../components/tab_bar_icon_with_badge';
 import OverviewScreen from '../screens/OverviewScreen';
 import OverviewBirthFormScreen from '../screens/OverviewBirthFormScreen';
 import MilestonesScreen from '../screens/MilestonesScreen';
@@ -47,8 +48,9 @@ const MilestonesStack = createStackNavigator(
 MilestonesStack.navigationOptions = {
   tabBarLabel: 'Milestones',
   tabBarIcon: ({ focused }) => (
-    <TabBarIcon
+    <TabBarIconWithBadge
       focused={focused}
+      badgeAttribute={'milestone_feedback_count'}
       name={
         Platform.OS === 'ios' ? 'ios-list' : 'md-list'
       }

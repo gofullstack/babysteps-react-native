@@ -122,12 +122,14 @@ class MilestonesScreen extends Component {
           };
           const trigger = _.find(calendar.data, ['task_id', task.id]);
           if (!_.isEmpty(trigger)) {
+            const feedback_count = trigger.milestone_feedbacks.length;
             taskItem = {
               ...taskItem,
               questions_remaining: trigger.questions_remaining,
               completed_at: trigger.completed_at,
               available_start_at: trigger.available_start_at,
               available_end_at: trigger.available_end_at,
+              feedback_count,
             };
           }
           data.push(taskItem);
@@ -207,6 +209,11 @@ class MilestonesScreen extends Component {
         <TouchableOpacity onPress={() => this.handleOnPress(task)}>
           <View style={styles.itemLeft}>
             <Image source={checkboxSource} style={styles.itemCheckBox} />
+            {task.feedback_count > 0 && (
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>{task.feedback_count}</Text>
+              </View>
+            )}
             <Text style={[styles.item, { color }]}>
               {task.study_only === 1 && (
                 <Text>
@@ -349,6 +356,22 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     color: Colors.tint,
     justifyContent: 'center',
+  },
+  badgeContainer: {
+    position: 'absolute',
+    left: 8,
+    top: -6,
+    backgroundColor: Colors.red,
+    borderRadius: 6,
+    width: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: Colors.white,
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
 

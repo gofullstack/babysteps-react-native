@@ -32,6 +32,7 @@ import {
   API_FETCH_SIGNIN_REJECTED,
 
   CREATE_USER_FULFILLED,
+
 } from './types';
 
 const db = SQLite.openDatabase('babysteps.db');
@@ -171,5 +172,19 @@ export const apiFetchSignin = (email, password) => {
           dispatch(Response(API_FETCH_SIGNIN_REJECTED, error));
         });
     }); // return Promise
+  }; // return dispatch
+};
+
+// this fetches acknowledgement of user from api
+export const updateMilestoneFeedbackCount = () => {
+  const state = store.getState();
+  const { calendar } = state.milestones;
+  let milestone_feedback_count = 0;
+  _.forEach(calendar.data, entry => {
+    const feedbacks = _.filter(entry.milestone_feedbacks, {'completed_at': null});
+    milestone_feedback_count += feedbacks.length;
+  });
+  return dispatch => {
+    dispatch(updateSession({ milestone_feedback_count }));
   }; // return dispatch
 };

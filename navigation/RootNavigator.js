@@ -65,11 +65,11 @@ const TourNavigator = createStackNavigator(
   {
     Tour: {
       screen: TourScreen,
-      navigationOptions: { header: null }
+      navigationOptions: { header: null },
     },
     Registration: {
       screen: RegistrationNavigator,
-      navigationOptions: { header: null }
+      navigationOptions: { header: null },
     },
     SignIn: {
       screen: SignInScreen,

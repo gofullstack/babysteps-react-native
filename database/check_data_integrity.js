@@ -228,6 +228,11 @@ class CheckDataIntegrity extends Component {
         this.props.updateSession({ password });
       }
     }
+    if (!_.isEmpty(subject.data)) {
+      if (!subject.data.api_id) {
+        this.props.updateSubject({ api_id: subject.data.id })
+      }
+    }
   };
 
   copySignatureFile = async () => {

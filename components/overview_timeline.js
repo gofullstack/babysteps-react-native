@@ -18,6 +18,7 @@ import { _ } from 'lodash';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
+import { updateMilestoneFeedbackCount } from '../actions/session_actions';
 
 import Colors from '../constants/Colors';
 import CONSTANTS from '../constants';
@@ -68,6 +69,7 @@ class OverviewTimeline extends Component {
     const { overviewTimelinesLoaded } = this.state;
     if (!overviewTimelinesLoaded) {
       this.constructOverviewTimeline();
+      this.props.updateMilestoneFeedbackCount();
     }
   }
 
@@ -470,5 +472,9 @@ const mapStateToProps = ({ milestones, registration }) => ({
   registration,
 });
 
+const mapDispatchToProps = { updateMilestoneFeedbackCount };
 
-export default connect(mapStateToProps)(OverviewTimeline);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(OverviewTimeline);

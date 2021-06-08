@@ -47,6 +47,7 @@ const initialState = {
   milestones_last_updated_at: null,
   milestone_calendar_updated_at: null,
   milestone_calendar_last_updated_at: null,
+  milestone_feedback_count: 0,
   notification_period: null,
   notifications_permission: null,
   notifications_updated_at: null,
