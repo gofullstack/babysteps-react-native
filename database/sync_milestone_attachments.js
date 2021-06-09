@@ -112,16 +112,16 @@ const SyncMilestoneAttachments = async () => {
   const { attachments } = state.milestones;
   if (isEmpty(user.data) || isEmpty(subject.data)) return;
 
-  const userID = user.data.api_id;
-  const subjectID = subject.data.api_id;
+  const user_id = user.data.id;
+  const subject_id = subject.data.id;
   for (const attachment of attachments.data) {
     if (!isEmpty(attachment) && attachment.choice_id) {
       const has_attachment = await ConfirmAPIAttachment(
-        subjectID,
+        subject_id,
         attachment.choice_id,
       );
       if (!has_attachment) {
-        await UploadMilestoneAttachment(userID, subjectID, attachment);
+        await UploadMilestoneAttachment(user_id, subject_id, attachment);
       } else {
         console.log(`*** Attachment ${attachment.choice_id} confirmed`);
       }

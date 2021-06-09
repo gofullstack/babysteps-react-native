@@ -228,9 +228,9 @@ class MilestoneQuestionsScreen extends Component {
     // update object with data
     answer = {
       ...answer,
-      user_api_id: user.data.api_id,
-      respondent_api_id: respondent.data.api_id,
-      subject_api_id: subject.data.api_id,
+      user_id: user.data.id,
+      respondent_id: respondent.data.id,
+      subject_id: subject.data.id,
       milestone_id: task.milestone_id,
       task_id: task.id,
       section_id: choice.section_id,
@@ -283,8 +283,8 @@ class MilestoneQuestionsScreen extends Component {
     await _.map(newAttachments, async attachment => {
       let newAttachment = {
         ...oldAttachment,
-        user_api_id: user.data.api_id,
-        subject_api_id: subject.data.api_id,
+        user_id: user.data.id,
+        subject_id: subject.data.id,
         choice_id: choice.id,
         title: attachment.title,
         width: attachment.width,
@@ -404,7 +404,7 @@ class MilestoneQuestionsScreen extends Component {
         this.props.updateMilestoneAttachment(attachment);
 
         if (inStudy) {
-          UploadMilestoneAttachment(user.data.api_id, subject.data.api_id, attachment);
+          UploadMilestoneAttachment(user.data.id, subject.data.id, attachment);
         }
         if (
           attachment.content_type &&

@@ -179,7 +179,7 @@ class RegistrationRespondentForm extends Component {
     const irb = IRBInformation[tos_id];
     const respondent = {
       ...values,
-      user_id: user.api_id,
+      user_id: user.id,
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,

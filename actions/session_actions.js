@@ -27,10 +27,6 @@ import {
   UPDATE_SESSION_PENDING_ACTIONS_FULFILLED,
   UPDATE_SESSION_PENDING_ACTIONS_REJECTED,
 
-  DISPATCH_SESSION_PENDING_ACTIONS_PENDING,
-  DISPATCH_SESSION_PENDING_ACTIONS_FULFILLED,
-  DISPATCH_SESSION_PENDING_ACTIONS_REJECTED,
-
   API_FETCH_SIGNIN_PENDING,
   API_FETCH_SIGNIN_FULFILLED,
   API_FETCH_SIGNIN_REJECTED,
@@ -167,7 +163,7 @@ export const apiFetchSignin = (email, password) => {
       })
         .then(response => {
           const { data } = response.data;
-          const user = {...data, api_id: data.id, email, password}
+          const user = { ...data, email, password };
           dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, user));
           dispatch(Response(CREATE_USER_FULFILLED, user));
         })

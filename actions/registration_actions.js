@@ -43,13 +43,6 @@ import {
   API_UPDATE_RESPONDENT_FULFILLED,
   API_UPDATE_RESPONDENT_REJECTED,
 
-  API_FETCH_USER_RESPONDENT_PENDING,
-  API_FETCH_USER_RESPONDENT_FULFILLED,
-  API_FETCH_USER_RESPONDENT_REJECTED,
-
-  API_FETCH_RESPONDENT_ATTACHMENTS_PENDING,
-  API_FETCH_RESPONDENT_ATTACHMENTS_FULFILLED,
-  API_FETCH_RESPONDENT_ATTACHMENTS_REJECTED,
 
   RESET_SUBJECT,
 
@@ -57,13 +50,9 @@ import {
   FETCH_SUBJECT_FULFILLED,
   FETCH_SUBJECT_REJECTED,
 
-  CREATE_SUBJECT_PENDING,
   CREATE_SUBJECT_FULFILLED,
-  CREATE_SUBJECT_REJECTED,
 
-  UPDATE_SUBJECT_PENDING,
   UPDATE_SUBJECT_FULFILLED,
-  UPDATE_SUBJECT_REJECTED,
 
   API_CREATE_SUBJECT_PENDING,
   API_CREATE_SUBJECT_FULFILLED,
@@ -72,10 +61,6 @@ import {
   API_UPDATE_SUBJECT_PENDING,
   API_UPDATE_SUBJECT_FULFILLED,
   API_UPDATE_SUBJECT_REJECTED,
-
-  API_FETCH_USER_SUBJECT_PENDING,
-  API_FETCH_USER_SUBJECT_FULFILLED,
-  API_FETCH_USER_SUBJECT_REJECTED,
 
   API_SYNC_REGISTRATION_PENDING,
   API_SYNC_REGISTRATION_FULFILLED,
@@ -203,7 +188,6 @@ export const createRespondent = data => {
 };
 
 export const apiCreateRespondent = respondent => {
-  delete respondent.api_id;
 
   return function(dispatch) {
     dispatch({
@@ -234,9 +218,8 @@ export const updateRespondent = data => {
 };
 
 export const apiUpdateRespondent = (session, respondent) => {
-  const api_id = respondent.api_id;
+  const id = respondent.id;
   delete respondent.id;
-  delete respondent.api_id;
 
   return function(dispatch) {
     dispatch({
@@ -251,7 +234,7 @@ export const apiUpdateRespondent = (session, respondent) => {
         offline: {
           effect: {
             method: 'PUT',
-            url: `/respondents/${api_id}`,
+            url: `/respondents/${id}`,
             fulfilled: API_UPDATE_RESPONDENT_FULFILLED,
             rejected: API_UPDATE_RESPONDENT_REJECTED,
           },
@@ -290,8 +273,6 @@ export const createSubject = data => {
 };
 
 export const apiCreateSubject = (study_id, subject) => {
-  //delete data.id;
-  delete subject.api_id;
 
   return function(dispatch) {
     dispatch({
@@ -323,9 +304,7 @@ export const updateSubject = data => {
 };
 
 export const apiUpdateSubject = (session, study_id, subject) => {
-  const api_id = subject.api_id;
-  delete subject.id;
-  delete subject.api_id;
+  const id = subject.id;
 
   return function(dispatch) {
     dispatch({
@@ -341,7 +320,7 @@ export const apiUpdateSubject = (session, study_id, subject) => {
         offline: {
           effect: {
             method: 'PUT',
-            url: `/subjects/${api_id}`,
+            url: `/subjects/${id}`,
             fulfilled: API_UPDATE_SUBJECT_FULFILLED,
             rejected: API_UPDATE_SUBJECT_REJECTED,
           },
@@ -375,13 +354,9 @@ export const apiSyncRegistration = user_id => {
             const data = response.data;
             if (data.respondents) {
               const respondents = data.respondents;
-              // respondent id becomes api id in sqlite
-              respondents[0].api_id = respondents[0].id;
             }
             if (data.subjects) {
               const subjects = data.subjects;
-              // subject id becomes api id in sqlite
-              subjects[0].api_id = subjects[0].id;
             }
           }
           dispatch(Response(API_SYNC_REGISTRATION_FULFILLED, response));
@@ -472,7 +447,6 @@ export const apiFetchConsent = study_id => {
       })
         .then(response => {
           const consent = response.data;
-          consent.api_id = consent.id;
           dispatch(Response(API_FETCH_CONSENT_FULFILLED, consent));
         })
         .catch(error => {

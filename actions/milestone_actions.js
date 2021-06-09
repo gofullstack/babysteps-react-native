@@ -81,9 +81,7 @@ import {
   FETCH_MILESTONE_ANSWERS_FULFILLED,
   FETCH_MILESTONE_ANSWERS_REJECTED,
 
-  CREATE_MILESTONE_ANSWER_PENDING,
   CREATE_MILESTONE_ANSWER_FULFILLED,
-  CREATE_MILESTONE_ANSWER_REJECTED,
 
   UPDATE_MILESTONE_ANSWER_FULFILLED,
   UPDATE_MILESTONE_ANSWERS_FULFILLED,
@@ -108,21 +106,11 @@ import {
   FETCH_MILESTONE_ATTACHMENTS_FULFILLED,
   FETCH_MILESTONE_ATTACHMENTS_REJECTED,
 
-  CREATE_MILESTONE_ATTACHMENT_PENDING,
   CREATE_MILESTONE_ATTACHMENT_FULFILLED,
-  CREATE_MILESTONE_ATTACHMENT_REJECTED,
 
   UPDATE_MILESTONE_ATTACHMENT_FULFILLED,
 
   DELETE_MILESTONE_ATTACHMENT_FULFILLED,
-
-  API_FETCH_ANSWER_ATTACHMENTS_PENDING,
-  API_FETCH_ANSWER_ATTACHMENTS_FULFILLED,
-  API_FETCH_ANSWER_ATTACHMENTS_REJECTED,
-
-  FETCH_OVERVIEW_TIMELINE_PENDING,
-  FETCH_OVERVIEW_TIMELINE_FULFILLED,
-  FETCH_OVERVIEW_TIMELINE_REJECTED,
 
 } from './types';
 
@@ -427,16 +415,6 @@ export const fetchMilestoneQuestions = (params = {}) => {
   return dispatch => {
     dispatch(Pending(FETCH_MILESTONE_QUESTIONS_PENDING));
     const sql = `SELECT * FROM questions ORDER BY section_id, position;`;
-    //    ops.input_type, \
-    //    ops.rn_input_type, \
-    //    ta.attachment_url, \
-    //    ta.content_type \
-    //  FROM questions AS qs \
-    //  INNER JOIN option_groups AS ops ON qs.option_group_id = ops.id \
-    //  INNER JOIN sections AS ss ON qs.section_id = ss.id \
-    //  LEFT JOIN task_attachments AS ta ON ss.task_id = ta.task_id \
-    //  WHERE ss.id = '${params['section_id']}' \
-    //  ORDER BY qs.position;`;
 
     return (
       db.transaction(tx => {
@@ -461,19 +439,6 @@ export const fetchMilestoneChoices = () => {
     dispatch(Pending(FETCH_MILESTONE_CHOICES_PENDING));
 
     const sql = 'SELECT * FROM choices ORDER BY question_id, position';
-
-    //let question_ids = null;
-
-    //if (params.question_ids) {
-    //  question_ids = `( ${params.question_ids.join(', ')} )`;
-    //}
-
-    //let sql = 'SELECT cs.*, og.rn_input_type FROM choices AS cs';
-    //sql += ' LEFT JOIN option_groups AS og ON og.id = cs.option_group_id';
-    //if (question_ids) {
-    //  sql += ` WHERE cs.question_id IN ${question_ids}`;
-    //}
-    //sql += ' ORDER BY cs.question_id, cs.position;';
 
     return db.transaction(tx => {
       tx.executeSql(
@@ -500,10 +465,10 @@ export const fetchMilestoneAnswers = (params = {}) => {
 
     if (params.section_id) {
       sql += ` WHERE answers.section_id = ${params.section_id}`;
-    } else if (params.api_id === 'empty') {
-      sql += ` WHERE COALESCE(answers.api_id, '') = ''`;
-    } else if (params.api_id) {
-      sql += ` WHERE answers.api_id = ${params.api_id}`;
+    } else if (params.id === 'empty') {
+      sql += ` WHERE COALESCE(answers.id, '') = ''`;
+    } else if (params.id) {
+      sql += ` WHERE answers.id = ${params.id}`;
     }
     sql += ' ORDER BY section_id, question_id, choice_id;';
 
@@ -544,22 +509,8 @@ export const updateMilestoneAnswers = answers => {
 
 export const apiCreateMilestoneAnswer = (session, data) => {
   const formData = new FormData();
-  let answer = omit(data, [
-    'api_id',
-    'user_api_id',
-    'respondent_api_id',
-    'subject_api_id',
-    'attachments',
-  ]);
-  if (data.api_id) {
-    answer.id = data.api_id;
-  }
-  answer = {
-    ...answer,
-    user_id: data.user_api_id,
-    respondent_id: data.respondent_api_id,
-    subject_id: data.subject_api_id,
-  };
+  const answer = omit(data, ['attachments']);
+
   forEach(answer, (value, key) => {
     const name = `answer[${key}]`;
     formData.append(name, value);
@@ -600,23 +551,7 @@ export const apiUpdateMilestoneAnswers = (session, data) => {
   // can not submit attachments on bulk update
   const answers = [];
   forEach(data, row => {
-    const answer = omit(row, [
-      'id',
-      'api_id',
-      'user_api_id',
-      'respondent_api_id',
-      'subject_api_id',
-      'attachments',
-    ]);
-    if (row.api_id) {
-      answer.id = row.api_id;
-    }
-    answers.push({
-      ...answer,
-      user_id: row.user_api_id,
-      respondent_id: row.respondent_api_id,
-      subject_id: row.subject_api_id,
-    });
+    answers.push( omit(row, ['attachments']) );
   });
 
   return dispatch => {
@@ -664,18 +599,9 @@ export const apiSyncMilestoneAnswers = user_id => {
       })
         .then(response => {
           const answers = response.data.answers;
-          answers.forEach(answer => {
-            answer.api_id = answer.id;
-            answer.respondent_api_id = answer.respondent_id;
-            answer.subject_api_id = answer.subject_id;
-            answer.user_api_id = answer.user_id;
-          });
-          // primary key on sqlite becomes id from api
-
           const attachments = response.data.attachments;
 
           attachments.forEach(attachment => {
-            attachment.api_id = attachment.id;
             attachment.uri = `${fileUri}/${attachment.filename}`;
             FileSystem.downloadAsync(attachment.url, attachment.uri)
               .then(response => {

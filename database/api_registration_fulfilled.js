@@ -21,19 +21,19 @@ export default store => next => action => {
 
   if (action.type === API_CREATE_USER_FULFILLED) {
     const headers = action.payload.headers;
-    const api_id = parseInt(headers.user_id, 10);
-    store.dispatch(updateUser({ api_id }));
+    const id = parseInt(headers.user_id, 10);
+    store.dispatch(updateUser({ id }));
   }
 
   if (action.type === API_CREATE_RESPONDENT_FULFILLED) {
-    const api_id = action.payload.data.id;
-    store.dispatch(updateRespondent({ api_id }));
-    SaveSignature(api_id);
+    const id = action.payload.data.id;
+    store.dispatch(updateRespondent({ id }));
+    SaveSignature(id);
   }
 
   if (action.type === API_CREATE_SUBJECT_FULFILLED) {
-    const api_id = action.payload.data.id;
-    store.dispatch(updateSubject({ api_id }));
+    const id = action.payload.data.id;
+    store.dispatch(updateSubject({ id }));
   }
 
   return next(action);

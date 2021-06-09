@@ -91,13 +91,12 @@ class RegistrationUserForm extends Component {
           access_token: auth.accessToken,
           client: auth.client,
           uid: auth.uid,
-          user_api_id: auth.user_id,
+          user_id: auth.user_id,
           email: apiUser.data.email,
           password: apiUser.data.password,
           uid: apiUser.data.email,
           registration_state,
         });
-        //SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
       } // apiUser.fetched
     } // isSubmitting
   }

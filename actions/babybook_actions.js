@@ -119,7 +119,7 @@ export const apiCreateBabyBookEntry = (session, data, image = null) => {
   const formData = new FormData();
 
   data = parseImageMetaData(data, image);
-  data.user_id = session.user_api_id;
+  data.user_id = session.user_id;
 
   // only upload files for entries not originating from answers
   if (data.file_name && !data.choice_id) {
@@ -179,8 +179,6 @@ export const apiSyncBabybookEntries = (user_id) => {
         .then(response => {
           const entries = response.data.babybook_entries;
           entries.forEach(entry => {
-            entry.api_id = entry.id;
-            entry.user_api_id = entry.user_id;
             entry.file_name = entry.filename;
             entry.file_type = entry.content_type;
             entry.uri = `${fileUri}/${entry.filename}`;

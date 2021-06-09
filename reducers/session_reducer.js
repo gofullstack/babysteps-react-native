@@ -59,7 +59,7 @@ const initialState = {
   access_token: null,
   client: null,
   uid: null,
-  user_api_id: null,
+  user_id: null,
   email: null,
   password: null,
   connectionType: null,
@@ -244,12 +244,12 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case API_FETCH_SIGNIN_FULFILLED: {
-      const { api_id, email, uid, password } = action.session;
+      const { id, email, uid, password } = action.session;
       return {
         ...state,
         signinFetching: false,
         signinFetched: true,
-        user_api_id: api_id,
+        user_id: id,
         email,
         password,
         uid,

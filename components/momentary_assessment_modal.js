@@ -58,40 +58,37 @@ class MomentaryAssessment extends Component {
   };
 
   _handleOnPress = selectedIndex => {
-    this.setState({selectedIndex});
-    const user = this.props.registration.user.data;
-    const respondent = this.props.registration.respondent.data;
-    const subject = this.props.registration.subject.data;
-    const momentary_assessment = this.props.notifications.momentary_assessment.data;
-    const calendars = this.props.milestones.calendar.data;
     const session = this.props.session;
+    const { user, respondent, subject } = this.props.registration;
+    const { momentary_assessment } = this.props.notifications;
+    const { calendars } = this.props.milestones;
+
     const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
     const answer = {
-      user_id: user.id,
-      user_api_id: user.api_id,
-      respondent_id: respondent.id,
-      respondent_api_id: respondent.api_id,
-      subject_id: subject.id,
-      subject_api_id: subject.api_id,
-      choice_id: momentary_assessment.choice_id,
+      user_id: user.data.id,
+      respondent_id: respondent.data.id,
+      subject_id: subject.data.id,
+      choice_id: momentary_assessment.data.choice_id,
       answer_numeric: selectedIndex + 1,
-      notified_at: momentary_assessment.notify_at,
+      notified_at: momentary_assessment.data.notify_at,
     };
     const completed_at = new Date().toISOString();
 
+    this.setState({ selectedIndex });
+
     this.props.createMilestoneAnswer(answer);
-    this.props.updateMilestoneCalendar(momentary_assessment.task_id, { completed_at });
+    this.props.updateMilestoneCalendar(momentary_assessment.data.task_id, { completed_at });
 
     if (inStudy) {
       this.props.apiCreateMilestoneAnswer(session, answer);
-      const calendar = _.find(calendars, ['task_id', momentary_assessment.task_id]);
-      if (calendar && calendar.id) {
-        this.props.apiUpdateMilestoneCalendar(calendar.id, {milestone_trigger: { completed_at }});
+      const entry = _.find(calendars.data, ['task_id', momentary_assessment.data.task_id]);
+      if (entry && entry.id) {
+        this.props.apiUpdateMilestoneCalendar(entry.id, { milestone_trigger: { completed_at } });
       }
     }
 
     setTimeout(() => {
-      this.props.hideMomentaryAssessment(momentary_assessment, answer);
+      this.props.hideMomentaryAssessment(momentary_assessment.data, answer);
       this.setState({ selectedIndex: null });
     }, 2000);
   };
@@ -142,7 +139,7 @@ class MomentaryAssessment extends Component {
     return (
       <Modal
         animationType="slide"
-        transparent={true}
+        transparent
         visible={showModal}
         onRequestClose={() => {}}
       >

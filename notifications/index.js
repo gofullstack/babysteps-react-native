@@ -49,15 +49,6 @@ function localNotificationMessage(entry) {
       body: entry.name,
       type: 'info',
     },
-    //ios: {
-    //  sound: true,
-    //},
-    //android: {
-    //  sound: true,
-    //  vibrate: true,
-    //  priority: 'high',
-    //  channelId: 'screeningEvents',
-    //},
   };
 }
 

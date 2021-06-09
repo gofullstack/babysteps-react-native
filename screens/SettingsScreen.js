@@ -74,7 +74,7 @@ class SettingsScreen extends React.Component {
     const { attachments } = this.props.milestones;
     const choiceIDs = map(attachments.data, 'choice_id');
 
-    const hasAttachments = await ConfirmAPIAttachments(subject.data.api_id, choiceIDs);
+    const hasAttachments = await ConfirmAPIAttachments(subject.data.id, choiceIDs);
 
     const missingAPIAttachments = [];
     map(hasAttachments, att => {
@@ -113,7 +113,7 @@ class SettingsScreen extends React.Component {
     body += `Release: ${release}\n`;
     body += `Notifications Updated At: ${moment(session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\n`;
     body += `Notification Permissions: ${session.notifications_permission}\n`;
-    body += `User ID: ${user.api_id}\n\n`;
+    body += `User ID: ${user.id}\n\n`;
     body += `________________________\n\n\n`;
     Linking.openURL(
       `mailto:feedback@babystepsapp.net?subject=BabySteps App Feedback (v${version})&body=${body}`,
@@ -127,7 +127,7 @@ class SettingsScreen extends React.Component {
     const fileNames = await FileSystem.readDirectoryAsync(attachmentDir);
     let body = `<div>Release: ${release}</div>`;
     body += `Directory: ${CONSTANTS.ATTACHMENTS_DIRECTORY}\n`;
-    body += `User ID: ${user.api_id}\n`;
+    body += `User ID: ${user.id}\n`;
     body += '________________________\n\n';
 
     for (const fileName of fileNames) {
@@ -148,7 +148,7 @@ class SettingsScreen extends React.Component {
 
   handleUploadDatabasePress = () => {
     const user = this.props.registration.user.data;
-    UploadSQLiteDatabase(user.api_id);
+    UploadSQLiteDatabase(user.id);
     this.setState({ uploadDatabaseSelected: true });
   };
 
@@ -216,7 +216,7 @@ class SettingsScreen extends React.Component {
   handleUploadMediaFile = async attachment => {
     const { user, subject } = this.props.registration;
     let { missingAPIAttachments } = this.state;
-    UploadMilestoneAttachment(user.data.api_id, subject.data.api_id, attachment);
+    UploadMilestoneAttachment(user.data.id, subject.data.id, attachment);
     missingAPIAttachments = filter(missingAPIAttachments, missingAttachment => {
       return missingAttachment.id !== attachment.id;
     });
@@ -347,7 +347,7 @@ class SettingsScreen extends React.Component {
           </Text>
           <Text>Notification Permission: {session.notifications_permission}</Text>
           <Text>Release: {release}</Text>
-          {user && <Text>User ID: {user.api_id}</Text>}
+          {user && <Text>User ID: {user.id}</Text>}
           <TouchableOpacity
             style={styles.linkContainer}
             onPress={this.handleFAQPress}

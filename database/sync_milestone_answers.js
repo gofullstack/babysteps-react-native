@@ -25,7 +25,7 @@ const executeApiCall = async answers => {
     .then(response => {
       if (response.data) {
         response.data.forEach(answer => {
-          store.dispatch(updateMilestoneAnswer(answer.choice_id, { api_id: answer.id }));
+          store.dispatch(updateMilestoneAnswer(answer.choice_id, { id: answer.id }));
         });
       } else {
         console.log('*** No answers were saved on server');
@@ -64,17 +64,7 @@ const SyncMilestoneAnswers = subject_id => {
         }
 
         _.forEach(answers, answer => {
-          answer.user_id = answer.user_api_id;
-          answer.respondent_id = answer.respondent_api_id;
-          answer.subject_id = answer.subject_api_id;
-          _.omit(answer, [
-            'id',
-            'api_id',
-            'user_api_id',
-            'respondent_api_id',
-            'subject_api_id',
-            'attachments',
-          ]);
+          _.omit(answer, ['id', 'attachments']);
         });
         executeApiCall(answers);
       })

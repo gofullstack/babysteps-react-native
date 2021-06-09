@@ -88,7 +88,7 @@ class RegistrationExpectedDOB extends Component {
 
   handleOnSubmit = values => {
     const { respondent, apiRespondent } = this.props.registration;
-    const respondent_id = apiRespondent.data.id || respondent.data.api_id;
+    const respondent_id = apiRespondent.data.id || respondent.data.id;
     const {
       screening_blood,
       screening_blood_other,

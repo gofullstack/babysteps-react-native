@@ -1,4 +1,5 @@
 import { Component } from 'react';
+import { AppState } from 'react-native';
 
 import * as FileSystem from 'expo-file-system';
 
@@ -10,7 +11,9 @@ import {
   fetchUser,
   updateUser,
   fetchRespondent,
+  updateRespondent,
   fetchSubject,
+  updateSubject,
 } from '../actions/registration_actions';
 import {
   fetchMilestoneCalendar,
@@ -33,14 +36,15 @@ class CheckDataIntegrity extends Component {
     super(props);
 
     this.state = {
+      appState: AppState.currentState,
       // TEMPORARY: PULL DATA FROM SQLITE IF ALREADY REGISTERED
       stateFetchedFromSQLite: false,
       //
       sessionUpdated: false,
+      registrationUpdated: false,
+      signatureFileUpdated: false,
       cleanDuplicateAnswersSubmitted: false,
       cleanDuplicateAttachmentsSubmitted: false,
-      userPasswordUpdated: false,
-      signatureFileUpdated: false,
       // THIS PERMENANTLY AND REPEATEDLY REMOVES ALL ANSWER DATA
       resetAnswers: false,
       //
@@ -50,6 +54,7 @@ class CheckDataIntegrity extends Component {
 
   componentDidMount = async () => {
     console.log('*** Checking Data Integrity');
+    AppState.addEventListener('change', this.handleAppStateChange);
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -57,9 +62,10 @@ class CheckDataIntegrity extends Component {
     const {
       stateFetchedFromSQLite,
       sessionUpdated,
+      registrationUpdated,
+      signatureFileUpdated,
       cleanDuplicateAnswersSubmitted,
       cleanDuplicateAttachmentsSubmitted,
-      signatureFileUpdated,
       resetAnswers,
       answersReset,
     } = this.state;
@@ -67,6 +73,12 @@ class CheckDataIntegrity extends Component {
     if (!stateFetchedFromSQLite) {
       this.fetchStateFromSQLite();
       this.setState({ stateFetchedFromSQLite: true });
+      return;
+    }
+
+    if (!registrationUpdated) {
+      this.confirmRegistrationAttributes();
+      this.setState({ registrationUpdated: true });
       return;
     }
 
@@ -102,6 +114,23 @@ class CheckDataIntegrity extends Component {
     }
   }
 
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this.handleAppStateChange);
+  }
+
+  handleAppStateChange = nextAppState => {
+    const { appState } = this.state;
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.setState({
+        appState: nextAppState,
+        sessionUpdated: false,
+        registrationUpdated: false,
+      });
+    } else {
+      this.setState({ appState: nextAppState });
+    }
+  };
+
   fetchStateFromSQLite = () => {
     console.log('*** Begin Fetch From SQLite');
     const session = this.props.session;
@@ -136,6 +165,66 @@ class CheckDataIntegrity extends Component {
     this.setState({ stateFetchedFromSQLite: true });
   };
 
+  confirmRegistrationAttributes = () => {
+    console.log('*** Begin Confirm Registration Attributes');
+    const session = this.props.session;
+    const { user, respondent, subject } = this.props.registration;
+
+    if (!_.isEmpty(user.data)) {
+      let id = user.data.id;
+      let userData = {};
+      if (user.data.id !== user.data.api_id) {
+        userData.id = user.data.api_id;
+        id = user.data.api_id;
+      }
+      if (session.password && !user.data.password) {
+        userData.password = session.password;
+      }
+      if (!_.isEmpty(userData)) {
+        this.props.updateUser(userData);
+      }
+    }
+    if (!_.isEmpty(respondent.data)) {
+      if (respondent.data.id !== respondent.data.api_id) {
+        const id = respondent.data.api_id;
+        this.props.updateRespondent({ id });
+      }
+    }
+    if (!_.isEmpty(subject.data)) {
+      if (subject.data.id !== subject.data.api_id) {
+        const id = subject.data.api_id;
+        this.props.updateSubject({ id });
+      }
+    }
+  };
+
+  confirmSessionAttributes = () => {
+    console.log('*** Begin Confirm Session Attributes');
+    const session = this.props.session;
+    const { user } = this.props.registration;
+    if (!_.isEmpty(user.data)) {
+      if (
+        (!session.uid && user.data.email) ||
+        (!session.user_id && user.data.id)
+      ) {
+        this.props.updateSession({
+          user_id: user.data.id,
+          email: user.data.email,
+          uid: user.data.email,
+        });
+      }
+      if (!session.last_registration_state) {
+        this.props.updateSession({
+          last_registration_state: session.registration_state,
+        });
+      }
+      if (!session.password && user.data.password) {
+        const password = user.data.password;
+        this.props.updateSession({ password });
+      }
+    }
+  };
+
   copySignatureFile = async () => {
     const fileUri =
       FileSystem.documentDirectory + CONSTANTS.SIGNATURE_DIRECTORY + '/signature.png';
@@ -147,44 +236,6 @@ class CheckDataIntegrity extends Component {
       await FileSystem.copyAsync({ from: fileUri, to: copyUri });
     } catch (error) {
       console.log({ error });
-    }
-  };
-
-  confirmSessionAttributes = () => {
-    console.log('*** Begin Confirm Session Attributes');
-    const session = this.props.session;
-    const { user } = this.props.registration;
-    const { userPasswordUpdated } = this.state;
-
-    if (!_.isEmpty(user.data)) {
-      if (
-        (!session.uid && user.data.email) ||
-        (!session.user_api_id && user.data.api_id)
-      ) {
-        this.props.updateSession({
-          user_api_id: user.data.api_id,
-          email: user.data.email,
-          uid: user.data.email,
-        });
-      }
-      if (!session.last_registration_state) {
-        this.props.updateSession({
-          last_registration_state: session.registration_state,
-        });
-      }
-
-      if (!userPasswordUpdated) {
-        if (session.password && !user.data.password) {
-          const id = user.data.id;
-          const password = session.password;
-          this.props.updateUser({ id, password });
-        }
-        if (!session.password && user.data.password) {
-          const password = user.data.password;
-          this.props.updateSession({ password });
-        }
-        this.setState({ userPasswordUpdated: true });
-      }
     }
   };
 
@@ -204,16 +255,19 @@ class CheckDataIntegrity extends Component {
         // drop duplicates
         if (answer.choice_id !== prevChoiceID) {
 
-          if (
-            !answer.user_api_id ||
-            !answer.respondent_api_id ||
-            !answer.subject_api_id
-          ) {
-            const data = {
-              user_api_id: user.data.api_id,
-              respondent_api_id: respondent.data.api_id,
-              subject_api_id: subject.data.api_id,
+          let data = {};
+
+          if (!answer.user_id || !answer.respondent_id || !answer.subject_id) {
+            data = {
+              user_id: user.data.id,
+              respondent_id: respondent.data.id,
+              subject_id: subject.data.id,
             };
+          }
+          if (answer.api_id) {
+            data.id = answer.api_id;
+          }
+          if (!_.isEmpty(data)) {
             this.props.updateMilestoneAnswer(answer.choice_id, data);
           }
         } else {
@@ -262,11 +316,11 @@ class CheckDataIntegrity extends Component {
             } // if resultFile
           } // if attachment.uri
 
-          if (!attachment.user_api_id || !attachment.subject_api_id) {
+          if (!attachment.user_id || !attachment.subject_id) {
             attachment = {
               ...attachment,
-              user_api_id: user.data.api_id,
-              subject_api_id: subject.data.api_id,
+              user_id: user.data.id,
+              subject_id: subject.data.id,
             };
             this.props.updateMilestoneAttachment(attachment);
           }
@@ -298,7 +352,9 @@ const mapDispatchToProps = {
   fetchUser,
   updateUser,
   fetchRespondent,
+  updateRespondent,
   fetchSubject,
+  updateSubject,
   fetchMilestoneCalendar,
   resetMilestoneAnswers,
   fetchMilestoneAnswers,

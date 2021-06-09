@@ -164,12 +164,8 @@ class BabyBookEntryForm extends Component {
             ...values,
             user_id: user.id,
           };
-          const apiData = {
-            ...values,
-            user_id: user.api_id,
-          };
           this.props.createBabyBookEntry(data, this.state.image);
-          this.props.apiCreateBabyBookEntry(session, apiData, this.state.image);
+          this.props.apiCreateBabyBookEntry(session, data, this.state.image);
         }}
         validationSchema={validationSchema}
         initialValues={{
@@ -191,7 +187,9 @@ class BabyBookEntryForm extends Component {
                 name="created_at"
                 date={props.values.created_at}
                 labelStyle={AppStyles.registrationLabel}
-                containerStyle={[AppStyles.registrationDateContainer, { marginBottom: 20 }]}
+                containerStyle={[
+                  AppStyles.registrationDateContainer, { marginBottom: 20 },
+                ]}
                 showIcon={false}
                 style={{ width: '100%' }}
                 customStyles={{
@@ -284,7 +282,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
     flexDirection: 'row',
-
     bottom: 10,
     marginTop: 10,
     width: '100%',

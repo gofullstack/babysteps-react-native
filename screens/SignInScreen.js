@@ -72,9 +72,9 @@ class SignInScreen extends Component {
 
       // get respondent and subject data
       if (isSubmitting && !syncRegistration) {
-        if (session.user_api_id) {
-          this.props.apiSyncRegistration(session.user_api_id);
-          this.props.apiSyncSignature(session.user_api_id);
+        if (session.user_id) {
+          this.props.apiSyncRegistration(session.user_id);
+          this.props.apiSyncSignature(session.user_id);
           this.setState({ syncRegistration: true });
           return;
         }
@@ -93,8 +93,8 @@ class SignInScreen extends Component {
 
         if (!isEmpty(subject.data)) {
           const study_id = CONSTANTS.STUDY_ID;
-          const subject_id = subject.data.api_id;
-          this.props.apiFetchMilestoneCalendar({ study_id, subject_id })
+          const subject_id = subject.data.id;
+          this.props.apiFetchMilestoneCalendar({ study_id, subject_id });
         }
 
         this.props.updateSession({

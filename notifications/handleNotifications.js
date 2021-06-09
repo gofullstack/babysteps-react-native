@@ -42,7 +42,10 @@ class HandleNotifications extends PureComponent {
   handleNotificationOnPress = data => {
     const tasks = this.props.milestones.tasks.data;
     const task = find(tasks, ['id', data.task_id]);
-    NavigationService.navigate('MilestoneQuestions', { task });
+    NavigationService.navigate('MilestoneQuestions', {
+      task,
+      feedback: data.feedback,
+    });
   };
 
   handleMomentaryAssessment = data => {

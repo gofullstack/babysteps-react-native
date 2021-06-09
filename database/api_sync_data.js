@@ -105,20 +105,20 @@ class ApiSyncData extends Component {
     // rebuild respondent and subject on server
     if (inStudy && apiSyncData) {
 
-      if (!isEmpty(user.data) && user.data.api_id) {
-        const user_api_id = user.data.api_id;
+      if (!isEmpty(user.data) && user.data.id) {
+        const user_id = user.data.id;
 
         if (!userRespondentApiUpdated) {
-          SyncRespondentByUser(user_api_id);
+          SyncRespondentByUser(user_id);
           this.setState({ userRespondentApiUpdated: true });
         }
 
         if (
           !isEmpty(respondent.data) &&
-          respondent.data.api_id &&
+          respondent.data.id &&
           userRespondentApiUpdated
         ) {
-          const respondent_api_id = respondent.data.api_id;
+          const respondent_id = respondent.data.id;
 
           if (
             !updateConsentSignatureSubmitted &&
@@ -126,26 +126,25 @@ class ApiSyncData extends Component {
             consent.data.version_id // &&
             //session.connectionType === 'wifi'
           ) {
-            //SyncRespondentSignature(respondent_api_id);
-            SyncConsentSignature(consent.data.version_id, respondent_api_id);
+            SyncConsentSignature(consent.data.version_id, respondent_id);
             this.setState({ updateConsentSignatureSubmitted: true });
           }
 
-          if (!isEmpty(subject.data) && subject.data.api_id) {
-            const subject_api_id = subject.data.api_id;
+          if (!isEmpty(subject.data) && subject.data.id) {
+            const subject_id = subject.data.id;
 
             if (!userSubjectApiUpdated) {
-              SyncSubjectByUser(user_api_id, respondent_api_id, subject_api_id);
+              SyncSubjectByUser(user_id, respondent_id, subject_id);
               this.setState({ userSubjectApiUpdated: true });
             }
 
             if (!uploadMilestoneTriggersSubmitted) {
-              SyncMilestoneTriggers(subject_api_id, session.milestone_calendar_last_updated_at);
+              SyncMilestoneTriggers(subject_id, session.milestone_calendar_last_updated_at);
               this.setState({ uploadMilestoneTriggersSubmitted: true });
             }
 
             if (!uploadAnswersSubmitted) {
-              SyncMilestoneAnswers(subject_api_id);
+              SyncMilestoneAnswers(subject_id);
               this.setState({ uploadAnswersSubmitted: true });
             }
 
