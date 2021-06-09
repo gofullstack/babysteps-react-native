@@ -76,6 +76,7 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
           if (!data.conception_method) data.conception_method = 'natural';
 
           executeApiCall(id, data);
+
         } else {
           console.log('*** Subject Exists on Server');
         }
