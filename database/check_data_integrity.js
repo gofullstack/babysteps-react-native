@@ -11,7 +11,9 @@ import {
   fetchUser,
   updateUser,
   fetchRespondent,
+  updateRespondent,
   fetchSubject,
+  updateSubject,
 } from '../actions/registration_actions';
 import {
   fetchMilestoneCalendar,
@@ -35,7 +37,6 @@ class CheckDataIntegrity extends Component {
 
     this.state = {
       appState: AppState.currentState,
-
       // TEMPORARY: PULL DATA FROM SQLITE IF ALREADY REGISTERED
       stateFetchedFromSQLite: false,
       //
@@ -44,7 +45,6 @@ class CheckDataIntegrity extends Component {
       signatureFileUpdated: false,
       cleanDuplicateAnswersSubmitted: false,
       cleanDuplicateAttachmentsSubmitted: false,
-
       // THIS PERMENANTLY AND REPEATEDLY REMOVES ALL ANSWER DATA
       resetAnswers: false,
       //
@@ -357,7 +357,9 @@ const mapDispatchToProps = {
   fetchUser,
   updateUser,
   fetchRespondent,
+  updateRespondent,
   fetchSubject,
+  updateSubject,
   fetchMilestoneCalendar,
   resetMilestoneAnswers,
   fetchMilestoneAnswers,

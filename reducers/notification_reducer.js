@@ -42,7 +42,6 @@ const reducer = (state = initialState, action, formData = []) => {
         },
       };
     }
-
     default: {
       return state;
     }

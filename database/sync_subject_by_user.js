@@ -61,9 +61,8 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
         if (isEmpty(subject) || updateSubject) {
 
           let data = state.registration.subject.data;
-          const id = data.api_id;
-          delete data.api_id;
-
+          const id = data.id;
+          delete data.id;
           data = {
             ...data,
             respondent_ids: [respondent_id],
@@ -76,7 +75,7 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
           if (!data.outcome) data.outcome = 'live_birth';
           if (!data.conception_method) data.conception_method = 'natural';
 
-          executeApiCall(subject.api_id, data);
+          executeApiCall(id, data);
         } else {
           console.log('*** Subject Exists on Server');
         }
