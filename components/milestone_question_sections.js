@@ -20,14 +20,14 @@ export class RenderSections extends Component {
 
   renderSection = section => {
     const { task, trigger, extraData } = this.props;
-    const feedbacks = _.filter(trigger.milestone_feedbacks, ['completed_at', null]);
+
     return (
       <View key={section.id} style={{ flexGrow: 1 }}>
         {!!section.body && (
           <View style={styles.instructionsContainer}>
             <Text style={styles.instructionsLabel}>Instructions: &nbsp;</Text>
             <Text>{section.body}</Text>
-            {this.renderFeedback(feedbacks)}
+            {this.renderFeedback(trigger)}
             {section.attachment_url && this.renderAttachment(section.attachment_url)}
           </View>
         )}
@@ -36,18 +36,35 @@ export class RenderSections extends Component {
     );
   };
 
-  renderFeedback = feedbacks => {
-    if (_.isEmpty(feedbacks)) return [];
-    let feedbackLayout = [<Text key={0} style={styles.feedbackLabel}>Babysteps Feedback</Text>];
-    _.forEach(feedbacks, (feedback, index) => {
-      feedbackLayout.push(
-        <Text key={feedback.id} style={styles.feedback}>
-          {`${String.fromCharCode(index + 97)}. `}
-          {feedback.content}
-        </Text>,
-      );
-    });
-    return feedbackLayout;
+  renderFeedback = trigger => {
+    const feedbacks = _.filter(trigger.milestone_feedbacks, ['completed_at', null]);
+    const navFeedback = this.props.feedback; // feedback from notification
+    const feedbackLayout = [
+      <Text key={0} style={styles.feedbackLabel}>
+        Babysteps Feedback
+      </Text>,
+    ];
+    if (_.isEmpty(feedbacks)) {
+      if (navFeedback.length !== 0) {
+        feedbackLayout.push(
+          <Text key={1} style={styles.feedback}>
+            {navFeedback}
+          </Text>,
+        );
+        return feedbackLayout;
+      };
+    } else {
+      _.forEach(feedbacks, (feedback, index) => {
+        feedbackLayout.push(
+          <Text key={feedback.id} style={styles.feedback}>
+            {`${String.fromCharCode(index + 97)}. `}
+            {feedback.content}
+          </Text>,
+        );
+      });
+      return feedbackLayout;
+    }
+    return null;
   };
 
   renderQuestions = questions => {

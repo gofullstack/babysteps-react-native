@@ -78,7 +78,7 @@ class MilestonesScreen extends Component {
     const { sectionIndex } = this.state;
     const noStudy = session.registration_state === States.REGISTERED_AS_NO_STUDY;
 
-    let includedGroups = _.filter(groups.data, {visible: true});
+    let includedGroups = _.filter(groups.data, { visible: true });
     includedGroups = _.sortBy(includedGroups, ['position']);
 
     const milestoneList = [];
@@ -92,7 +92,6 @@ class MilestonesScreen extends Component {
           milestone.momentary_assessment === false
         );
       });
-
       let data = [];
       _.forEach(includedMilestones, milestone => {
         let includedTasks = _.filter(tasks.data, task => {

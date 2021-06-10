@@ -59,6 +59,7 @@ class MilestoneQuestionsScreen extends Component {
     this.state = {
       appState: AppState.currentState,
       task,
+      feedback: '',
       trigger: null,
       questionData: [],
       questionDataUpdated: false,
@@ -81,16 +82,16 @@ class MilestoneQuestionsScreen extends Component {
   componentDidUpdate(prevProps, prevState) {
     const { calendar } = this.props.milestones;
     const { task, trigger, questionDataUpdated } = this.state;
-    const navTask = this.props.navigation.state.params.task;
+    const { params } = this.props.navigation.state;
 
     // capture notification links with incorrect task
-    if (typeof(navTask) !== 'object' || navTask === null) {
+    if (typeof(params.task) !== 'object' || params.task === null) {
       this.props.navigation.navigate('Milestones');
     }
 
     // need to update sections for new task for remaining functions
-    if (navTask.id !== task.id) {
-      this.resetDataForTask(navTask);
+    if (params.task.id !== task.id) {
+      this.resetDataForTask(params.task, params.feedback);
       return;
     }
 
@@ -123,9 +124,10 @@ class MilestoneQuestionsScreen extends Component {
     this.setState({ appState: nextAppState });
   };
 
-  resetDataForTask = (task, trigger) => {
+  resetDataForTask = (task, trigger, feedback='') => {
     this.setState({
       task,
+      feedback,
       trigger,
       questionData: [],
       questionDataUpdated: false,
@@ -469,6 +471,7 @@ class MilestoneQuestionsScreen extends Component {
     const {
       confirmed,
       task,
+      feedback,
       trigger,
       questionData,
       answers,
@@ -482,6 +485,7 @@ class MilestoneQuestionsScreen extends Component {
           <Text style={styles.taskHeader}>{task.name}</Text>
           <RenderSections
             task={task}
+            feedback={feedback}
             trigger={trigger}
             questionData={questionData}
             answers={answers}

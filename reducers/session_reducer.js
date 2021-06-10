@@ -173,7 +173,7 @@ const reducer = (state = initialState, action, formData = {}) => {
         access_token: header['access-token'],
         client: header.client,
         uid: header.uid,
-        user_id: header.user_id,
+        user_id: parseInt(header.user_id, 10),
       };
     }
     case API_TOKEN_REFRESH_REJECTED: {

@@ -175,9 +175,8 @@ class CheckDataIntegrity extends Component {
     const { user, respondent, subject } = this.props.registration;
 
     if (!_.isEmpty(user.data)) {
-      let id = user.data.id;
       let userData = {};
-      if (user.data.id !== user.data.api_id) {
+      if (user.data.api_id && user.data.id !== user.data.api_id) {
         userData.id = user.data.api_id;
         id = user.data.api_id;
       }
@@ -189,13 +188,13 @@ class CheckDataIntegrity extends Component {
       }
     }
     if (!_.isEmpty(respondent.data)) {
-      if (respondent.data.id !== respondent.data.api_id) {
+      if (respondent.data.api_id && respondent.data.id !== respondent.data.api_id) {
         const id = respondent.data.api_id;
         this.props.updateRespondent({ id });
       }
     }
     if (!_.isEmpty(subject.data)) {
-      if (subject.data.id !== subject.data.api_id) {
+      if (subject.data.api_id && subject.data.id !== subject.data.api_id) {
         const id = subject.data.api_id;
         this.props.updateSubject({ id });
       }
@@ -226,11 +225,6 @@ class CheckDataIntegrity extends Component {
       if (!session.password && user.data.password) {
         const password = user.data.password;
         this.props.updateSession({ password });
-      }
-    }
-    if (!_.isEmpty(subject.data)) {
-      if (!subject.data.api_id) {
-        this.props.updateSubject({ api_id: subject.data.id })
       }
     }
   };

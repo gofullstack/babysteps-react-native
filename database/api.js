@@ -129,7 +129,7 @@ export default store => next => action => {
           access_token: headers['access-token'],
           client: headers.client,
           uid: headers.uid,
-          user_id: headers.user_id,
+          user_id: parseInt(headers.user_id, 10),
         };
         updateSession(data);
       }
