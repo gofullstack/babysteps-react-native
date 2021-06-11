@@ -52,6 +52,11 @@ class CheckDataIntegrity extends Component {
     };
   }
 
+  shouldComponentUpdate(nextProps) {
+    const { user, respondent, subject } = nextProps.registration;
+    return !user.fetching && !respondent.fetching && !subject.fetching;
+  }
+
   componentDidMount = async () => {
     console.log('*** Checking Data Integrity');
     AppState.addEventListener('change', this.handleAppStateChange);
