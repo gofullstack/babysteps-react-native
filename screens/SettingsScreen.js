@@ -26,8 +26,7 @@ import find from 'lodash/find';
 
 import { connect } from 'react-redux';
 
-
-import UploadSQLiteDatabase from '../database/upload_sqlite_database';
+import UploadJSONDatabase from '../database/upload_json_database';
 
 import {
   ConfirmAPIAttachments,
@@ -148,7 +147,7 @@ class SettingsScreen extends React.Component {
 
   handleUploadDatabasePress = () => {
     const user = this.props.registration.user.data;
-    UploadSQLiteDatabase(user.id);
+    UploadJSONDatabase(user.id);
     this.setState({ uploadDatabaseSelected: true });
   };
 
@@ -387,26 +386,24 @@ class SettingsScreen extends React.Component {
             />
           </TouchableOpacity>
 
-          {false && (
-            <TouchableOpacity
-              style={styles.linkContainer}
-              onPress={this.handleUploadDatabasePress}
-              disabled={uploadDatabaseSelected}
+          <TouchableOpacity
+            style={styles.linkContainer}
+            onPress={this.handleUploadDatabasePress}
+            disabled={uploadDatabaseSelected}
+          >
+            <Text
+              style={uploadDatabaseSelected ? styles.linkTextDisabled : styles.linkText}
             >
-              <Text
-                style={uploadDatabaseSelected ? styles.linkTextDisabled : styles.linkText}
-              >
-                Upload Answers Database
-                {uploadDatabaseSelected ? ' - Done ' : ''}
-              </Text>
-              <Ionicons
-                name="ios-arrow-forward"
-                size={28}
-                color="#bdc6cf"
-                style={styles.linkIcon}
-              />
-            </TouchableOpacity>
-          )}
+              Upload Answers Database
+              {uploadDatabaseSelected ? ' - Done ' : ''}
+            </Text>
+            <Ionicons
+              name="ios-arrow-forward"
+              size={28}
+              color="#bdc6cf"
+              style={styles.linkIcon}
+            />
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.linkContainer}
