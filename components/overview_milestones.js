@@ -25,7 +25,7 @@ import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 import { fetchMilestoneGroups } from '../actions/milestone_actions';
 
-import milestoneGroupImages from '../constants/MilestoneGroupImages';
+import MilestoneGroupImages from '../constants/MilestoneGroupImages';
 import Colors from '../constants/Colors';
 
 const { width, height } = Dimensions.get('window');
@@ -92,8 +92,8 @@ class OverviewScreen extends React.Component {
 
       let milestoneGroups = filter(groups.data, { visible: 1 });
       milestoneGroups = sortBy(milestoneGroups, ['position']);
-      milestoneGroups.forEach((group, index) => {
-        group.uri = milestoneGroupImages[index];
+      milestoneGroups.forEach(group => {
+        group.uri = MilestoneGroupImages(group.baseline_range_days_end);
       });
       // locate index of current milestone group
       let currentGroupIndex = findIndex(milestoneGroups, group => {

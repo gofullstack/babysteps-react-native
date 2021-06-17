@@ -86,6 +86,20 @@ export default class App extends Component {
     Player.load(soundLibrary);
 
     await Asset.loadAsync([
+      require('./assets/images/milestone_group/img0.png'),
+      require('./assets/images/milestone_group/img1.png'),
+      require('./assets/images/milestone_group/img2.png'),
+      require('./assets/images/milestone_group/img3.png'),
+      require('./assets/images/milestone_group/img4.png'),
+      require('./assets/images/milestone_group/img5.png'),
+      require('./assets/images/milestone_group/img6.png'),
+      require('./assets/images/milestone_group/img7.png'),
+      require('./assets/images/milestone_group/img8.png'),
+      require('./assets/images/milestone_group/img9.png'),
+      require('./assets/images/milestone_group/img10.png'),
+      require('./assets/images/milestone_group/img11.png'),
+      require('./assets/images/milestone_group/img12.png'),
+      require('./assets/images/milestone_group/img13.png'),
       require('./assets/images/baby_book_cover_background.png'),
       require('./assets/images/baby_book_inside_background.png'),
       require('./assets/images/baby_book_picture_frame_bottom_left.png'),
