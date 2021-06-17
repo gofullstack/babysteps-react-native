@@ -106,11 +106,11 @@ class OverviewScreen extends React.Component {
     return (
       <View key={data.itemIndex} style={styles.screening_slide_container}>
         <TouchableOpacity onPress={() => this.handleOnPress(task)}>
-          <Text style={styles.screening_title}>{task.name}</Text>
+          <Text numberOfLines={2} style={styles.screening_title}>{task.name}</Text>
           <Text numberOfLines={2} style={styles.screening_date}>
             To be completed between: {startDate} and {endDate}
           </Text>
-          <Text style={styles.screening_text}>{task.message}</Text>
+          <Text numberOfLines={2} style={styles.screening_text}>{task.message}</Text>
         </TouchableOpacity>
         <View style={styles.screening_slide_link}>
           <TouchableOpacity

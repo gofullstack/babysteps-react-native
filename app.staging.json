@@ -31,7 +31,6 @@
     "version": "1.5.5",
     "ios": {
       "buildNumber": "47",
-
       "supportsTablet": true,
       "bundleIdentifier": "com.gofullstack.babysteps.staging",
       "requireFullScreen": true,

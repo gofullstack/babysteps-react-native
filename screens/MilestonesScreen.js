@@ -83,7 +83,7 @@ class MilestonesScreen extends Component {
 
     if (tasks.fetched && !isEmpty(tasks.data)) {
       if (prevTasks !== tasks || !tasksSaved) {
-        this._saveTasksData(tasks);
+        this._saveTasksData();
       }
     }
     if (
@@ -97,10 +97,10 @@ class MilestonesScreen extends Component {
     }
   }
 
-  _saveTasksData = tasks => {
-    const groups = filter(this.props.milestones.groups.data, {visible: 1});
+  _saveTasksData = () => {
     const session = this.props.session;
-    const sectionIndex = this.state.sectionIndex;
+    const { groups, tasks } = this.props.milestones;
+    const { sectionIndex } = this.state;
     let tasksForList = [...this.state.tasksForList];
 
     tasksForList = filter(tasks.data, task => {
@@ -123,7 +123,7 @@ class MilestonesScreen extends Component {
     tasksForList = reduce(
       tasksForList,
       (acc, data, index) => {
-        const group = find(groups, ['id', data[0].milestone_group_id]);
+        const group = find(groups.data, ['id', data[0].milestone_group_id]);
         if (!isEmpty(group)) {
           acc.push({ key: index, id: group.id, title: group.title, data });
         }
@@ -152,9 +152,11 @@ class MilestonesScreen extends Component {
   };
 
   updateInitialIndex = (sectionIndex, tasksForList) => {
+    if (isEmpty(tasksForList)) return;
     let initialIndex = 0;
     if (sectionIndex > 0) {
-      Array(sectionIndex).fill()
+      Array(sectionIndex)
+        .fill()
         .forEach((_, current) => {
           initialIndex += tasksForList[current].data.length + 2;
         });
