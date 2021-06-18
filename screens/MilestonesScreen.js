@@ -58,7 +58,7 @@ class MilestonesScreen extends Component {
 
   componentDidUpdate() {
     const session = this.props.session;
-    const navigation = this.props;
+    const { navigation } = this.props;
     const { sectionIndex } = this.state;
 
     // default to navigation param, then subject base group

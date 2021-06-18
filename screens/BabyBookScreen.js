@@ -290,14 +290,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 10,
-    marginLeft: 20,
+    paddingBottom: 3,
+    marginLeft: 15,
     marginRight: 20,
   },
   headerTitle: {
     alignSelf: 'flex-start',
-    fontWeight: '400',
-    fontSize: 18,
+    fontWeight: '900',
+    fontSize: 26,
     color: Colors.headerTint,
   },
   headerButtonContainer: {

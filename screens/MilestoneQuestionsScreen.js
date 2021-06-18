@@ -99,6 +99,8 @@ class MilestoneQuestionsScreen extends Component {
     if (questionDataUpdated) {
       const entry = _.find(calendar.data, ['task_id', task.id]);
       if (
+        trigger.milestone_feedbacks &&
+        entry.milestone_feedbacks &&
         trigger.milestone_feedbacks.length !== entry.milestone_feedbacks.length
       ) {
         this.setTriggerData();
@@ -373,8 +375,6 @@ class MilestoneQuestionsScreen extends Component {
       });
 
       attachments.push(newAttachment);
-
-      console.log({ attachments })
 
       this.updateAttachmentState(attachments);
     }); // map attachments

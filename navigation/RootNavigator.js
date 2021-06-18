@@ -21,12 +21,13 @@ import States from '../actions/states';
 
 const headerOptions = {
   headerStyle: {
-    height: 50,
+    height: 40,
     backgroundColor: Colors.headerBackground,
   },
   headerTintColor: Colors.headerTint,
   headerTitleStyle: {
     fontWeight: '900',
+    fontSize: 32,
   },
   headerForceInset: {
     top: 'never',
@@ -101,9 +102,6 @@ const TourNoStudyNavigator = createStackNavigator(
 const TourNoStudyNavigationContainer = createAppContainer(TourNoStudyNavigator);
 
 class RootNavigator extends Component {
-  constructor(props) {
-    super(props);
-  }
 
   render() {
     const { registration_state } = this.props.session;
