@@ -78,8 +78,6 @@ const SyncSubjectByUser = async (user_id, respondent_id, subject_id) => {
                 data.screening_blood_physician_notification = session.screening_blood_physician_notification;
                 if (!data.outcome) data.outcome = 'live_birth';
                 if (!data.conception_method) data.conception_method = 'natural';
-
-                console.log({ data })
                 executeApiCall(subject.api_id, data);
               },
               (_, error) => {

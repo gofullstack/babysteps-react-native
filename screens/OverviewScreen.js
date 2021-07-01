@@ -4,6 +4,7 @@ import { View, StyleSheet, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import {
   fetchMilestoneGroups,
+  fetchMilestones,
   fetchMilestoneTasks,
   fetchOverViewTimeline,
   fetchMilestoneCalendar,
@@ -42,6 +43,7 @@ class OverviewScreen extends React.Component {
 
     this.props.fetchSubject();
     this.props.fetchMilestoneGroups();
+    this.props.fetchMilestones();
     this.props.fetchMilestoneTasks();
     this.props.fetchOverViewTimeline();
     this.props.fetchMilestoneCalendar();
@@ -128,6 +130,7 @@ const mapDispatchToProps = {
   fetchSubject,
   updateSubject,
   fetchMilestoneGroups,
+  fetchMilestones,
   fetchMilestoneTasks,
   fetchOverViewTimeline,
   fetchMilestoneCalendar,

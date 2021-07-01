@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import isEmpty from 'lodash/isEmpty';
 import filter from 'lodash/filter';
 import sortBy from 'lodash/sortBy';
+import find from 'lodash/find';
 
 import moment from 'moment';
 
@@ -78,12 +79,16 @@ class OverviewScreen extends React.Component {
   };
 
   screeningEvents = () => {
-    const { calendar } = this.props.milestones;
+    const { milestones, calendar } = this.props.milestones;
 
-    if (isEmpty(calendar.data)) return [];
+    if (isEmpty(calendar.data) || isEmpty(milestones.data)) return [];
 
     let screeningEvents = filter(calendar.data, s => {
       if (s.momentary_assessment || s.study_only !== 1 || s.completed_at) {
+        return false;
+      }
+      const milestone = find(milestones.data, { id: s.milestone_id });
+      if (!milestone.always_visible) {
         return false;
       }
       return true;
