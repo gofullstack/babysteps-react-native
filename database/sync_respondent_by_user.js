@@ -5,8 +5,6 @@ import isEmpty from 'lodash/isEmpty';
 
 import { store } from '../store';
 
-import { store } from '../store';
-
 import { getApiUrl } from './common';
 
 const apiToken = Constants.manifest.extra.apiToken;

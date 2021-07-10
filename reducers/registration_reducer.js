@@ -268,6 +268,9 @@ const reducer = (state = initialState, action, formData = {}) => {
     }
     case FETCH_RESPONDENT_FULFILLED: {
       const data = action.payload.rows['_array'][0];
+      if (data.api_id) {
+        data.id = data.api_id;
+      }
       return {
         ...state,
         respondent: {
@@ -461,6 +464,9 @@ const reducer = (state = initialState, action, formData = {}) => {
     }
     case FETCH_SUBJECT_FULFILLED: {
       const data = action.payload.rows['_array'][0];
+      if (data.api_id) {
+        data.id = data.api_id;
+      }
       return {
         ...state,
         subject: {

@@ -307,10 +307,18 @@ class MilestoneQuestionsScreen extends Component {
     });
 
     await _.map(newAttachments, async attachment => {
+      let user_id = user.data.id;
+      if (!user_id) {
+        user_id = user.data.api_id;
+      }
+      let subject_id = subject.data.id;
+      if (!subject_id) {
+        subject_id = subject.data.api_id;
+      }
       let newAttachment = {
         ...oldAttachment,
-        user_id: user.data.id,
-        subject_id: subject.data.id,
+        user_id,
+        subject_id,
         choice_id: choice.id,
         title: attachment.title,
         width: attachment.width,
@@ -428,7 +436,15 @@ class MilestoneQuestionsScreen extends Component {
         this.props.updateMilestoneAttachment(attachment);
 
         if (inStudy) {
-          UploadMilestoneAttachment(user.data.id, subject.data.id, attachment);
+          let user_id = user.data.id;
+          if (!user_id){
+            user_id = user.data.api_id;
+          }
+          let subject_id = subject.data.id;
+          if (!subject_id) {
+            subject_id = subject.data.api_id;
+          }
+          UploadMilestoneAttachment(user_id, subject_id, attachment);
         }
         if (
           attachment.content_type &&
