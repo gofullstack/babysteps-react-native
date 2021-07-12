@@ -176,8 +176,6 @@ class OverviewTimeline extends Component {
 
       if (_.isEmpty(section) || _.isEmpty(entry)) return;
 
-      if (_.isEmpty(section) || _.isEmpty(entry)) return;
-
       item = {
         ...item,
         task_id: section.task_id,
@@ -366,6 +364,7 @@ class OverviewTimeline extends Component {
   };
 
   render() {
+    const { choices } = this.props.milestones;
     const { overviewTimelines } = this.state;
     // refresh on update of images
     return (
@@ -384,6 +383,7 @@ class OverviewTimeline extends Component {
           onIndexChange={index =>
             this.setState(() => ({ currentIndexTimeLine: index }))
           }
+          extraData={choices}
         />
       </View>
     );

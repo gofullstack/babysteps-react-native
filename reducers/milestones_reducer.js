@@ -209,6 +209,7 @@ const reducer = (state = initialState, action, data = []) => {
     }
     case FETCH_MILESTONES_FULFILLED: {
       const data = action.payload.rows['_array'];
+
       return {
         ...state,
         milestones: {
@@ -397,6 +398,10 @@ const reducer = (state = initialState, action, data = []) => {
     }
     case FETCH_MILESTONE_CALENDAR_FULFILLED: {
       const data = action.payload.rows['_array'];
+      _.map(data, entry => {
+        entry.momentary_assessment = entry.momentary_assessment === 1;
+        entry.study_only = entry.study_only === 1;
+      })
       return {
         ...state,
         calendar: {
@@ -814,6 +819,13 @@ const reducer = (state = initialState, action, data = []) => {
     }
     case FETCH_MILESTONE_ANSWERS_FULFILLED: {
       let data = action.payload.rows['_array'];
+      _.map(data, answer => {
+        if (answer.answer_boolean === 'true') {
+          answer.answer_boolean = true;
+        } else {
+          answer.answer_boolean = false;
+        }
+      });
       return {
         ...state,
         answers: {

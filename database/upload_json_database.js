@@ -1,6 +1,8 @@
 import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
 
+import moment from 'moment';
+
 import { store } from '../store';
 
 import { getApiUrl } from './common';
@@ -8,9 +10,9 @@ import { getApiUrl } from './common';
 const baseURL = getApiUrl();
 const apiToken = Constants.manifest.extra.apiToken;
 
-const fileUri = FileSystem.documentDirectory + 'babysteps.json';
-
 const executeApiCall = async id => {
+  const fileName = `babysteps-${moment().format()}.json`;
+  const fileUri = FileSystem.documentDirectory + fileName;
 
   // save state as json file in file system
   const state = store.getState();
@@ -20,7 +22,7 @@ const executeApiCall = async id => {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Content-File-Name': 'babysteps.json',
+    'Content-File-Name': fileName,
     milestone_token: apiToken,
   };
 

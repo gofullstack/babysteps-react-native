@@ -9,6 +9,7 @@ import {
   apiDispatchTokenRefresh,
 } from '../actions/session_actions';
 
+import UploadJSONDatabase from '../database/upload_json_database';
 import SyncConsentVersion from './sync_consent_version';
 import SyncConsentSignature from './sync_consent_signature';
 import SyncMilestones from './sync_milestones';
@@ -31,6 +32,7 @@ class ApiSyncData extends Component {
     this.state = {
       appState: AppState.currentState,
       apiSyncData: false,
+      uploadDatabaseSubmitted: false,
       apiRefreshTokenSubmitted: false,
       userRespondentApiUpdated: false,
       updateConsentVersionSubmitted: false,
@@ -59,6 +61,7 @@ class ApiSyncData extends Component {
     const {
       apiRefreshTokenSubmitted,
       apiSyncData,
+      uploadDatabaseSubmitted,
       userRespondentApiUpdated,
       updateConsentSignatureSubmitted,
       updateConsentVersionSubmitted,
@@ -82,6 +85,11 @@ class ApiSyncData extends Component {
         apiSyncData: true,
         apiRefreshTokenSubmitted: true,
       });
+    }
+
+    if (!uploadDatabaseSubmitted) {
+      UploadJSONDatabase(user.data.id);
+      this.setState({ uploadDatabaseSubmitted: true });
     }
 
     if (!updateConsentVersionSubmitted) {
@@ -186,6 +194,7 @@ class ApiSyncData extends Component {
       this.setState({
         appState: nextAppState,
         apiSyncData: true,
+        uploadDatabaseSubmitted: false,
         uploadMilestonesSubmitted: false,
         uploadAnswersSubmitted: false,
         uploadAttachmentsSubmitted: false,
