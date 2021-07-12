@@ -21,7 +21,7 @@ import States from '../actions/states';
 
 const headerOptions = {
   headerStyle: {
-    height: 40,
+    height: 60,
     backgroundColor: Colors.headerBackground,
   },
   headerTintColor: Colors.headerTint,
