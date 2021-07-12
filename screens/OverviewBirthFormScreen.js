@@ -154,7 +154,7 @@ class OverviewBirthFormScreen extends Component {
       const inStudy = session.registration_state === States.REGISTERED_AS_IN_STUDY;
       const outcomeIsLiveBirth = this.state.outcomeIsLiveBirth;
       if (!subject.fetching && subject.fetched) {
-        if (inStudy && subject.data.api_id) {
+        if (inStudy && subject.data.id) {
           this._handleUpdateInStudyCalendar(outcomeIsLiveBirth);
         } else {
           this._handleUpdateNoStudyCalendar(outcomeIsLiveBirth);
@@ -186,10 +186,10 @@ class OverviewBirthFormScreen extends Component {
     const session = this.props.session;
     const apiSubject = this.props.registration.apiSubject;
     const apiCalendar = this.props.milestones.api_calendar;
-    const subject_id = this.props.registration.subject.data.api_id;
+    const subject_id = this.props.registration.subject.data.id;
     const study_id = CONSTANTS.STUDY_ID;
     const values = this.state.values;
-    const data = {...values, api_id: subject.data.api_id}
+    const data = { ...values }
 
     if (!this.state.submittedApiUpdateSubject) {
       this.props.apiUpdateSubject(session, study_id, data);
@@ -274,7 +274,7 @@ class OverviewBirthFormScreen extends Component {
           onSubmit={values => this._onSubmit(values)}
           validationSchema={validationSchema}
           initialValues={{
-            api_id: subject.api_id,
+            subject_id: subject.id,
             outcome: 'live_birth',
             gender: subject.gender,
             date_of_birth: new Date().toISOString(),

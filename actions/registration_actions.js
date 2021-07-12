@@ -6,8 +6,7 @@ import { _ } from 'lodash';
 
 import { apiTokenRefresh } from './session_actions';
 
-import { insertRows, getApiUrl, getUpdateSQL } from '../database/common';
-import schema from '../database/registration_schema.json';
+import { getApiUrl } from '../database/common';
 
 import Constants from 'expo-constants';
 import CONSTANTS from '../constants';
@@ -18,13 +17,9 @@ import {
   FETCH_USER_FULFILLED,
   FETCH_USER_REJECTED,
 
-  CREATE_USER_PENDING,
   CREATE_USER_FULFILLED,
-  CREATE_USER_REJECTED,
 
-  UPDATE_USER_PENDING,
   UPDATE_USER_FULFILLED,
-  UPDATE_USER_REJECTED,
 
   API_CREATE_USER_PENDING,
   API_CREATE_USER_FULFILLED,
@@ -36,13 +31,9 @@ import {
   FETCH_RESPONDENT_FULFILLED,
   FETCH_RESPONDENT_REJECTED,
 
-  CREATE_RESPONDENT_PENDING,
   CREATE_RESPONDENT_FULFILLED,
-  CREATE_RESPONDENT_REJECTED,
 
-  UPDATE_RESPONDENT_PENDING,
   UPDATE_RESPONDENT_FULFILLED,
-  UPDATE_RESPONDENT_REJECTED,
 
   API_CREATE_RESPONDENT_PENDING,
   API_CREATE_RESPONDENT_FULFILLED,
@@ -52,13 +43,6 @@ import {
   API_UPDATE_RESPONDENT_FULFILLED,
   API_UPDATE_RESPONDENT_REJECTED,
 
-  API_FETCH_USER_RESPONDENT_PENDING,
-  API_FETCH_USER_RESPONDENT_FULFILLED,
-  API_FETCH_USER_RESPONDENT_REJECTED,
-
-  API_FETCH_RESPONDENT_ATTACHMENTS_PENDING,
-  API_FETCH_RESPONDENT_ATTACHMENTS_FULFILLED,
-  API_FETCH_RESPONDENT_ATTACHMENTS_REJECTED,
 
   RESET_SUBJECT,
 
@@ -66,13 +50,9 @@ import {
   FETCH_SUBJECT_FULFILLED,
   FETCH_SUBJECT_REJECTED,
 
-  CREATE_SUBJECT_PENDING,
   CREATE_SUBJECT_FULFILLED,
-  CREATE_SUBJECT_REJECTED,
 
-  UPDATE_SUBJECT_PENDING,
   UPDATE_SUBJECT_FULFILLED,
-  UPDATE_SUBJECT_REJECTED,
 
   API_CREATE_SUBJECT_PENDING,
   API_CREATE_SUBJECT_FULFILLED,
@@ -81,10 +61,6 @@ import {
   API_UPDATE_SUBJECT_PENDING,
   API_UPDATE_SUBJECT_FULFILLED,
   API_UPDATE_SUBJECT_REJECTED,
-
-  API_FETCH_USER_SUBJECT_PENDING,
-  API_FETCH_USER_SUBJECT_FULFILLED,
-  API_FETCH_USER_SUBJECT_REJECTED,
 
   API_SYNC_REGISTRATION_PENDING,
   API_SYNC_REGISTRATION_FULFILLED,
@@ -146,61 +122,19 @@ export const fetchUser = () => {
   };
 };
 
-export const createUser = user => {
+export const createUser = data => {
   return function(dispatch) {
-    dispatch(Pending(CREATE_USER_PENDING));
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        'DELETE FROM users;',
-        [],
-        (_, rows) => console.log('** Clear users table'),
-        (_, error) => console.log('*** Error in clearing users table'),
-      );
-      tx.executeSql(
-        'INSERT INTO users (api_id, email, uid, password, first_name, last_name) VALUES (?, ?, ?, ?, ?, ?);',
-        [
-          user.api_id,
-          user.email,
-          user.uid,
-          user.password,
-          user.first_name,
-          user.last_name,
-        ],
-        (_, response) => {
-          dispatch(Response(CREATE_USER_FULFILLED, response, user));
-        },
-        (_, error) => {
-          dispatch(Response(CREATE_USER_REJECTED, error));
-        },
-      );
-    });
+    dispatch(Response(CREATE_USER_FULFILLED, data));
   };
 };
 
 export const updateUser = data => {
   return function(dispatch) {
-    dispatch(Pending(UPDATE_USER_PENDING));
-    const id = data.id;
-    delete data.id;
-    const updateSQL = getUpdateSQL(data);
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        `UPDATE users SET ${updateSQL.join(', ')} WHERE id = ${id};`,
-        [],
-        (_, response) => {
-          dispatch(Response(UPDATE_USER_FULFILLED, response, data));
-        },
-        (_, error) => {
-          dispatch(Response(UPDATE_USER_REJECTED, error));
-        },
-      );
-    });
+    dispatch(Response(UPDATE_USER_FULFILLED, data));
   };
 };
 
-export const apiCreateUser = user => {
+export const apiCreateUser = data => {
   return function(dispatch) {
     dispatch(Pending(API_CREATE_USER_PENDING));
     const baseURL = getApiUrl();
@@ -211,10 +145,10 @@ export const apiCreateUser = user => {
       responseType: 'json',
       baseURL,
       url,
-      data: user,
+      data,
     })
       .then(response => {
-        dispatch(Response(API_CREATE_USER_FULFILLED, response, user));
+        dispatch(Response(API_CREATE_USER_FULFILLED, response, data));
       })
       .catch(error => {
         dispatch(Response(API_CREATE_USER_REJECTED, error));
@@ -247,25 +181,20 @@ export const resetRespondent = () => {
   };
 };
 
-export const createRespondent = respondent => {
+export const createRespondent = data => {
   return function(dispatch) {
-    dispatch(Pending(CREATE_RESPONDENT_PENDING));
-
-    insertRows('respondents', schema['respondents'], [respondent]);
-    dispatch(Response(CREATE_RESPONDENT_FULFILLED, null, respondent));
+    dispatch(Response(CREATE_RESPONDENT_FULFILLED, data));
   };
 };
 
-export const apiCreateRespondent = data => {
-  //delete data.id;
-  delete data.api_id;
+export const apiCreateRespondent = respondent => {
 
   return function(dispatch) {
     dispatch({
       type: API_CREATE_RESPONDENT_PENDING,
       payload: {
         data: {
-          respondent: data,
+          respondent,
         },
       },
       meta: {
@@ -284,36 +213,20 @@ export const apiCreateRespondent = data => {
 
 export const updateRespondent = data => {
   return function(dispatch) {
-    dispatch(Pending(UPDATE_RESPONDENT_PENDING));
-    delete data.id;
-    const updateSQL = getUpdateSQL(data);
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        `UPDATE respondents SET ${updateSQL.join(', ')};`,
-        [],
-        (_, response) => {
-          dispatch(Response(UPDATE_RESPONDENT_FULFILLED, response, data));
-        },
-        (_, error) => {
-          dispatch(Response(UPDATE_RESPONDENT_REJECTED, error));
-        },
-      );
-    });
+    dispatch(Response(UPDATE_RESPONDENT_FULFILLED, data));
   };
 };
 
-export const apiUpdateRespondent = (session, data) => {
-  const api_id = data.api_id;
-  delete data.id;
-  delete data.api_id;
+export const apiUpdateRespondent = (session, respondent) => {
+  const id = respondent.id;
+  delete respondent.id;
 
   return function(dispatch) {
     dispatch({
       type: API_UPDATE_RESPONDENT_PENDING,
       payload: {
         data: {
-          respondent: data,
+          respondent,
         },
         session,
       },
@@ -321,7 +234,7 @@ export const apiUpdateRespondent = (session, data) => {
         offline: {
           effect: {
             method: 'PUT',
-            url: `/respondents/${api_id}`,
+            url: `/respondents/${id}`,
             fulfilled: API_UPDATE_RESPONDENT_FULFILLED,
             rejected: API_UPDATE_RESPONDENT_REJECTED,
           },
@@ -353,69 +266,13 @@ export const fetchSubject = () => {
   };
 };
 
-export const createSubject = subject => {
+export const createSubject = data => {
   return function(dispatch) {
-    dispatch(Pending(CREATE_SUBJECT_PENDING));
-
-    const sql =
-      'INSERT INTO subjects ( \
-        first_name, \
-        last_name, \
-        middle_name, \
-        gender, \
-        conception_method, \
-        expected_date_of_birth, \
-        date_of_birth, \
-        days_premature, \
-        screening_blood, \
-        screening_blood_notification, \
-        screening_blood_physician_notification, \
-        screening_blood_other, \
-        video_presentation, \
-        video_sharing \
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
-
-    const values = [
-      subject.first_name,
-      subject.last_name,
-      subject.middle_name,
-      subject.gender,
-      subject.conception_method,
-      subject.expected_date_of_birth,
-      subject.date_of_birth,
-      subject.days_premature,
-      subject.screening_blood,
-      subject.screening_blood_notification,
-      subject.screening_blood_physician_notification,
-      subject.screening_blood_other,
-      subject.video_presentation,
-      subject.video_sharing,
-    ];
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        'DELETE FROM subjects',
-        [],
-        (_, rows) => console.log('** Clear subjects table'),
-        (_, error) => console.log('*** Error in clearing subjects table'),
-      );
-      tx.executeSql(
-        sql,
-        values,
-        (_, response) => {
-          dispatch(Response(CREATE_SUBJECT_FULFILLED, response, subject));
-        },
-        (_, error) => {
-          dispatch(Response(CREATE_SUBJECT_REJECTED, error));
-        },
-      );
-    });
+    dispatch(Response(CREATE_SUBJECT_FULFILLED, data));
   };
 };
 
-export const apiCreateSubject = (study_id, data) => {
-  //delete data.id;
-  delete data.api_id;
+export const apiCreateSubject = (study_id, subject) => {
 
   return function(dispatch) {
     dispatch({
@@ -423,7 +280,7 @@ export const apiCreateSubject = (study_id, data) => {
       payload: {
         data: {
           study_id,
-          subject: data,
+          subject,
         },
       },
       meta: {
@@ -442,29 +299,13 @@ export const apiCreateSubject = (study_id, data) => {
 
 export const updateSubject = data => {
   return function(dispatch) {
-    dispatch(Pending(UPDATE_SUBJECT_PENDING));
-    delete data.id;
-    const updateSQL = getUpdateSQL(data);
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        `UPDATE subjects SET ${updateSQL.join(', ')};`,
-        [],
-        (_, response) => {
-          dispatch(Response(UPDATE_SUBJECT_FULFILLED, response, data));
-        },
-        (_, error) => {
-          dispatch(Response(UPDATE_SUBJECT_REJECTED, error));
-        },
-      );
-    });
+    dispatch(Response(UPDATE_SUBJECT_FULFILLED, data));
   };
 };
 
-export const apiUpdateSubject = (session, study_id, data) => {
-  const api_id = data.api_id;
-  delete data.id;
-  delete data.api_id;
+export const apiUpdateSubject = (session, study_id, subject) => {
+  const id = subject.id;
+  delete subject.id;
 
   return function(dispatch) {
     dispatch({
@@ -472,7 +313,7 @@ export const apiUpdateSubject = (session, study_id, data) => {
       payload: {
         data: {
           study_id,
-          subject: data,
+          subject,
         },
         session,
       },
@@ -480,7 +321,7 @@ export const apiUpdateSubject = (session, study_id, data) => {
         offline: {
           effect: {
             method: 'PUT',
-            url: `/subjects/${api_id}`,
+            url: `/subjects/${id}`,
             fulfilled: API_UPDATE_SUBJECT_FULFILLED,
             rejected: API_UPDATE_SUBJECT_REJECTED,
           },
@@ -510,21 +351,6 @@ export const apiSyncRegistration = user_id => {
         },
       })
         .then(response => {
-          if (response.status !== 404) {
-            const data = response.data;
-            if (data.respondents) {
-              const respondents = data.respondents;
-              // respondent id becomes api id in sqlite
-              respondents[0].api_id = respondents[0].id;
-              insertRows('respondents', schema['respondents'], respondents);
-            }
-            if (data.subjects) {
-              const subjects = data.subjects;
-              // subject id becomes api id in sqlite
-              subjects[0].api_id = subjects[0].id;
-              insertRows('subjects', schema['subjects'], subjects);
-            }
-          }
           dispatch(Response(API_SYNC_REGISTRATION_FULFILLED, response));
         })
         .catch(error => {
@@ -613,9 +439,6 @@ export const apiFetchConsent = study_id => {
       })
         .then(response => {
           const consent = response.data;
-          // consent id becomes api id in sqlite
-          consent.api_id = consent.id;
-          insertRows('consents', schema['consents'], [consent]);
           dispatch(Response(API_FETCH_CONSENT_FULFILLED, consent));
         })
         .catch(error => {

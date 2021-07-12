@@ -11,7 +11,6 @@ import Timeline from 'react-native-timeline-listview'
 import { _ } from 'lodash';
 
 import { connect} from 'react-redux';
-import { fetchBabyBookEntries } from '../actions/babybook_actions';
 
 import Colors from '../constants/Colors';
 import '@expo/vector-icons';
@@ -44,14 +43,6 @@ class BabyBookTimelineScreen extends Component {
         </View>
       )
     })
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return (!this.props.babybook.entries.fetching)
-  }
-
-  onEventPress(data) {
-    
   }
 
   render() {
@@ -139,7 +130,6 @@ const styles = StyleSheet.create({
   }
 });
 
-const mapStateToProps = ({ babybook }) => ({ babybook })
-const mapDispatchToProps = { fetchBabyBookEntries }
+const mapStateToProps = ({ babybook }) => ({ babybook });
 
-export default connect( mapStateToProps, mapDispatchToProps )( BabyBookTimelineScreen )
+export default connect(mapStateToProps)(BabyBookTimelineScreen);

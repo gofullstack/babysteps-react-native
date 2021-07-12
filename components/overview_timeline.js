@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import {
   Image,
   Text,
@@ -7,21 +7,18 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  AppState,
 } from 'react-native';
 
 import SideSwipe from 'react-native-sideswipe';
 import { showMessage } from 'react-native-flash-message';
 
-import find from 'lodash/find';
-import findIndex from 'lodash/findIndex';
-import forEach from 'lodash/forEach';
-import remove from 'lodash/remove';
-import isEmpty from 'lodash/isEmpty';
+import { _ } from 'lodash';
 
 import moment from 'moment';
 
 import { connect } from 'react-redux';
-import { fetchOverViewTimeline } from '../actions/milestone_actions';
+import { updateMilestoneFeedbackCount } from '../actions/session_actions';
 
 import Colors from '../constants/Colors';
 import CONSTANTS from '../constants';
@@ -40,50 +37,72 @@ const tlCardHeight = tlPhotoSize + 30;
 const tlCardWidth = tlPhotoSize;
 const tlCardMargin = (width - (tlCardWidth * 4)) / 8;
 
-class OverviewTimeline extends React.Component {
+class OverviewTimeline extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      appState: AppState.currentState,
       sliderLoading: true,
       overviewTimelines: [],
       overviewTimelinesLoaded: false,
       currentTimeline: {},
     };
-    // returning from other screen
+
+    // returning from questions screen
     this.props.navigation.addListener('willFocus', () => {
       this.setState({ overviewTimelinesLoaded: false });
     });
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    const { subject } = nextProps.registration;
-    const { overview_timeline } = nextProps.milestones;
-    return !subject.fetching && !overview_timeline.fetching;
+  componentDidMount() {
+    AppState.addEventListener('change', this.handleAppStateChange);
+    this.setState({ overviewTimelinesLoaded: false });
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    const { subject } = this.props.registration;
-    const { overview_timeline } = this.props.milestones;
-    const { overviewTimelinesLoaded } = this.state;
+  shouldComponentUpdate(nextProps) {
+    const { api_milestones, api_calendar } = nextProps.milestones;
+    return !api_milestones.fetching && !api_calendar.fetching;
+  }
 
-    if (
-      !isEmpty(subject.data) &&
-      !isEmpty(overview_timeline.data) &&
-      !overviewTimelinesLoaded
-    ) {
+  componentDidUpdate() {
+    const { overviewTimelinesLoaded } = this.state;
+    if (!overviewTimelinesLoaded) {
       this.constructOverviewTimeline();
+      this.props.updateMilestoneFeedbackCount();
     }
   }
 
+  componentWillUnmount() {
+    AppState.removeEventListener('change');
+  }
+
+  handleAppStateChange = nextAppState => {
+    const { appState } = this.state;
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.setState({ overviewTimelinesLoaded: false, appState: nextAppState });
+    } else {
+      this.setState({ appState: nextAppState });
+    }
+  };
+
   constructOverviewTimeline = () => {
-    const { date_of_birth, expected_date_of_birth } = this.props.registration.subject.data;
-    const { overview_timeline } = this.props.milestones;
-    const overviewTimelines = [...overview_timeline.data];
+    const {
+      date_of_birth,
+      expected_date_of_birth
+    } = this.props.registration.subject.data;
+    const {
+      sections,
+      questions,
+      choices,
+      answers,
+      attachments,
+      calendar,
+    } = this.props.milestones;
 
     // leave verbose so it's easier to understand
-    let postBirth = false;
     let baseDate = moment();
+    let postBirth = false;
 
     if (date_of_birth) {
       baseDate = moment(date_of_birth, 'YYYY-MM-DD');
@@ -92,31 +111,87 @@ class OverviewTimeline extends React.Component {
       baseDate = moment(expected_date_of_birth, 'YYYY-MM-DD');
     }
 
-    remove(overviewTimelines, item => {
+    // get choices which should appear on timeline
+    let overviewTimelines = _.filter(choices.data, choice => {
+      return ['during_pregnancy', 'birth', 'post_birth'].includes(choice.overview_timeline);
+    });
+
+    // get attachment if exists
+    for (const key in overviewTimelines) {
+
+      const item = {
+        ...overviewTimelines[key],
+        choice_id: null,
+        attachment_id: null,
+        filename: '',
+        content_type: '',
+        uri: '',
+      };
+
+      const attachment = _.find(attachments.data, ['choice_id', item.id]);
+      if (!_.isEmpty(attachment)) {
+        item.attachment_id = attachment.id;
+        item.filename = attachment.filename;
+        item.content_type = attachment.content_type;
+        item.uri = attachment.uri;
+      }
+      overviewTimelines[key] = item;
+    }
+
+    // remove premature or outdated tasks
+    overviewTimelines = _.filter(overviewTimelines, item => {
+
       if (item.overview_timeline === 'birth') {
-        if (!postBirth) return false;
+        if (!postBirth) return true;
       }
       // remove if not complete and after available_end_at
       if (!item.uri && moment().isAfter(item.available_end_at)) {
-        return true;
+        return false;
       }
       // tasks for pre-birth period
       if (item.overview_timeline === 'during_pregnancy') {
         // return all if during pre-birth or birth period
-        if (!postBirth) return false;
+        if (!postBirth) return true;
         // only completed pre-birth tasks after birth
-        if (postBirth && item.uri) return false;
+        if (postBirth && item.uri) return true;
       }
       // all post-birth tasks only if post-birth
       if (item.overview_timeline === 'post_birth') {
-        if (postBirth) return false;
+        if (postBirth) return true;
       }
-      // otherwise remove
-      return true;
+      // otherwise filter out
+      return false;
     });
 
+    // add attributes
+    for (const key in overviewTimelines) {
+
+      let item = overviewTimelines[key];
+
+      const question = _.find(questions.data, ['id', item.question_id]);
+      if (_.isEmpty(question)) return;
+
+      const section = _.find(sections.data, ['id', question.section_id]);
+      const entry = _.find(calendar.data, ['task_id', section.task_id]);
+
+      if (_.isEmpty(section) || _.isEmpty(entry)) return;
+
+      item = {
+        ...item,
+        task_id: section.task_id,
+        choice_id: item.id,
+        title: section.title,
+        milestone_trigger_id: entry.id,
+        notify_at: entry.notify_at,
+        available_start_at: entry.available_start_at,
+        available_end_at: entry.available_end_at,
+      };
+
+      overviewTimelines[key] = item;
+    }
+
     // calculate weeks
-    forEach(overviewTimelines, item => {
+    _.forEach(overviewTimelines, item => {
       const notify_at = moment(item.notify_at, moment.ISO_8601);
       if (item.overview_timeline === 'during_pregnancy') {
         item.weeks = 40 - moment(baseDate).diff(notify_at, 'weeks');
@@ -130,11 +205,11 @@ class OverviewTimeline extends React.Component {
     });
 
     // move birth to end
-    const birth = remove(overviewTimelines, ['overview_timeline', 'birth']);
-    if (!isEmpty(birth)) overviewTimelines.push(birth[0]);
+    const birth = _.find(overviewTimelines, ['overview_timeline', 'birth']);
+    if (!_.isEmpty(birth)) overviewTimelines.push(birth);
 
     // find current incomplete task
-    let currentIndexTimeline = findIndex(overviewTimelines, item => {
+    let currentIndexTimeline = _.findIndex(overviewTimelines, item => {
       return (
         !item.uri &&
         moment().isAfter(item.available_start_at) &&
@@ -143,7 +218,7 @@ class OverviewTimeline extends React.Component {
     });
     // if none, find current task
     if (currentIndexTimeline === -1) {
-      currentIndexTimeline = findIndex(overviewTimelines, item => {
+      currentIndexTimeline = _.findIndex(overviewTimelines, item => {
         return (
           moment().isAfter(item.available_start_at) &&
           moment().isBefore(item.available_end_at)
@@ -152,7 +227,7 @@ class OverviewTimeline extends React.Component {
     }
     // if none, find first incomplete
     if (currentIndexTimeline === -1) {
-      currentIndexTimeline = findIndex(overviewTimelines, item => {
+      currentIndexTimeline = _.findIndex(overviewTimelines, item => {
         return !item.uri;
       });
     }
@@ -198,7 +273,9 @@ class OverviewTimeline extends React.Component {
 
   renderContent = item => {
     const { navigate } = this.props.navigation;
-    const tasks = this.props.milestones.tasks.data;
+    const { tasks } = this.props.milestones;
+
+    const task = _.find(tasks.data, { id: item.task_id });
     const currentTimeline = this.state.currentTimeline.choice_id === item.choice_id;
     const currentStyle = currentTimeline ? styles.timelineCurrentItem : {};
     const available_start_at = moment(item.available_start_at, moment.ISO_8601);
@@ -206,7 +283,6 @@ class OverviewTimeline extends React.Component {
     const available =
       moment().isAfter(available_start_at) &&
       moment().isBefore(available_end_at);
-    const task = find(tasks, { id: item.task_id });
 
     if (item.uri) {
       return (
@@ -288,6 +364,7 @@ class OverviewTimeline extends React.Component {
   };
 
   render() {
+    const { choices } = this.props.milestones;
     const { overviewTimelines } = this.state;
     // refresh on update of images
     return (
@@ -306,6 +383,7 @@ class OverviewTimeline extends React.Component {
           onIndexChange={index =>
             this.setState(() => ({ currentIndexTimeLine: index }))
           }
+          extraData={choices}
         />
       </View>
     );
@@ -394,11 +472,9 @@ const mapStateToProps = ({ milestones, registration }) => ({
   registration,
 });
 
-const mapDispatchToProps = {
-  fetchOverViewTimeline,
-};
+const mapDispatchToProps = { updateMilestoneFeedbackCount };
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  mapDispatchToProps
 )(OverviewTimeline);

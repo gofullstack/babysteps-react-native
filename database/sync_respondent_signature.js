@@ -1,7 +1,6 @@
 import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
-import * as SQLite from 'expo-sqlite';
 
 import { getApiUrl } from './common';
 

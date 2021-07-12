@@ -252,15 +252,12 @@ class MilestonePregnancyHistoryScreen extends Component {
 
     if (!_.isEmpty(user.data)) {
       answer.user_id = user.data.id;
-      answer.user_api_id = user.data.api_id;
     }
     if (!_.isEmpty(respondent.data)) {
       answer.respondent_id = respondent.data.id;
-      answer.respondent_api_id = respondent.data.api_id;
     }
     if (!_.isEmpty(subject.data)) {
       answer.subject_id = subject.data.id;
-      answer.subject_api_id = subject.data.api_id;
     }
     _.assign(answer, response);
     answers.push(answer);

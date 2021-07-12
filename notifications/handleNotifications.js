@@ -7,7 +7,6 @@ import { showMessage } from 'react-native-flash-message';
 import find from 'lodash/find';
 
 import { connect } from 'react-redux';
-import { fetchSession } from '../actions/session_actions';
 
 import NavigationService from '../navigation/NavigationService';
 
@@ -23,8 +22,6 @@ class HandleNotifications extends PureComponent {
     this.state = {
       requestedPushToken: false,
     };
-
-    this.props.fetchSession();
   }
 
   componentDidMount() {
@@ -45,7 +42,10 @@ class HandleNotifications extends PureComponent {
   handleNotificationOnPress = data => {
     const tasks = this.props.milestones.tasks.data;
     const task = find(tasks, ['id', data.task_id]);
-    NavigationService.navigate('MilestoneQuestions', { task });
+    NavigationService.navigate('MilestoneQuestions', {
+      task,
+      feedback: data.feedback,
+    });
   };
 
   handleMomentaryAssessment = data => {
@@ -78,18 +78,13 @@ class HandleNotifications extends PureComponent {
   }
 }
 
-const mapStateToProps = ({
-  session,
-  registration,
-  milestones,
-}) => ({
+const mapStateToProps = ({ session, registration, milestones }) => ({
   session,
   registration,
   milestones,
 });
 
 const mapDispatchToProps = {
-  fetchSession,
   showMomentaryAssessment,
 };
 

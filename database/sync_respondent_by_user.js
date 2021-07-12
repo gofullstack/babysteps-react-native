@@ -1,12 +1,12 @@
 import axios from 'axios';
-import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
 import isEmpty from 'lodash/isEmpty';
 
+import { store } from '../store';
+
 import { getApiUrl } from './common';
 
-const db = SQLite.openDatabase('babysteps.db');
 const apiToken = Constants.manifest.extra.apiToken;
 const baseURL = getApiUrl();
 const headers = { milestone_token: apiToken };
@@ -51,27 +51,11 @@ const SyncRespondentByUser = async user_id => {
         const { respondents } = response.data;
 
         if (isEmpty(respondents)) {
-          db.transaction(tx => {
-            tx.executeSql(
-              `SELECT * FROM respondents LIMIT 1;`,
-              [],
-              (_, response) => {
-                const respondent = response.rows['_array'][0];
-                const data = {
-                  ...respondent,
-                  id: respondent.api_id,
-                };
-                delete data.api_id;
-                if (!data.respondent_type) data.respondent_type = 'mother';
-                //console.log({ respondent: data });
-                //console.log({ session })
-                executeApiCall(respondent.api_id, data);
-              },
-              (_, error) => {
-                console.log(error);
-              },
-            );
-          });
+          const state = store.getState();
+          const data = state.registration.respondent.data;
+          const id = data.id;
+          delete data.id;
+          executeApiCall(id, data);
         } else {
           console.log('*** Respondent Exists on Server');
         }

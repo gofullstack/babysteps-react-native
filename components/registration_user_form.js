@@ -13,12 +13,8 @@ import withInputAutoFocus, {
 } from 'react-native-formik';
 
 import { connect } from 'react-redux';
-import {
-  createUser,
-  fetchUser,
-  apiCreateUser,
-} from '../actions/registration_actions';
-import { fetchSession, updateSession } from '../actions/session_actions';
+import { createUser, apiCreateUser } from '../actions/registration_actions';
+import { updateSession } from '../actions/session_actions';
 
 import TextFieldWithLabel from './textFieldWithLabel';
 
@@ -56,7 +52,6 @@ class RegistrationUserForm extends Component {
       apiErrorMessage: '',
       apiUserSubmitted: false,
     };
-    this.props.fetchSession();
   }
 
   componentDidMount() {
@@ -71,10 +66,8 @@ class RegistrationUserForm extends Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const session = nextProps.session;
-    const { user, apiUser } = nextProps.registration;
-
-    return !session.fetching && !user.fetching && !apiUser.fetching;
+    const { apiUser } = nextProps.registration;
+    return !apiUser.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -82,14 +75,18 @@ class RegistrationUserForm extends Component {
     const { user, auth, apiUser } = this.props.registration;
     const { isSubmitting, apiUserSubmitted } = this.state;
     if (isSubmitting) {
-      if (user.fetched && !isEmpty(user.data) && !apiUserSubmitted) {
+      if (!isEmpty(user.data) && !apiUserSubmitted) {
         this.props.apiCreateUser(user.data);
-        this.setState({ apiUserSubmitted: true });
+        this.setState({ apiUserSubmitted: true, apiErrorMessage: ''});
         return;
       }
       if (apiUser.error) {
         const apiErrorMessage = apiUser.error;
-        this.setState({ isSubmitting: false, apiErrorMessage });
+        this.setState({
+          isSubmitting: false,
+          apiUserSubmitted: false,
+          apiErrorMessage,
+        });
         return;
       }
       if (apiUser.fetched) {
@@ -98,13 +95,12 @@ class RegistrationUserForm extends Component {
           access_token: auth.accessToken,
           client: auth.client,
           uid: auth.uid,
-          user_api_id: auth.user_id,
+          user_id: auth.user_id,
           email: apiUser.data.email,
           password: apiUser.data.password,
           uid: apiUser.data.email,
           registration_state,
         });
-        SyncMilestones(CONSTANTS.STUDY_ID, session.milestones_last_updated_at);
       } // apiUser.fetched
     } // isSubmitting
   }
@@ -240,10 +236,8 @@ const mapStateToProps = ({ session, registration }) => ({
   registration,
 });
 const mapDispatchToProps = {
-  fetchSession,
   updateSession,
   createUser,
-  fetchUser,
   apiCreateUser,
 };
 

@@ -1,16 +1,13 @@
 import axios from 'axios';
-import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 
 import Moment from 'moment';
 
-import store from '../store';
+import { store } from '../store';
 import { updateSession } from '../actions/session_actions';
 import { apiFetchMilestones } from '../actions/milestone_actions';
 
 import { getApiUrl } from './common';
-
-const db = SQLite.openDatabase('babysteps.db');
 
 const baseURL = getApiUrl();
 const url = '/milestones';

@@ -4,11 +4,9 @@ import Constants from 'expo-constants';
 import axios from 'axios';
 import { _ } from 'lodash';
 
-import store from '../store';
+import { store } from '../store';
 
-import { insertRows, getApiUrl } from '../database/common';
-
-import schema from '../database/registration_schema.json';
+import { getApiUrl } from '../database/common';
 
 import {
   API_TOKEN_REFRESH_PENDING,
@@ -23,23 +21,17 @@ import {
   FETCH_SESSION_FULFILLED,
   FETCH_SESSION_REJECTED,
 
-  UPDATE_SESSION_PENDING,
   UPDATE_SESSION_FULFILLED,
-  UPDATE_SESSION_REJECTED,
-
-  UPDATE_CONNECTION_TYPE,
 
   UPDATE_SESSION_PENDING_ACTIONS_PENDING,
   UPDATE_SESSION_PENDING_ACTIONS_FULFILLED,
   UPDATE_SESSION_PENDING_ACTIONS_REJECTED,
 
-  DISPATCH_SESSION_PENDING_ACTIONS_PENDING,
-  DISPATCH_SESSION_PENDING_ACTIONS_FULFILLED,
-  DISPATCH_SESSION_PENDING_ACTIONS_REJECTED,
-
   API_FETCH_SIGNIN_PENDING,
   API_FETCH_SIGNIN_FULFILLED,
   API_FETCH_SIGNIN_REJECTED,
+
+  CREATE_USER_FULFILLED,
 
 } from './types';
 
@@ -74,43 +66,16 @@ export const fetchSession = () => {
   };
 };
 
-const sendSessionUpdate = (dispatch, data) => {
-  dispatch(Pending(UPDATE_SESSION_PENDING));
-
-  if (data.registration_state) {
-    const registration_state = store.getState().session.registration_state;
-    data.last_registration_state = registration_state;
-  }
-
-  const keys = _.keys(data);
-  const updateSQL = [];
-  _.forEach(keys, key => {
-    if (typeof data[key] === 'boolean') {
-      const boolean = data[key] ? 1 : 0;
-      updateSQL.push(`${key} = ${boolean}`);
-    } else {
-      updateSQL.push(`${key} = '${data[key]}'`);
-    }
-  });
-
-  return db.transaction(tx => {
-    tx.executeSql(
-      `UPDATE sessions SET ${updateSQL.join(', ')};`,
-      [],
-      (_, response) => dispatch(Response(UPDATE_SESSION_FULFILLED, response, data)),
-      (_, error) => dispatch(Response(UPDATE_SESSION_REJECTED, error)),
-    );
-  });
-};
-
 export const updateSession = data => {
   return dispatch => {
-    sendSessionUpdate(dispatch, data);
+    dispatch(Response(UPDATE_SESSION_FULFILLED, data));
   };
 };
 
 export const apiUpdateSession = (dispatch, data) => {
-  return sendSessionUpdate(dispatch, data);
+  return dispatch => {
+    dispatch(Response(UPDATE_SESSION_FULFILLED, data));
+  };
 };
 
 export const apiTokenRefresh = (dispatch, session) => {
@@ -147,33 +112,21 @@ export const apiTokenRefreshFailed = () => {
   };
 };
 
-export const updatePendingActions = (dispatch, actions) => {
+export const updatePendingActions = actions => {
+  const dispatch = store.dispatch;
   dispatch(Pending(UPDATE_SESSION_PENDING_ACTIONS_PENDING));
-  return db.transaction(tx => {
-    tx.executeSql(
-      'UPDATE sessions SET pending_actions = ?;',
-      [JSON.stringify(actions)],
-      (_, response) => dispatch(Response(UPDATE_SESSION_PENDING_ACTIONS_FULFILLED, actions)),
-      (_, error) => dispatch(Response(UPDATE_SESSION_PENDING_ACTIONS_REJECTED, error)),
-    );
-  });
+  return function(dispatch) {
+    dispatch(Response(UPDATE_SESSION_PENDING_ACTIONS_FULFILLED, JSON.stringify(actions)));
+  };
 };
 
 export const dispatchPendingActions = pending_actions => {
   return function(dispatch) {
-    dispatch(Pending(DISPATCH_SESSION_PENDING_ACTIONS_PENDING));
+    dispatch(Pending(UPDATE_SESSION_PENDING_ACTIONS_PENDING));
     _.forEach(pending_actions, action => {
       dispatch(decodePendingAction(action));
     });
-
-    return db.transaction(tx => {
-      tx.executeSql(
-        'UPDATE sessions SET pending_actions = ?;',
-        [JSON.stringify([])],
-        (_, response) => dispatch(Response(DISPATCH_SESSION_PENDING_ACTIONS_FULFILLED, response)),
-        (_, error) => dispatch(Response(DISPATCH_SESSION_PENDING_ACTIONS_REJECTED, error)),
-      );
-    });
+    dispatch(Response(DISPATCH_SESSION_PENDING_ACTIONS_FULFILLED));
   };
 };
 
@@ -190,12 +143,6 @@ export const decodePendingAction = action => {
     }
   }
   return action;
-};
-
-export const updateConnectionType = type => {
-  return function(dispatch) {
-    dispatch(Response(UPDATE_CONNECTION_TYPE, type));
-  };
 };
 
 // this fetches acknowledgement of user from api
@@ -217,32 +164,27 @@ export const apiFetchSignin = (email, password) => {
       })
         .then(response => {
           const { data } = response.data;
-          const user = {...data, api_id: data.id, email, password}
-
-          db.transaction(tx => {
-            tx.executeSql(
-              'UPDATE sessions SET email = ?, password = ?, uid = ?, user_api_id = ?;',
-              [email, password, data.uid, data.id],
-              (_, response) => {
-                dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, user));
-              },
-              (_, error) => dispatch(Response(API_FETCH_SIGNIN_REJECTED, error)),
-            );
-          });
-          insertRows('users', schema.users, [
-            {
-              first_name: data.first_name,
-              last_name: data.last_name,
-              api_id: data.id,
-              email,
-              uid: data.uid,
-              password,
-            },
-          ]);
+          const user = { ...data, email, password };
+          dispatch(Response(API_FETCH_SIGNIN_FULFILLED, response, user));
+          dispatch(Response(CREATE_USER_FULFILLED, user));
         })
         .catch(error => {
           dispatch(Response(API_FETCH_SIGNIN_REJECTED, error));
         });
     }); // return Promise
+  }; // return dispatch
+};
+
+// this fetches acknowledgement of user from api
+export const updateMilestoneFeedbackCount = () => {
+  const state = store.getState();
+  const { calendar } = state.milestones;
+  let milestone_feedback_count = 0;
+  _.forEach(calendar.data, entry => {
+    const feedbacks = _.filter(entry.milestone_feedbacks, {'completed_at': null});
+    milestone_feedback_count += feedbacks.length;
+  });
+  return dispatch => {
+    dispatch(updateSession({ milestone_feedback_count }));
   }; // return dispatch
 };

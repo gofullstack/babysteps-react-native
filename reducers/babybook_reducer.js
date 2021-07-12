@@ -5,13 +5,9 @@ import {
   FETCH_BABYBOOK_ENTRIES_FULFILLED,
   FETCH_BABYBOOK_ENTRIES_REJECTED,
 
-  CREATE_BABYBOOK_ENTRY_PENDING,
   CREATE_BABYBOOK_ENTRY_FULFILLED,
-  CREATE_BABYBOOK_ENTRY_REJECTED,
 
-  UPDATE_BABYBOOK_ENTRY_PENDING,
   UPDATE_BABYBOOK_ENTRY_FULFILLED,
-  UPDATE_BABYBOOK_ENTRY_REJECTED,
 
   API_CREATE_BABYBOOK_ENTRY_PENDING,
   API_CREATE_BABYBOOK_ENTRY_FULFILLED,
@@ -27,18 +23,6 @@ import { _ } from 'lodash';
 
 const initialState = {
   entries: {
-    fetching: false,
-    fetched: false,
-    error: null,
-    data: [],
-  },
-  entry: {
-    fetching: false,
-    fetched: false,
-    error: null,
-    data: [],
-  },
-  api_entry: {
     fetching: false,
     fetched: false,
     error: null,
@@ -60,20 +44,6 @@ const reducer = (state = initialState, action, data=[]) => {
         ...state,
         entries: {
           ...state.entries,
-          fetching: false,
-          fetched: false,
-          error: null,
-          data: [],
-        },
-        entry: {
-          ...state.entry,
-          fetching: false,
-          fetched: false,
-          error: null,
-          data: [],
-        },
-        api_entry: {
-          ...state.api_entry,
           fetching: false,
           fetched: false,
           error: null,
@@ -127,73 +97,43 @@ const reducer = (state = initialState, action, data=[]) => {
       };
     }
 
-    case CREATE_BABYBOOK_ENTRY_PENDING: {
-      return {
-        ...state,
-        entry: {
-          ...state.entry,
-          fetching: true,
-          fetched: false,
-          error: null,
-          data: [],
-        },
-      };
-    }
     case CREATE_BABYBOOK_ENTRY_FULFILLED: {
+      const entry = action.payload;
+      const data = [...state.entries.data];
+      data.push(entry);
+
       return {
         ...state,
-        entry: {
-          ...state.entry,
+        entries: {
+          ...state.entries,
           fetching: false,
           fetched: true,
           error: null,
           data,
-        },
-      };
-    }
-    case CREATE_BABYBOOK_ENTRY_REJECTED: {
-      return {
-        ...state,
-        entry: {
-          ...state.entry,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
         },
       };
     }
 
-    case UPDATE_BABYBOOK_ENTRY_PENDING: {
-      return {
-        ...state,
-        entry: {
-          ...state.entry,
-          fetching: true,
-          fetched: false,
-          error: null,
-        },
-      };
-    }
     case UPDATE_BABYBOOK_ENTRY_FULFILLED: {
+      let entry = action.payload;
+      const data = [...state.entries.data];
+      const index = _.findIndex(data, ['choice_id', entry.choice_id]);
+
+      if (index === -1) {
+        console.log(`*** Answer Not Updated - Not Found: choice_id: ${entry.choice_id}`);
+      } else {
+        entry.data = {...data[index], ...entry.data};
+        data[index] = entry.data;
+      }
+
       return {
         ...state,
-        entry: {
-          ...state.entry,
+        entries: {
+          ...state.entries,
           fetching: false,
           fetched: true,
           error: null,
           data,
-        },
-      };
-    }
-    case UPDATE_BABYBOOK_ENTRY_REJECTED: {
-      return {
-        ...state,
-        entry: {
-          ...state.entry,
-          fetching: false,
-          fetched: false,
-          error: action.payload,
         },
       };
     }
@@ -201,8 +141,8 @@ const reducer = (state = initialState, action, data=[]) => {
     case API_CREATE_BABYBOOK_ENTRY_PENDING: {
       return {
         ...state,
-        api_entry: {
-          ...state.api_entry,
+        api_entries: {
+          ...state.api_entries,
           fetching: true,
           fetched: false,
           error: null,
@@ -212,8 +152,8 @@ const reducer = (state = initialState, action, data=[]) => {
     case API_CREATE_BABYBOOK_ENTRY_FULFILLED: {
       return {
         ...state,
-        api_entry: {
-          ...state.api_entry,
+        api_entries: {
+          ...state.api_entries,
           fetching: false,
           fetched: true,
           error: null,
@@ -224,8 +164,8 @@ const reducer = (state = initialState, action, data=[]) => {
       const error = (action && action.payload) ? action.payload : null;
       return {
         ...state,
-        api_entry: {
-          ...state.api_entry,
+        api_entries: {
+          ...state.api_entries,
           fetching: false,
           fetched: false,
           error,
@@ -245,6 +185,7 @@ const reducer = (state = initialState, action, data=[]) => {
       };
     }
     case API_SYNC_BABYBOOK_ENTRIES_FULFILLED: {
+      const data = action.payload;
       return {
         ...state,
         api_entries: {
@@ -252,18 +193,19 @@ const reducer = (state = initialState, action, data=[]) => {
           fetching: false,
           fetched: true,
           error: null,
-          data: action.payload,
+          data,
         },
       };
     }
     case API_SYNC_BABYBOOK_ENTRIES_REJECTED: {
+      const error = action.payload;
       return {
         ...state,
         api_entries: {
           ...state.api_entries,
           fetching: false,
           fetched: false,
-          error: action.payload,
+          error,
         },
       };
     }

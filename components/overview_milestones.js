@@ -12,8 +12,6 @@ import {
 import SideSwipe from 'react-native-sideswipe';
 import { Ionicons } from '@expo/vector-icons';
 
-import { NavigationActions } from 'react-navigation';
-
 import findIndex from 'lodash/findIndex';
 import isEmpty from 'lodash/isEmpty';
 import filter from 'lodash/filter';
@@ -23,7 +21,6 @@ import moment from 'moment';
 
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
-import { fetchMilestoneGroups } from '../actions/milestone_actions';
 
 import MilestoneGroupImages from '../constants/MilestoneGroupImages';
 import Colors from '../constants/Colors';
@@ -50,27 +47,41 @@ class OverviewScreen extends React.Component {
 
     this.state = {
       currentGroupIndex: 0,
-      sliderLoading: true,
       milestoneGroups: [],
-      milestoneGroupsLoaded: false,
+      milestoneGroupsUpdated: false,
+      sliderLoading: true,
     };
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    const { groups } = nextProps.milestones;
-    const { subject } = nextProps.registration;
-    return !groups.fetching && !subject.fetching;
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    const subject = this.props.registration.subject;
-    const milestoneGroupsLoaded = this.state.milestoneGroupsLoaded;
-    if (subject.fetched && !isEmpty(subject.data) && !milestoneGroupsLoaded) {
-      this.getMilestoneGroups();
+  componentDidMount() {
+    const { groups } = this.props.milestones;
+    const { subject } = this.props.registration;
+    if (!isEmpty(groups.data) && !isEmpty(subject.data)) {
+      this.setMilestoneGroups();
     }
   }
 
-  getMilestoneGroups = () => {
+  shouldComponentUpdate(nextProps) {
+    const { api_milestones } = nextProps.milestones;
+    const { apiSubject } = nextProps.registration;
+    return !api_milestones.fetching && !apiSubject.fetching;
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { api_milestones, groups } = this.props.milestones;
+    const { apiSubject, subject } = this.props.registration;
+    const { milestoneGroupsUpdated } = this.state;
+    if (
+      (api_milestones.fetched || apiSubject.fetched) &&
+      !isEmpty(subject.data) && !isEmpty(groups.data) &&
+      !milestoneGroupsUpdated
+    ) {
+      this.setMilestoneGroups();
+      this.setState({ milestoneGroupsUpdated: true });
+    }
+  }
+
+  setMilestoneGroups = () => {
     const { groups } = this.props.milestones;
     const { subject } = this.props.registration;
     const { date_of_birth, expected_date_of_birth } = subject.data;
@@ -83,35 +94,29 @@ class OverviewScreen extends React.Component {
     }
     const currentDay = moment().diff(baseDate, 'days');
 
-    if (groups.fetched) {
+    let milestoneGroups = filter(groups.data, { visible: true });
 
-      if (isEmpty(groups.data)) {
-        this.props.fetchMilestoneGroups();
-        return;
-      }
+    milestoneGroups = sortBy(milestoneGroups, ['position']);
+    milestoneGroups.forEach(group => {
+      group.uri = MilestoneGroupImages(group.baseline_range_days_end);
+    });
 
-      let milestoneGroups = filter(groups.data, { visible: 1 });
-      milestoneGroups = sortBy(milestoneGroups, ['position']);
-      milestoneGroups.forEach(group => {
-        group.uri = MilestoneGroupImages(group.baseline_range_days_end);
-      });
-      // locate index of current milestone group
-      let currentGroupIndex = findIndex(milestoneGroups, group => {
-        return (
-          group.baseline_range_days_start <= currentDay &&
-          currentDay <= group.baseline_range_days_end
-        );
-      });
+    // locate index of current milestone group
+    const currentGroupIndex = findIndex(milestoneGroups, group => {
+      return (
+        group.baseline_range_days_start <= currentDay &&
+        currentDay <= group.baseline_range_days_end
+      );
+    });
 
-      this.props.updateSession({ current_group_index: currentGroupIndex });
+    this.props.updateSession({ current_group_index: currentGroupIndex });
 
-      this.setState({
-        currentGroupIndex,
-        milestoneGroups,
-        milestoneGroupsLoaded: true,
-        sliderLoading: false,
-      });
-    } // if groups fetched
+    this.setState({
+      currentGroupIndex,
+      milestoneGroups,
+      sliderLoading: false,
+    });
+
   };
 
   renderMilestoneItem = data => {
@@ -132,9 +137,8 @@ class OverviewScreen extends React.Component {
   };
 
   renderSlider = () => {
-    const milestoneGroups = this.state.milestoneGroups;
+    const { milestoneGroups, currentGroupIndex } = this.state;
     if (milestoneGroups.length > 0) {
-      const currentGroupIndex = this.state.currentGroupIndex;
       return (
         <SideSwipe
           index={currentGroupIndex}
@@ -154,13 +158,14 @@ class OverviewScreen extends React.Component {
 
   render() {
     const navigate = this.props.navigation.navigate;
-    const sliderLoading = this.state.sliderLoading;
-    const currentGroupIndex = this.state.currentGroupIndex;
+    const { sliderLoading } = this.state;
     return (
       <View style={styles.container}>
         <View style={styles.slider_header}>
           <View style={styles.slider_title}>
-            <Text style={styles.slider_title_text}>Developmental Milestones</Text>
+            <Text style={styles.slider_title_text}>
+              Developmental Milestones
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.opacityStyle}
@@ -256,8 +261,7 @@ const mapStateToProps = ({ session, milestones, registration }) => ({
   milestones,
   registration,
 });
-
-const mapDispatchToProps = { updateSession, fetchMilestoneGroups };
+const mapDispatchToProps = { updateSession };
 
 export default connect(
   mapStateToProps,

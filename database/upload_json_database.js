@@ -1,20 +1,28 @@
 import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
 
+import moment from 'moment';
+
+import { store } from '../store';
+
 import { getApiUrl } from './common';
 
 const baseURL = getApiUrl();
 const apiToken = Constants.manifest.extra.apiToken;
 
-const fileUri = FileSystem.documentDirectory + '/SQLite/babysteps.db';
-
 const executeApiCall = async id => {
+  const fileName = `babysteps-${moment().format()}.json`;
+  const fileUri = FileSystem.documentDirectory + fileName;
 
-	const url = `${baseURL}/users/${id}/attachments`;
+  // save state as json file in file system
+  const state = store.getState();
+  await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(state));
+
+  const url = `${baseURL}/users/${id}/attachments`;
 
   const headers = {
-    'Content-Type': 'application/vnd.sqlite3',
-    'Content-File-Name': 'babysteps.db',
+    'Content-Type': 'application/json',
+    'Content-File-Name': fileName,
     milestone_token: apiToken,
   };
 
@@ -23,7 +31,7 @@ const executeApiCall = async id => {
     httpMethod: 'POST',
     uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
     sessionType: FileSystem.FileSystemSessionType.BACKGROUND,
-    mimeType: 'application/vnd.sqlite3',
+    mimeType: 'application/json',
   }).catch(error => {
     console.log({ error });
   });
@@ -31,9 +39,9 @@ const executeApiCall = async id => {
   return response;
 };
 
-const UploadSQLiteDatabase = async id => {
-	console.log('*** Begin Upload SQLite Database');
-	const response = await executeApiCall(id);
+const UploadJSONDatabase = async id => {
+  console.log('*** Begin Upload JSON Database');
+  const response = await executeApiCall(id);
   if (response && response.status === 202) {
     console.log('***** Database uploaded successfully');
   } else {
@@ -41,4 +49,4 @@ const UploadSQLiteDatabase = async id => {
   }
 };
 
-export default UploadSQLiteDatabase;
+export default UploadJSONDatabase;

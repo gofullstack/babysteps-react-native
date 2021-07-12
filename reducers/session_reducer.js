@@ -5,7 +5,6 @@ import {
   UPDATE_SESSION_ACTION,
   UPDATE_ACCESS_TOKEN,
   SET_FETCHING_TOKEN,
-  UPDATE_CONNECTION_TYPE,
   RESET_SESSION,
 
   API_TOKEN_REFRESH_PENDING,
@@ -17,9 +16,7 @@ import {
   FETCH_SESSION_FULFILLED,
   FETCH_SESSION_REJECTED,
 
-  UPDATE_SESSION_PENDING,
   UPDATE_SESSION_FULFILLED,
-  UPDATE_SESSION_REJECTED,
 
   UPDATE_SESSION_PENDING_ACTIONS_PENDING,
   UPDATE_SESSION_PENDING_ACTIONS_FULFILLED,
@@ -50,6 +47,7 @@ const initialState = {
   milestones_last_updated_at: null,
   milestone_calendar_updated_at: null,
   milestone_calendar_last_updated_at: null,
+  milestone_feedback_count: 0,
   notification_period: null,
   notifications_permission: null,
   notifications_updated_at: null,
@@ -62,7 +60,7 @@ const initialState = {
   access_token: null,
   client: null,
   uid: null,
-  user_api_id: null,
+  user_id: null,
   email: null,
   password: null,
   connectionType: null,
@@ -109,17 +107,19 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case UPDATE_SESSION_PENDING_ACTIONS_FULFILLED: {
+      const pending_actions = action.payload;
       return {
         ...state,
         dispatching_pending_actions: false,
-        pending_actions: action.payload,
+        pending_actions,
       };
     }
     case UPDATE_SESSION_PENDING_ACTIONS_REJECTED: {
+      const error = action.payload;
       return {
         ...state,
         dispatching_pending_actions: false,
-        error: action.payload,
+        error,
       };
     }
 
@@ -137,9 +137,10 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case DISPATCH_SESSION_PENDING_ACTIONS_REJECTED: {
+      const error = action.payload;
       return {
         ...state,
-        error: action.payload,
+        error,
       };
     }
 
@@ -147,13 +148,6 @@ const reducer = (state = initialState, action, formData = {}) => {
       return {
         ...state,
         access_token: action.payload,
-      };
-    }
-
-    case UPDATE_CONNECTION_TYPE: {
-      return {
-        ...state,
-        connectionType: action.payload,
       };
     }
 
@@ -179,7 +173,7 @@ const reducer = (state = initialState, action, formData = {}) => {
         access_token: header['access-token'],
         client: header.client,
         uid: header.uid,
-        user_id: header.user_id,
+        user_id: parseInt(header.user_id, 10),
       };
     }
     case API_TOKEN_REFRESH_REJECTED: {
@@ -231,27 +225,14 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
 
-    case UPDATE_SESSION_PENDING: {
-      return {
-        ...state,
-        fetching: true,
-        fetched: false,
-        error: null,
-      };
-    }
     case UPDATE_SESSION_FULFILLED: {
+      const attributes = action.payload;
       return {
         ...state,
         fetching: false,
         fetched: true,
-        ...action.session,
-      };
-    }
-    case UPDATE_SESSION_REJECTED: {
-      return {
-        ...state,
-        fetching: false,
-        error: action.payload,
+        error: null,
+        ...attributes,
       };
     }
 
@@ -264,15 +245,16 @@ const reducer = (state = initialState, action, formData = {}) => {
       };
     }
     case API_FETCH_SIGNIN_FULFILLED: {
-      const { api_id, email, uid, password } = action.session;
+      const { id, email, uid, password } = action.session;
       return {
         ...state,
         signinFetching: false,
         signinFetched: true,
-        user_api_id: api_id,
+        user_id: id,
         email,
         password,
         uid,
+        error: null,
       };
     }
     case API_FETCH_SIGNIN_REJECTED: {

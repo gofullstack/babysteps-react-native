@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, PureComponent } from 'react';
 import {
   View,
   StyleSheet,
@@ -57,12 +57,14 @@ const mediaTypes = {
   file_video_frustration: 'Videos',
 };
 
-export class RenderCheckBox extends React.PureComponent {
+// eslint-disable-next-line react/prefer-stateless-function
+export class RenderCheckBox extends Component {
   render() {
-    const collection = _.map(this.props.choices, choice => {
+    const { choices, answers, pregnancy, format } = this.props;
+    const collection = _.map(choices, choice => {
       let checked = false;
       let text = '';
-      const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
+      const answer = _.find(answers, {'choice_id': choice.id, pregnancy: pregnancy });
 
       if (answer) {
         checked = answer.answer_boolean;
@@ -79,26 +81,26 @@ export class RenderCheckBox extends React.PureComponent {
             textStyle={styles.checkBoxChoiceText}
             containerStyle={styles.checkBoxChoiceContainer}
             checked={checked}
-            onPress={() =>
+            onPress={() => {
               this.props.saveResponse(
                 choice,
                 { answer_boolean: !checked },
-                { format: this.props.format },
-              )
-            }
+                { format },
+              );
+            }}
           />
           {requireExplanation && option_group === 'text_short' && (
             <FormInput
               autoCapitalize="words"
               inputStyle={styles.textInput}
               defaultValue={text}
-              onChangeText={value =>
+              onChangeText={value => {
                 this.props.saveResponse(
                   choice,
                   { answer_text: value },
                   { preserve: true },
-                )
-              }
+                );
+              }}
               containerStyle={{ borderBottomColor: Colors.lightGrey }}
               underlineColorAndroid={Colors.lightGrey}
             />
@@ -113,13 +115,13 @@ export class RenderCheckBox extends React.PureComponent {
                 minimumValue={0}
                 maximumValue={30}
                 step={1}
-                onSlidingComplete={value =>
+                onSlidingComplete={value => {
                   this.props.saveResponse(
                     choice,
-                    { answer_text: value },
+                    { answer_text: `${value} years` },
                     { preserve: true },
-                  )
-                }
+                  );
+                }}
               />
             </View>
           )}
@@ -130,12 +132,16 @@ export class RenderCheckBox extends React.PureComponent {
   } // render
 }
 
-export class RenderCheckYesNo extends React.PureComponent {
+// eslint-disable-next-line react/prefer-stateless-function
+export class RenderCheckYesNo extends Component {
   render() {
-    const collection = _.map(this.props.choices, choice => {
+    const { choices, answers, pregnancy } = this.props;
+    const collection = _.map(choices, choice => {
       let checked = false;
-      const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
+      const answer = _.find(answers, {'choice_id': choice.id, pregnancy: pregnancy });
       if (answer) checked = answer.answer_boolean;
+
+      //console.log({ answer })
 
       return (
         <CheckBox
@@ -144,13 +150,13 @@ export class RenderCheckYesNo extends React.PureComponent {
           textStyle={styles.checkBoxChoiceText}
           containerStyle={styles.checkBoxChoiceContainer}
           checked={checked}
-          onPress={() =>
+          onPress={() => {
             this.props.saveResponse(
               choice,
               { answer_boolean: !checked },
               { format: 'single' },
-            )
-          }
+            );
+          }}
         />
       );
     });
@@ -158,12 +164,13 @@ export class RenderCheckYesNo extends React.PureComponent {
   } // render
 }
 
-
-export class RenderTextShort extends React.PureComponent {
+// eslint-disable-next-line react/prefer-stateless-function
+export class RenderTextShort extends Component {
   render() {
-    const collection = _.map(this.props.choices, choice => {
+    const { choices, answers, pregnancy } = this.props;
+    const collection = _.map(choices, choice => {
       let text = '';
-      const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
+      const answer = _.find(answers, {'choice_id': choice.id, pregnancy: pregnancy });
       if (answer) text = answer.answer_text;
 
       return (
@@ -173,9 +180,9 @@ export class RenderTextShort extends React.PureComponent {
             autoCapitalize="words"
             inputStyle={styles.textInput}
             defaultValue={text}
-            onChangeText={value =>
-              this.props.saveResponse(choice, { answer_text: value })
-            }
+            onChangeText={value => {
+              this.props.saveResponse(choice, { answer_text: value });
+            }}
             containerStyle={{ borderBottomColor: Colors.lightGrey }}
             underlineColorAndroid={Colors.lightGrey}
           />
@@ -186,11 +193,13 @@ export class RenderTextShort extends React.PureComponent {
   } // render
 }
 
-export class RenderTextLong extends React.PureComponent {
+// eslint-disable-next-line react/prefer-stateless-function
+export class RenderTextLong extends Component {
   render() {
-    const collection = _.map(this.props.choices, choice => {
+    const { choices, answers, pregnancy } = this.props;
+    const collection = _.map(choices, choice => {
       let text = '';
-      const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
+      const answer = _.find(answers, {'choice_id': choice.id, pregnancy: pregnancy });
       if (answer) text = answer.answer_text;
 
       return (
@@ -202,9 +211,9 @@ export class RenderTextLong extends React.PureComponent {
             defaultValue={text}
             multiline={true}
             numberOfLines={4}
-            onChangeText={value =>
-              this.props.saveResponse(choice, { answer_text: value })
-            }
+            onChangeText={value => {
+              this.props.saveResponse(choice, { answer_text: value });
+            }}
             containerStyle={{ borderBottomColor: Colors.lightGrey }}
             underlineColorAndroid={Colors.lightGrey}
           />
@@ -215,11 +224,13 @@ export class RenderTextLong extends React.PureComponent {
   } // render
 }
 
-export class RenderTextNumeric extends React.PureComponent {
+// eslint-disable-next-line react/prefer-stateless-function
+export class RenderTextNumeric extends Component {
   render() {
-    const collection = _.map(this.props.choices, choice => {
+    const { choices, answers, pregnancy } = this.props;
+    const collection = _.map(choices, choice => {
       let text = '';
-      const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
+      const answer = _.find(answers, {'choice_id': choice.id, pregnancy: pregnancy });
       if (answer) text = answer.answer_text;
       return (
         <View key={choice.id}>
@@ -228,9 +239,9 @@ export class RenderTextNumeric extends React.PureComponent {
             inputStyle={styles.textInput}
             defaultValue={text}
             keyboardType="numeric"
-            onChangeText={ value =>
-              this.props.saveResponse(choice, { answer_text: value })
-            }
+            onChangeText={value => {
+              this.props.saveResponse(choice, { answer_text: value });
+            }}
             containerStyle={{ borderBottomColor: Colors.lightGrey }}
             underlineColorAndroid={Colors.lightGrey}
           />
@@ -241,31 +252,32 @@ export class RenderTextNumeric extends React.PureComponent {
   } // render
 }
 
-export class RenderDate extends React.PureComponent {
+// eslint-disable-next-line react/prefer-stateless-function
+export class RenderDate extends Component {
   render() {
-    const collection = _.map(this.props.choices, choice => {
+    const { choices, answers, pregnancy } = this.props;
+    const collection = _.map(choices, choice => {
       let value = new Date();
-      const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
+      const answer = _.find(answers, {'choice_id': choice.id, pregnancy: pregnancy });
       value = answer ? answer.answer_text : null;
       return (
         <View key={choice.id}>
-        <DatePicker
-          label={choice.body}
-          date={value}
-          style={styles.dateInput}
-          handleChange={ value => {
-            console.log("Choosen Date", value)
-            this.props.saveResponse(choice, { answer_text: value })
-          }}
-          showIcon={false}
-          customStyles={{
-            dateInput: {
-              borderWidth: 0,
-              borderBottomWidth: 1,
-              borderBottomColor: Colors.lightGrey,
-            }
-          }}
-        />
+          <DatePicker
+            label={choice.body}
+            date={value}
+            style={styles.dateInput}
+            handleChange={value => {
+              this.props.saveResponse(choice, { answer_text: value });
+            }}
+            showIcon={false}
+            customStyles={{
+              dateInput: {
+                borderWidth: 0,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.lightGrey,
+              },
+            }}
+          />
         </View>
       );
     });
@@ -273,6 +285,7 @@ export class RenderDate extends React.PureComponent {
   } // render
 }
 
+// eslint-disable-next-line react/prefer-stateless-function
 export class RenderFile extends Component {
   constructor(props) {
     super(props);
@@ -290,11 +303,8 @@ export class RenderFile extends Component {
   }
 
   async componentDidMount() {
-    const question = this.props.question;
-    const isFileVideo = [
-      'file_video',
-      'file_video_frustration',
-    ].includes(question.rn_input_type);
+    const { question } = this.props;
+    const isFileVideo = ['file_video', 'file_video_frustration'].includes(question.rn_input_type);
     const isFileImage = question.rn_input_type === 'file_image';
     const isFileAudio = [
       'file_audio',
@@ -338,11 +348,12 @@ export class RenderFile extends Component {
   }
 
   pickImage = async (choice, source = null) => {
+    const { question } = this.props;
+    const { hasMediaLibraryPermission } = this.state;
     let image = {};
-    const hasMediaLibraryPermission = this.state.hasMediaLibraryPermission;
     this.setState({ choice });
     if (source === 'library' && hasMediaLibraryPermission) {
-      const mediaType = mediaTypes[this.props.question.rn_input_type];
+      const mediaType = mediaTypes[question.rn_input_type];
       image = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: mediaType,
       });
@@ -357,10 +368,12 @@ export class RenderFile extends Component {
   };
 
   saveFile = (file) => {
+    const { question } = this.props;
+    const { choice } = this.state;
     if (file && !file.cancelled) {
-      file.file_type = this.props.question.rn_input_type;
-      file.title = this.props.question.title;
-      this.props.saveResponse(this.state.choice, { attachments: [file] });
+      file.file_type = question.rn_input_type;
+      file.title = question.title;
+      this.props.saveResponse(choice, { attachments: [file] });
       this.setState({ choice: null });
     }
   };
@@ -381,19 +394,16 @@ export class RenderFile extends Component {
     let loadCameraModal = false;
     let loadAudioModal = false;
 
-    const hasMediaLibraryPermission = this.state.hasMediaLibraryPermission;
-    const hasCameraPermission = this.state.hasCameraPermission;
-    const hasAudioPermission = this.state.hasAudioPermission;
-    const permissionMessage = this.state.permissionMessage;
+    const {
+      hasMediaLibraryPermission,
+      hasCameraPermission,
+      hasAudioPermission,
+      permissionMessage,
+    } = this.state;
 
-    const collection = _.map(this.props.choices, choice => {
-      let isVideo = false;
-      let isImage = false;
-      let isAudio = false;
-
-      let displayVideo = false;
-      let displayImage = false;
-      let displayAudio = false;
+    const collection = _.map(question.choices, choice => {
+      let { isVideo, isImage, isAudio } = false;
+      let { displayVideo, displayImage, displayAudio } = false;
 
       let allowAttachFile = !['post_birth', 'during_pregnancy'].includes(
         choice.overview_timeline,
@@ -404,13 +414,8 @@ export class RenderFile extends Component {
       let fileType = null;
       // will not support pregnancy history if attachment is added to questionaire
       const answer = _.find(answers, ['choice_id', choice.id]);
-      let attachment = null;
-      if (answer && answer.id) {
-        attachment = _.find(attachments, ['answer_id', answer.id]);
-      }
-      if (!attachment) {
-        attachment = _.find(attachments, ['choice_id', choice.id]);
-      }
+      let attachment = _.find(attachments, ['choice_id', choice.id]);
+
       if (attachment && attachment.uri) {
         uri = attachment.uri;
         uriParts = uri.split('.');
@@ -538,15 +543,16 @@ export class RenderFile extends Component {
   } // render
 }
 
-export class RenderExternalLink extends React.PureComponent {
+export class RenderExternalLink extends Component {
   handleLinkPress = choice => {
     WebBrowser.openBrowserAsync(choice.body);
     this.props.saveResponse(choice, { answer_boolean: true });
   };
 
   render() {
-    const collection = _.map(this.props.choices, choice => {
-      const answer = _.find(this.props.answers, {'choice_id': choice.id, pregnancy: this.props.pregnancy });
+    const { choices, answers, pregnancy } = this.props;
+    const collection = _.map(choices, choice => {
+      const answer = _.find(answers, {'choice_id': choice.id, pregnancy: pregnancy });
       const completed = answer && answer.answer_boolean;
       return (
         <View key={choice.id}>
@@ -564,7 +570,7 @@ export class RenderExternalLink extends React.PureComponent {
   } // render
 }
 
-export class RenderInternalLink extends React.PureComponent {
+export class RenderInternalLink extends Component {
   handleLinkPress = choice => {
     this.props.saveResponse(choice, { answer_boolean: true });
     const actionToDispatch = StackActions.reset({
@@ -580,7 +586,8 @@ export class RenderInternalLink extends React.PureComponent {
   };
 
   render() {
-    const collection = _.map(this.props.choices, choice => {
+    const { choices } = this.props;
+    const collection = _.map(choices, choice => {
       return (
         <View key={choice.id}>
           <TouchableOpacity onPress={() => this.handleLinkPress(choice)}>
@@ -589,13 +596,13 @@ export class RenderInternalLink extends React.PureComponent {
         </View>
       );
     });
-    return <View>{collection}</View>;
+    return <View key={choice.id}>{collection}</View>;
   } // render
 }
 
-export class RenderGroupOptionError extends React.PureComponent {
+export class RenderGroupOptionError extends PureComponent {
   render() {
-    const question = this.props.question;
+    const { question } = this.props;
     return (
       <View>
         <Text>
@@ -678,6 +685,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
+    flexGrow: 1,
     width: previewWidth,
   },
   video: {
@@ -691,14 +699,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.tintColor,
   },
-  externalLinkHelper: {
-    marginLeft: 30,
-    fontSize: 12,
-    color: Colors.grey,
-  },
   sliderContainer: {
-    marginLeft: 20,
-    marginRight: 10,
+    marginLeft: 30,
+    marginRight: 20,
   },
   sliderThumb: {
     backgroundColor: Colors.darkGreen,

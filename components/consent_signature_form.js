@@ -161,7 +161,9 @@ class ConsentSignatureForm extends Component {
         contentContainerStyle={styles.scrollView}
       >
         <View>
-          <Text style={styles.explanation}>Please confirm your answers and sign below.</Text>
+          <Text style={styles.explanation}>
+            Please confirm your answers and sign below.
+          </Text>
         </View>
 
         <View style={styles.checkboxView}>

@@ -6,15 +6,10 @@ import isEmpty from 'lodash/isEmpty';
 import { connect } from 'react-redux';
 import {
   updateSession,
-  fetchSession,
   apiDispatchTokenRefresh,
 } from '../actions/session_actions';
-import {
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
-} from '../actions/registration_actions';
 
+import UploadJSONDatabase from '../database/upload_json_database';
 import SyncConsentVersion from './sync_consent_version';
 import SyncConsentSignature from './sync_consent_signature';
 import SyncMilestones from './sync_milestones';
@@ -37,6 +32,7 @@ class ApiSyncData extends Component {
     this.state = {
       appState: AppState.currentState,
       apiSyncData: false,
+      uploadDatabaseSubmitted: false,
       apiRefreshTokenSubmitted: false,
       userRespondentApiUpdated: false,
       updateConsentVersionSubmitted: false,
@@ -50,26 +46,11 @@ class ApiSyncData extends Component {
       uploadBabybookEntriesSubmitted: false,
     };
 
-    this.props.fetchSession();
-    this.props.fetchUser();
-    this.props.fetchRespondent();
-    this.props.fetchSubject();
   }
 
   componentDidMount() {
     console.log('*** API Data Sync');
     AppState.addEventListener('change', this.handleAppStateChange);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const session = nextProps.session;
-    const { user, respondent, subject } = nextProps.registration;
-    return (
-      !session.fetching &&
-      !user.fetching &&
-      !respondent.fetching &&
-      !subject.fetching
-    );
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -80,6 +61,7 @@ class ApiSyncData extends Component {
     const {
       apiRefreshTokenSubmitted,
       apiSyncData,
+      uploadDatabaseSubmitted,
       userRespondentApiUpdated,
       updateConsentSignatureSubmitted,
       updateConsentVersionSubmitted,
@@ -93,7 +75,6 @@ class ApiSyncData extends Component {
     } = this.state;
 
     if (
-      session.fetched &&
       !session.fetching_token &&
       session.email &&
       session.password &&
@@ -106,7 +87,12 @@ class ApiSyncData extends Component {
       });
     }
 
-    if (session.fetched && !updateConsentVersionSubmitted) {
+    if (!uploadDatabaseSubmitted) {
+      UploadJSONDatabase(user.data.id);
+      this.setState({ uploadDatabaseSubmitted: true });
+    }
+
+    if (!updateConsentVersionSubmitted) {
       SyncConsentVersion(
         CONSTANTS.STUDY_ID,
         session.consent_update_at,
@@ -127,20 +113,20 @@ class ApiSyncData extends Component {
     // rebuild respondent and subject on server
     if (inStudy && apiSyncData) {
 
-      if (!isEmpty(user.data) && user.data.api_id) {
-        const user_api_id = user.data.api_id;
+      if (!isEmpty(user.data) && user.data.id) {
+        const user_id = user.data.id;
 
         if (!userRespondentApiUpdated) {
-          SyncRespondentByUser(user_api_id);
+          SyncRespondentByUser(user_id);
           this.setState({ userRespondentApiUpdated: true });
         }
 
         if (
           !isEmpty(respondent.data) &&
-          respondent.data.api_id &&
+          respondent.data.id &&
           userRespondentApiUpdated
         ) {
-          const respondent_api_id = respondent.data.api_id;
+          const respondent_id = respondent.data.id;
 
           if (
             !updateConsentSignatureSubmitted &&
@@ -148,26 +134,25 @@ class ApiSyncData extends Component {
             consent.data.version_id // &&
             //session.connectionType === 'wifi'
           ) {
-            //SyncRespondentSignature(respondent_api_id);
-            SyncConsentSignature(consent.data.version_id, respondent_api_id);
+            SyncConsentSignature(consent.data.version_id, respondent_id);
             this.setState({ updateConsentSignatureSubmitted: true });
           }
 
-          if (!isEmpty(subject.data) && subject.data.api_id) {
-            const subject_api_id = subject.data.api_id;
+          if (!isEmpty(subject.data) && subject.data.id) {
+            const subject_id = subject.data.id;
 
             if (!userSubjectApiUpdated) {
-              SyncSubjectByUser(user_api_id, respondent_api_id, subject_api_id);
+              SyncSubjectByUser(user_id, respondent_id, subject_id);
               this.setState({ userSubjectApiUpdated: true });
             }
 
             if (!uploadMilestoneTriggersSubmitted) {
-              SyncMilestoneTriggers(subject_api_id, session.milestone_calendar_last_updated_at);
+              SyncMilestoneTriggers(subject_id, session.milestone_calendar_last_updated_at);
               this.setState({ uploadMilestoneTriggersSubmitted: true });
             }
 
             if (!uploadAnswersSubmitted) {
-              SyncMilestoneAnswers(subject_api_id);
+              SyncMilestoneAnswers(subject_id);
               this.setState({ uploadAnswersSubmitted: true });
             }
 
@@ -209,6 +194,7 @@ class ApiSyncData extends Component {
       this.setState({
         appState: nextAppState,
         apiSyncData: true,
+        uploadDatabaseSubmitted: false,
         uploadMilestonesSubmitted: false,
         uploadAnswersSubmitted: false,
         uploadAttachmentsSubmitted: false,
@@ -224,22 +210,15 @@ class ApiSyncData extends Component {
   }
 }
 
-const mapStateToProps = ({
-  session,
-  milestones,
-  registration,
-}) => ({
+const mapStateToProps = ({ session, milestones, registration }) => ({
   session,
   milestones,
   registration,
 });
+
 const mapDispatchToProps = {
   updateSession,
-  fetchSession,
   apiDispatchTokenRefresh,
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
 };
 
 export default connect(

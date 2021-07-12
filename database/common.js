@@ -111,7 +111,7 @@ export const createIndexes = async (tableName, schema) => {
       });
     });
   });
-}
+};
 
 export const insertRows = async (tableName, schema, data) => {
   if (typeof data !== 'object') {
@@ -202,117 +202,9 @@ export const getApiUrl = () => {
     return `${CONSTANTS.BASE_DEVELOPMENT_URL}/api`;
   }
   return `${Constants.manifest.extra.baseUrl}/api`;
-}
-
-export const getAnswer = async (id, method = 'answer') => {
-  let answer = {};
-  let sql = `SELECT * FROM answers WHERE id = ${id}`;
-  if (method !== 'answer') {
-    sql = `SELECT * FROM answers WHERE ${method}_id = ${id}`;
-  }
-
-  await new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, result) => resolve((answer = result.rows._array)),
-        (_, error) => {
-          console.log({error});
-        },
-      );
-    });
-  });
-
-  return answer;
 };
 
-export const getAttachment = async (id, method = 'attachment') => {
-  let attachment = {};
-  let sql = `SELECT * FROM attachments WHERE id = ${id}`;
-  if (method !== 'attachment') {
-    sql = `SELECT * FROM attachments WHERE ${method}_id = ${id}`;
-  }
-
-  await new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, result) => resolve((attachment = result.rows._array[0])),
-        (_, error) => {
-          console.log({error});
-        },
-      );
-    });
-  });
-
-  return attachment;
-};
-
-export const getAttachments = async () => {
-  let attachments = [];
-  let sql = `SELECT * FROM attachments`;
-
-  await new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, result) => resolve((attachments = result.rows._array)),
-        (_, error) => {
-          console.log({error});
-        },
-      );
-    });
-  });
-
-  return attachments;
-};
-
-export const getMilestoneCalendar = async () => {
-  let calendar = [];
-  let sql = `SELECT * FROM milestone_triggers`;
-
-  await new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, result) => resolve((calendar = result.rows._array)),
-        (_, error) => {
-          console.log({error});
-        },
-      );
-    });
-  });
-
-  return calendar;
-};
-
-export const getBabybookEntries = async () => {
-  let entries = [];
-  let sql = `SELECT * FROM babybook_entries`;
-
-  await new Promise((resolve, reject) => {
-    db.transaction(tx => {
-      tx.executeSql(
-        sql,
-        [],
-        (_, result) => resolve((entries = result.rows._array)),
-        (_, error) => {
-          console.log({error});
-        },
-      );
-    });
-  });
-
-  return entries;
-};
-
-export const saveTriggerData = async newTriggers => {
-  const schema = require('./milestone_triggers_schema.json');
-  const oldTriggers = await getMilestoneCalendar();
+export const syncTriggerData = (newTriggers, oldTriggers) => {
   for (const newTrigger of newTriggers) {
     const oldTrigger = _.find(oldTriggers, {id: newTrigger.id});
     if (!_.isEmpty(oldTrigger)) {
@@ -320,8 +212,7 @@ export const saveTriggerData = async newTriggers => {
       newTrigger.completed_at = oldTrigger.completed_at;
     }
   }
-  insertRows('milestone_triggers', schema['milestone_triggers'], newTriggers);
-  return null;
+  return newTriggers;
 };
 
 // Example use of delay

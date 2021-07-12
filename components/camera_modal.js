@@ -422,7 +422,7 @@ class CameraModal extends Component {
     return (
       <Camera
         ref={ref => {this.camera = ref}}
-        style={{ flex: 1, height: imageHeight }}
+        style={{ flex: 1, width: imageWidth }}
         type={type}
         flashMode={flashMode}
         ratio={ratio}

@@ -8,8 +8,6 @@ import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 
 import ConsentEligibilityForm from '../components/consent_eligibility_form';
-//import ConsentSummaryForm from '../components/consent_summary_form';
-//import ConsentDisclosureForm from '../components/consent_disclosure_form';
 import ConsentSummaryVersion from '../components/consent_summary_version';
 import ConsentDisclosureVersion from '../components/consent_disclosure_version';
 import ConsentSignatureForm from '../components/consent_signature_form';
@@ -48,7 +46,7 @@ class ConsentScreen extends Component {
   }
 
   resetForm = () => {
-    const registration_state = this.props.session.registration_state;
+    const { registration_state } = this.props.session;
     switch (registration_state) {
       case States.REGISTERING_SIGNATURE: {
         this.props.updateSession({ registration_state: States.REGISTERING_FULL_CONSENT });
@@ -75,7 +73,6 @@ class ConsentScreen extends Component {
       return <ConsentSummaryVersion />;
     }
     if (registration_state === States.REGISTERING_FULL_CONSENT) {
-      //return <ConsentDisclosureForm />;
       return <ConsentDisclosureVersion />;
     }
     if (registration_state === States.REGISTERING_SIGNATURE) {

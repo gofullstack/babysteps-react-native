@@ -1,7 +1,5 @@
 import axios from 'axios';
 
-import pick from 'lodash/pick';
-
 import {
   updateSession,
   apiTokenRefresh,
@@ -17,26 +15,19 @@ import {
   API_FETCH_CONSENT_PENDING,
   API_FETCH_CONSENT_LAST_UPDATED_PENDING,
   API_FETCH_MILESTONES_PENDING,
-  API_FETCH_MILESTONES_LAST_UPDATED_PENDING,
   API_NEW_MILESTONE_CALENDAR_PENDING,
   API_FETCH_MILESTONE_CALENDAR_PENDING,
-  API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_PENDING,
   API_CREATE_MILESTONE_CALENDAR_PENDING,
   API_UPDATE_MILESTONE_CALENDAR_PENDING,
   API_SYNC_MILESTONE_ANSWERS_PENDING,
-  API_FETCH_ANSWER_ATTACHMENTS_PENDING,
-  API_SAVE_SIGNATURE_PENDING,
   API_FETCH_SIGNIN_PENDING,
   API_SYNC_REGISTRATION_PENDING,
   API_SYNC_SIGNATURE_PENDING,
   RESET_API_MILESTONES,
   RESET_API_MILESTONE_CALENDAR,
-  UPDATE_ACCESS_TOKEN,
   UPDATE_SESSION_ACTION,
   API_FETCH_USER_RESPONDENT_PENDING,
   API_FETCH_RESPONDENT_ATTACHMENTS_PENDING,
-  API_FETCH_USER_SUBJECT_PENDING,
-  API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING,
 } from '../actions/types';
 
 const excludeTypes = [
@@ -44,24 +35,18 @@ const excludeTypes = [
   API_FETCH_CONSENT_PENDING,
   API_FETCH_CONSENT_LAST_UPDATED_PENDING,
   API_FETCH_MILESTONES_PENDING,
-  API_FETCH_MILESTONES_LAST_UPDATED_PENDING,
   API_NEW_MILESTONE_CALENDAR_PENDING,
   API_FETCH_MILESTONE_CALENDAR_PENDING,
-  API_FETCH_MILESTONE_CALENDAR_LAST_UPDATED_PENDING,
   API_CREATE_MILESTONE_CALENDAR_PENDING,
   API_UPDATE_MILESTONE_CALENDAR_PENDING,
   API_SYNC_MILESTONE_ANSWERS_PENDING,
-  API_FETCH_ANSWER_ATTACHMENTS_PENDING,
   API_FETCH_SIGNIN_PENDING,
   API_SYNC_REGISTRATION_PENDING,
   API_SYNC_SIGNATURE_PENDING,
-  API_SAVE_SIGNATURE_PENDING,
   RESET_API_MILESTONES,
   RESET_API_MILESTONE_CALENDAR,
   API_FETCH_USER_RESPONDENT_PENDING,
   API_FETCH_RESPONDENT_ATTACHMENTS_PENDING,
-  API_FETCH_USER_SUBJECT_PENDING,
-  API_FETCH_MILESTONE_CHOICE_ANSWERS_PENDING,
 ];
 
 const Pending = type => {
@@ -92,7 +77,7 @@ export default store => next => action => {
     if (action.type !== API_TOKEN_REFRESH_PENDING) {
       const pending_actions = [...session.pending_actions];
       pending_actions.push(action);
-      updatePendingActions(store.dispatch, pending_actions);
+      updatePendingActions(pending_actions);
     }
     return next(action);
   }
@@ -103,6 +88,7 @@ export default store => next => action => {
   }
 
   const headers = {
+    ...effect.headers,
     'ACCESS-TOKEN': session.access_token,
     'TOKEN-TYPE': 'Bearer',
     CLIENT: session.client,
@@ -114,17 +100,6 @@ export default store => next => action => {
   }
 
   const baseURL = getApiUrl();
-
-  //AnalyticsEvent(
-  //  'API',
-  //  action.type,
-  //  'headers',
-  //  JSON.stringify({
-  //    access_token: session.access_token,
-  //    uid: session.uid,
-  //    event_at: Date(),
-  //  }),
-  //);
 
   return axios({
     method: effect.method,
@@ -154,52 +129,20 @@ export default store => next => action => {
           access_token: headers['access-token'],
           client: headers.client,
           uid: headers.uid,
-          user_api_id: headers.user_id,
+          user_id: parseInt(headers.user_id, 10),
         };
         updateSession(data);
       }
-      //AnalyticsEvent(
-      //  'API',
-      //  effect.fulfilled,
-      //  'headers',
-      //  JSON.stringify({
-      //    access_token: headers['access-token'],
-      //    uid: headers.uid,
-      //    user_api_id: headers.user_id,
-      //    event_at: Date(),
-      //  }),
-      //);
     })
     .catch(error => {
       const { request, response } = error;
       const session = store.getState().session;
       if (!request) throw error; // There was an error creating the request
       if (!response) return false; // There was no response
-      //debugger
-      //AnalyticsEvent(
-      //  'API',
-      //  effect.rejected,
-      //  'error',
-      //  JSON.stringify({
-      //    access_token: request._headers['access-token'],
-      //    uid: request._headers['uid'],
-      //    message: error.message,
-      //    event_at: Date(),
-      //  }),
-      //);
       // Not signed in
       if (response.status === 401) {
         // not already getting fresh token
         if (!session.fetching && session.fetching_token && !session.error) {
-          //AnalyticsEvent(
-          //  'API',
-          //  API_TOKEN_REFRESH_PENDING,
-          //  'session',
-          //  JSON.stringify({
-          //    uid: session.uid,
-          //    event_at: Date(),
-          //  }),
-          //);
           apiTokenRefresh(store.dispatch, session);
           return false;
         }

@@ -13,20 +13,9 @@ import PageControl from 'react-native-page-control';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 
-import isEmpty from 'lodash/isEmpty';
-import indexOf from 'lodash/indexOf';
-import map from 'lodash/map';
-import forEach from 'lodash/forEach';
-import sortBy from 'lodash/sortBy';
-import find from 'lodash/find';
+import { _ } from 'lodash';
 
 import { connect } from 'react-redux';
-
-import {
-  resetBabyBookEntries,
-  fetchBabyBookEntries,
-} from '../actions/babybook_actions';
-import { fetchSubject } from '../actions/registration_actions';
 
 import BabyBookCoverItem from '../components/babybook_cover_item';
 import BabyBookItem from '../components/babybook_item';
@@ -123,15 +112,14 @@ class BabyBookScreen extends Component {
       babybookEntries: false,
       Share: this.shareOpen.bind(this),
     });
-    this.props.fetchSubject();
   }
 
   componentDidMount() {
     // set selected item from timeline
     const itemId = this.props.navigation.getParam('itemId', '0');
     if (itemId !== '0') {
-      const selectedIndex = indexOf(
-        map(this.state.data, 'id'),
+      const selectedIndex = _.indexOf(
+        _.map(this.state.data, 'id'),
         String(parseInt(itemId, 10) + 1), // increment by 1 to account for cover
       );
 
@@ -140,24 +128,22 @@ class BabyBookScreen extends Component {
     this.willFocusBabyBook = this.props.navigation.addListener(
       'willFocus',
       () => {
-        this.props.fetchBabyBookEntries();
         this.setState({ entryDataSaved: false });
       },
     );
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const subject = nextProps.registration.subject;
-    const entries = nextProps.babybook.entries;
-    return !subject.fetching && !entries.fetching;
+    const { entries } = nextProps.babybook;
+    return !entries.fetching;
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const entries = this.props.babybook.entries;
-    const entryDataSaved = this.state.entryDataSaved;
-    if (entries.fetched && !entryDataSaved) {
-      this._saveEntryData(entries);
-      if (!isEmpty(entries.data)) {
+    const { entries } = this.props.babybook;
+    const { entryDataSaved } = this.state;
+    if (!entryDataSaved) {
+      this.setEntryData();
+      if (!_.isEmpty(entries.data)) {
         this.props.navigation.setParams({ babybookEntries: true });
       }
     }
@@ -168,26 +154,27 @@ class BabyBookScreen extends Component {
     this.willFocusBabyBook.remove();
   }
 
-  _saveEntryData = entries => {
-    if (!isEmpty(entries.data)) {
+  setEntryData = () => {
+    const { entries } = this.props.babybook;
+    const { currentIndex } = this.state;
+    if (!_.isEmpty(entries.data)) {
       let data = [];
-      forEach(entries.data, item => {
+      _.forEach(entries.data, item => {
         if (item.file_name) {
           const uri = babybookDir + item.file_name;
-          const uriParts = item.file_name.split('.');
           data.push({ ...item, file_uri: { uri } });
         }
       });
-      data = sortBy(data, i => i.created_at);
+      data = _.sortBy(data, i => i.created_at);
 
       // add entry for cover
-      let cover = find(data, ['cover', 1]);
+      let cover = _.find(data, ['cover', 1]);
       if (!cover) cover = coverLogo;
       data = [{ ...cover, id: '0' }].concat(data);
 
-      this.setState({ data, entryDataSaved: true, });
+      this.setState({ data, entryDataSaved: true });
       // update share
-      this.setShareAttributes(this.state.currentIndex);
+      this.setShareAttributes(currentIndex);
     } else {
       this.setState({ data: [coverLogo], entryDataSaved: true });
     }
@@ -199,9 +186,10 @@ class BabyBookScreen extends Component {
   };
 
   setShareAttributes = index => {
+    const { data } = this.state;
     // for share
-    if(this.state.data.length > index){
-      const item = this.state.data[index];
+    if (data.length > index) {
+      const item = data[index];
       const uri = babybookDir + item.file_name;
 
       this.setState({
@@ -221,51 +209,51 @@ class BabyBookScreen extends Component {
   };
 
   shareOpen = () => {
-    const shareAttributes = this.state.shareAttributes;
+    const { shareAttributes } = this.state;
     if (shareAttributes.content) {
       Share.share(shareAttributes.content, shareAttributes.options);
     }
   };
 
   renderItem = ({ item, itemIndex }) => {
+    const { navigation } = this.props;
     if (itemIndex === 0) {
-      return (
-        <BabyBookCoverItem item={item} navigation={this.props.navigation} />
-      );
+      return <BabyBookCoverItem item={item} navigation={navigation} />;
     }
-    return <BabyBookItem item={item} navigation={this.props.navigation} />;
+    return <BabyBookItem item={item} navigation={navigation} />;
   };
 
   render() {
+    const { currentIndex, data } = this.state;
     return (
       <View style={styles.container}>
         <PageControl
           style={styles.pageControl}
-          numberOfPages={this.state.data.length}
-          currentPage={this.state.currentIndex}
+          numberOfPages={data.length}
+          currentPage={currentIndex}
           hidesForSinglePage
           pageIndicatorTintColor={Colors.lightGrey}
           currentPageIndicatorTintColor={Colors.headerBackgroundColor}
           indicatorStyle={{ borderRadius: 0 }}
           currentIndicatorStyle={{ borderRadius: 0 }}
           indicatorSize={{ width: 10, height: 10 }}
-          onPageIndicatorPress={index => this.handleIndexChange(index)}
+          onPageIndicatorPress={this.handleIndexChange}
         />
 
         <View style={styles.viewContainer}>
-          {this.state.data.length > 0 && (
+          {data.length > 0 && (
             <SideSwipe
-              data={this.state.data}
-              index={this.state.currentIndex}
+              data={data}
+              index={currentIndex}
               style={[styles.carouselFill, { width }]}
               itemWidth={BabyBookItem.WIDTH}
               threshold={BabyBookItem.WIDTH / 2}
               contentOffset={contentOffset}
               extractKey={item => item.id}
               useVelocityForIndex={false}
-              onIndexChange={index => this.handleIndexChange(index)}
-              renderItem={page => this.renderItem(page)}
-              useNativeDriver={true}
+              onIndexChange={this.handleIndexChange}
+              renderItem={this.renderItem}
+              useNativeDriver
             />
           )}
         </View>
@@ -302,14 +290,14 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 10,
-    marginLeft: 20,
+    paddingBottom: 3,
+    marginLeft: 15,
     marginRight: 20,
   },
   headerTitle: {
     alignSelf: 'flex-start',
-    fontWeight: '400',
-    fontSize: 18,
+    fontWeight: '900',
+    fontSize: 26,
     color: Colors.headerTint,
   },
   headerButtonContainer: {
@@ -327,13 +315,5 @@ const mapStateToProps = ({ babybook, registration }) => ({
   babybook,
   registration,
 });
-const mapDispatchToProps = {
-  resetBabyBookEntries,
-  fetchBabyBookEntries,
-  fetchSubject,
-};
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(BabyBookScreen);
+export default connect(mapStateToProps)(BabyBookScreen);

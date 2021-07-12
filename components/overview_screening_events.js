@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  AppState,
 } from 'react-native';
 
 import SideSwipe from 'react-native-sideswipe';
@@ -19,8 +20,6 @@ import find from 'lodash/find';
 import moment from 'moment';
 
 import { connect } from 'react-redux';
-
-import { fetchMilestoneCalendar } from '../actions/milestone_actions';
 
 import Colors from '../constants/Colors';
 
@@ -45,29 +44,48 @@ class OverviewScreen extends React.Component {
     super(props);
 
     this.state = {
+      appState: AppState.currentState,
       currentIndexScreening: 0,
+      screeningEvents: [],
       screeningEventsUpdated: false,
       sliderLoading: true,
     };
+
+    // returning from questions screen
+    this.props.navigation.addListener('willFocus', () => {
+      this.setState({ screeningEventsUpdated: false });
+    });
+  }
+
+  componentDidMount() {
+    AppState.addEventListener('change', this.handleAppStateChange);
+    this.setState({ screeningEventsUpdated: false });
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const { calendar, api_calendar } = nextProps.milestones;
-    return !calendar.fetching && !api_calendar.fetching;
+    const { api_calendar } = nextProps.milestones;
+    return !api_calendar.fetching;
   }
 
   componentDidUpdate() {
-    const { calendar, api_calendar } = this.props.milestones;
-    const { sliderLoading, screeningEventsUpdated } = this.state;
-    if (api_calendar.fetched && !screeningEventsUpdated) {
-      this.props.fetchMilestoneCalendar();
-      this.setState({ screeningEventsUpdated: true });
-      return;
-    }
-    if (!isEmpty(calendar.data) && sliderLoading) {
-      this.setState({ sliderLoading: false });
+    const { screeningEventsUpdated } = this.state;
+    if (!screeningEventsUpdated) {
+      this.setScreeningEvents();
     }
   }
+
+  componentWillUnmount() {
+    AppState.removeEventListener('change');
+  }
+
+  handleAppStateChange = nextAppState => {
+    const { appState } = this.state;
+    if (appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.setState({ screeningEventsUpdated: false, appState: nextAppState });
+    } else {
+      this.setState({ appState: nextAppState });
+    }
+  };
 
   handleOnPress = task => {
     const navigate = this.props.navigation.navigate;
@@ -78,27 +96,37 @@ class OverviewScreen extends React.Component {
     }
   };
 
-  screeningEvents = () => {
+  setScreeningEvents = () => {
     const { milestones, calendar } = this.props.milestones;
 
     if (isEmpty(calendar.data) || isEmpty(milestones.data)) return [];
 
-    let screeningEvents = filter(calendar.data, s => {
-      if (s.momentary_assessment || s.study_only !== 1 || s.completed_at) {
+    let screeningEvents = filter(calendar.data, trigger => {
+      if (
+        trigger.momentary_assessment ||
+        !trigger.study_only ||
+        trigger.completed_at
+      ) {
         return false;
       }
-      const milestone = find(milestones.data, { id: s.milestone_id });
+      const milestone = find(milestones.data, { id: trigger.milestone_id });
       if (!milestone.always_visible) {
         return false;
       }
       return true;
-      //return ( moment.isAfter(s.available_start_at) && moment.isBefore(s.available_end_at) );
     });
-    screeningEvents = sortBy(screeningEvents, s => {
-      const start_at = new Date(s.available_start_at);
+
+    screeningEvents = sortBy(screeningEvents, trigger => {
+      const start_at = new Date(trigger.available_start_at);
       return start_at.toISOString();
     });
-    return screeningEvents;
+
+    this.setState({
+      screeningEventsUpdated: true,
+      screeningEvents,
+      sliderLoading: false,
+    });
+
   };
 
   renderScreeningItem = data => {
@@ -134,7 +162,7 @@ class OverviewScreen extends React.Component {
   };
 
   render() {
-    const screeningEvents = this.screeningEvents();
+    const { screeningEvents, currentIndexScreening } = this.state;
     return (
       <View style={styles.container}>
         <View style={styles.slider_header}>
@@ -162,9 +190,9 @@ class OverviewScreen extends React.Component {
           )}
           {!isEmpty(screeningEvents) && (
             <SideSwipe
-              index={this.state.currentIndexScreening}
+              index={currentIndexScreening}
               data={screeningEvents}
-              renderItem={item => this.renderScreeningItem(item)}
+              renderItem={this.renderScreeningItem}
               itemWidth={width - scCardMargin}
               contentOffset={scCardMargin - 2}
               useVelocityForIndex
@@ -282,11 +310,4 @@ const mapStateToProps = ({ session, milestones, registration }) => ({
   registration,
 });
 
-const mapDispatchToProps = {
-  fetchMilestoneCalendar,
-};
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(OverviewScreen);
+export default connect(mapStateToProps)(OverviewScreen);

@@ -7,7 +7,7 @@ import isEmpty from 'lodash/isEmpty';
 import { connect } from 'react-redux';
 
 import {
-  updateConnectionType,
+  updateSession,
   dispatchPendingActions,
   apiDispatchTokenRefresh,
 } from '../actions/session_actions';
@@ -22,18 +22,18 @@ class ApiOfflineListener extends PureComponent {
       dispatching_pending_actions: false,
     };
 
-    this._getConnectionStatus();
-    this._addListeners();
+    this.getConnectionStatus();
+    this.addListeners();
   }
 
   componentDidUpdate(prevProps, prevState) {
     const session = this.props.session;
     // console.log('**** Network Type: ', session.connectionType);
-    this._dispatch_pending_actions(session);
+    this.dispatch_pending_actions(session);
   }
 
-  _dispatch_pending_actions = (session) => {
-    const dispatching_pending_actions = this.state.dispatching_pending_actions;
+  dispatch_pending_actions = session => {
+    const { dispatching_pending_actions } = this.state;
     if (
       !['none', 'unknown'].includes(session.connectionType) &&
       !session.dispatching_pending_actions &&
@@ -51,34 +51,35 @@ class ApiOfflineListener extends PureComponent {
     }
   };
 
-  _getConnectionStatus = async () => {
+  getConnectionStatus = async () => {
     const connectionInfo = await NetInfo.fetch();
-    this._updateSession(connectionInfo.type);
+    this.updateSession(connectionInfo.type);
   };
 
-  _updateSession = type => {
+  updateSession = type => {
+    const session = this.props.session;
     if (CONSTANTS.TESTING_MOCK_DISABLE_NETWORK) {
-      this.props.updateConnectionType('none');
-    } else {
-      this.props.updateConnectionType(type);
+      this.props.updateSession({ connectionType: 'none' });
+    } else if (session.connectionType !== type) {
+      this.props.updateSession({ connectionType: type });
     }
   };
 
-  _updateUserSession = nextAppState => {
+  updateUserSession = nextAppState => {
     const session = this.props.session;
     if (nextAppState === 'active' && session.email) {
       this.props.apiDispatchTokenRefresh(session);
     }
   };
 
-  _addListeners = () => {
+  addListeners = () => {
     NetInfo.addEventListener(connectionInfo => {
-      this._updateSession(connectionInfo.type);
+      this.updateSession(connectionInfo.type);
     });
     // check after application opens or wakes from background
     AppState.addEventListener('change', nextAppState => {
-      this._getConnectionStatus();
-      this._updateUserSession(nextAppState);
+      this.getConnectionStatus();
+      this.updateUserSession(nextAppState);
     });
   };
 
@@ -89,7 +90,7 @@ class ApiOfflineListener extends PureComponent {
 
 const mapStateToProps = ({ session }) => ({ session });
 const mapDispatchToProps = {
-  updateConnectionType,
+  updateSession,
   dispatchPendingActions,
   apiDispatchTokenRefresh,
 };

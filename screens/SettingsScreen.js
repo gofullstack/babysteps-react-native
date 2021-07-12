@@ -25,15 +25,9 @@ import filter from 'lodash/filter';
 import find from 'lodash/find';
 
 import { connect } from 'react-redux';
-import { fetchSession } from '../actions/session_actions';
-import {
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
-} from '../actions/registration_actions';
-import { fetchMilestoneAttachments } from '../actions/milestone_actions';
 
-import UploadSQLiteDatabase from '../database/upload_sqlite_database';
+import UploadJSONDatabase from '../database/upload_json_database';
+
 import {
   ConfirmAPIAttachments,
   UploadMilestoneAttachment,
@@ -62,35 +56,24 @@ class SettingsScreen extends React.Component {
       apiAttachmentsSubmitted: false,
       missingAPIAttachments: [],
     };
-
-    this.props.fetchSession();
-    this.props.fetchUser();
-    this.props.fetchRespondent();
-    this.props.fetchSubject();
-    this.props.fetchMilestoneAttachments();
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const { user, respondent, subject } = nextProps.registration;
-    return !user.fetching && !respondent.fetching && !subject.fetching;
   }
 
   componentDidUpdate() {
     const { subject } = this.props.registration;
     const { attachments } = this.props.milestones;
     const { apiAttachmentsSubmitted } = this.state;
-    if (subject.fetched && attachments.fetched && !apiAttachmentsSubmitted) {
+    if (!apiAttachmentsSubmitted) {
       this.getMissingAttachments();
       this.setState({ apiAttachmentsSubmitted: true });
     }
   }
 
   getMissingAttachments = async () => {
-    const subject = this.props.registration.subject.data;
-    const attachments = this.props.milestones.attachments.data;
-    const choiceIDs = map(attachments, 'choice_id');
+    const { subject } = this.props.registration;
+    const { attachments } = this.props.milestones;
+    const choiceIDs = map(attachments.data, 'choice_id');
 
-    const hasAttachments = await ConfirmAPIAttachments(subject.api_id, choiceIDs);
+    const hasAttachments = await ConfirmAPIAttachments(subject.data.id, choiceIDs);
 
     const missingAPIAttachments = [];
     map(hasAttachments, att => {
@@ -117,18 +100,19 @@ class SettingsScreen extends React.Component {
   };
 
   handleFeedbackPress = () => {
+    const session = this.props.session;
+    const user = this.props.registration.user.data;
     const build = this.getAppVersion();
     const release = this.getRelease();
     const version = `${Constants.manifest.version}:${build}`;
-    const session = this.props.session;
-    const user = this.props.registration.user.data;
+
     let body = `\n\n\n________________________\n\n`;
     body += `Platform: ${Platform.OS}\n`;
     body += `Version: ${version}\n`;
     body += `Release: ${release}\n`;
     body += `Notifications Updated At: ${moment(session.notifications_updated_at).format('MMMM Do YYYY, h:mm a Z')}\n`;
     body += `Notification Permissions: ${session.notifications_permission}\n`;
-    body += `User ID: ${user.api_id}\n\n`;
+    body += `User ID: ${user.id}\n\n`;
     body += `________________________\n\n\n`;
     Linking.openURL(
       `mailto:feedback@babystepsapp.net?subject=BabySteps App Feedback (v${version})&body=${body}`,
@@ -142,7 +126,7 @@ class SettingsScreen extends React.Component {
     const fileNames = await FileSystem.readDirectoryAsync(attachmentDir);
     let body = `<div>Release: ${release}</div>`;
     body += `Directory: ${CONSTANTS.ATTACHMENTS_DIRECTORY}\n`;
-    body += `User ID: ${user.api_id}\n`;
+    body += `User ID: ${user.id}\n`;
     body += '________________________\n\n';
 
     for (const fileName of fileNames) {
@@ -163,7 +147,7 @@ class SettingsScreen extends React.Component {
 
   handleUploadDatabasePress = () => {
     const user = this.props.registration.user.data;
-    UploadSQLiteDatabase(user.api_id);
+    UploadJSONDatabase(user.id);
     this.setState({ uploadDatabaseSelected: true });
   };
 
@@ -231,7 +215,7 @@ class SettingsScreen extends React.Component {
   handleUploadMediaFile = async attachment => {
     const { user, subject } = this.props.registration;
     let { missingAPIAttachments } = this.state;
-    UploadMilestoneAttachment(user.data.api_id, subject.data.api_id, attachment);
+    UploadMilestoneAttachment(user.data.id, subject.data.id, attachment);
     missingAPIAttachments = filter(missingAPIAttachments, missingAttachment => {
       return missingAttachment.id !== attachment.id;
     });
@@ -249,7 +233,9 @@ class SettingsScreen extends React.Component {
           }}
         >
           <View style={styles.mediaFileContainer}>
-            <Text style={styles.mediaFileText}>Choice ID: {attachment.choice_id}</Text>
+            <Text style={styles.mediaFileText}>
+              Choice ID: {attachment.choice_id}
+            </Text>
             <Text style={styles.mediaFileText}>{shortFileName}</Text>
           </View>
         </TouchableOpacity>
@@ -279,11 +265,16 @@ class SettingsScreen extends React.Component {
                 <Ionicons name="md-close" size={36} />
               </TouchableOpacity>
               <Text style={styles.sectionTitle}>Media Files to Upload:</Text>
-              <FlatList
-                data={missingAPIAttachments}
-                renderItem={item => this.renderMediaFileItem(item.item)}
-                keyExtractor={item => item.filename}
-              />
+              {!isEmpty(missingAPIAttachments) && (
+                <FlatList
+                  data={missingAPIAttachments}
+                  renderItem={item => this.renderMediaFileItem(item.item)}
+                  keyExtractor={item => item.filename}
+                />
+              )}
+              {isEmpty(missingAPIAttachments) && (
+                <Text>None...</Text>
+              )}
             </View>
           </Modal>
         </View>
@@ -339,12 +330,12 @@ class SettingsScreen extends React.Component {
   };
 
   render() {
-    const manifest = Constants.manifest;
-    const build = this.getAppVersion();
-    const release = this.getRelease();
     const session = this.props.session;
     const user = this.props.registration.user.data;
     const { uploadDatabaseSelected } = this.state;
+    const manifest = Constants.manifest;
+    const build = this.getAppVersion();
+    const release = this.getRelease();
 
     return (
       <SafeAreaView>
@@ -355,9 +346,7 @@ class SettingsScreen extends React.Component {
           </Text>
           <Text>Notification Permission: {session.notifications_permission}</Text>
           <Text>Release: {release}</Text>
-          {user && (
-            <Text>User ID: {user.api_id}</Text>
-          )}
+          {user && <Text>User ID: {user.id}</Text>}
           <TouchableOpacity
             style={styles.linkContainer}
             onPress={this.handleFAQPress}
@@ -450,6 +439,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 10,
     marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.lightGrey,
   },
   linkContainer: {
     borderTopWidth: 1,
@@ -500,15 +491,4 @@ const mapStateToProps = ({
   registration,
 });
 
-const mapDispatchToProps = {
-  fetchSession,
-  fetchUser,
-  fetchRespondent,
-  fetchSubject,
-  fetchMilestoneAttachments,
-};
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(SettingsScreen);
+export default connect(mapStateToProps)(SettingsScreen);

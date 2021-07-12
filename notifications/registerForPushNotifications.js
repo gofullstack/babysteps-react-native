@@ -7,9 +7,9 @@ import Constants from 'expo-constants';
 import isEmpty from 'lodash/isEmpty';
 
 import { connect } from 'react-redux';
-import { fetchSession, updateSession } from '../actions/session_actions';
+import { updateSession } from '../actions/session_actions';
 import {
-  fetchRespondent,
+  //fetchRespondent,
   updateRespondent,
   apiUpdateRespondent,
 } from '../actions/registration_actions';
@@ -25,9 +25,6 @@ class RegisterForPushNotifications extends Component {
       permissionDeniedAlertDisplayed: false,
       requestedPushToken: false,
     };
-
-    //this.props.fetchSession();
-    //this.props.fetchRespondent();
   }
 
   componentDidMount() {
@@ -40,11 +37,9 @@ class RegisterForPushNotifications extends Component {
     const { requestedPushToken } = nextState;
 
     return (
-      !session.fetching &&
-      !respondent.fetching &&
       !apiRespondent.fetching &&
       !isEmpty(respondent.data) &&
-      ![null, undefined].includes(respondent.data.api_id) &&
+      ![null, undefined].includes(respondent.data.id) &&
       !requestedPushToken
     );
   }
@@ -90,9 +85,9 @@ class RegisterForPushNotifications extends Component {
     }
 
     if (notifications_permission !== session.notifications_permission) {
-      const api_id = respondent.data.api_id;
+      const id = respondent.data.id;
       this.props.updateSession({ notifications_permission });
-      this.props.apiUpdateRespondent(session, { api_id, notifications_permission })
+      this.props.apiUpdateRespondent(session, { id, notifications_permission })
     }
 
     if (notifications_permission !== 'granted') return;
@@ -105,7 +100,7 @@ class RegisterForPushNotifications extends Component {
 
   setPushNotificationToken = async () => {
     const session = this.props.session;
-    const api_id = this.props.registration.respondent.data.api_id;
+    const id = this.props.registration.respondent.data.id;
 
     const result = await Notifications.getExpoPushTokenAsync();
     const push_token = result.data;
@@ -113,7 +108,7 @@ class RegisterForPushNotifications extends Component {
     if (session.push_token !== push_token) {
       this.props.updateSession({ push_token });
       this.props.updateRespondent({ push_token });
-      this.props.apiUpdateRespondent(session, { api_id, push_token });
+      this.props.apiUpdateRespondent(session, { id, push_token });
     }
   };
 
@@ -128,9 +123,7 @@ const mapStateToProps = ({ session, registration }) => ({
 });
 
 const mapDispatchToProps = {
-  fetchSession,
   updateSession,
-  fetchRespondent,
   updateRespondent,
   apiUpdateRespondent,
 };

@@ -34,12 +34,11 @@ const executeApiUploadCall = async entry => {
 };
 
 export const AssociateAttachment = async entry => {
-  console.log('*** Begin Associate Babybook Attachment')
+  console.log('*** Begin Associate Babybook Attachment');
   const url = '/babybooks/associate_attachment';
   const headers = { milestone_token: apiToken };
-  const babybook_entry = { ...entry, app_id: entry.id };
+  const babybook_entry = { ...entry };
   delete babybook_entry.id;
-  delete babybook_entry.api_id;
 
   const response = await axios({
     method: 'post',
