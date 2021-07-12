@@ -42,6 +42,9 @@ const ConsentNavigator = createStackNavigator(
   {
     defaultNavigationOptions: headerOptions,
   },
+  {
+    defaultNavigationOptions: headerOptions,
+  },
 );
 
 const ConsentNavigationContainer = createAppContainer(ConsentNavigator);
