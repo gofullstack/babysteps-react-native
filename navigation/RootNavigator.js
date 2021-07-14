@@ -21,13 +21,13 @@ import States from '../actions/states';
 
 const headerOptions = {
   headerStyle: {
-    height: 60,
+    height: 50,
     backgroundColor: Colors.headerBackground,
   },
   headerTintColor: Colors.headerTint,
   headerTitleStyle: {
     fontWeight: '900',
-    fontSize: 32,
+    fontSize: 20,
   },
   headerForceInset: {
     top: 'never',

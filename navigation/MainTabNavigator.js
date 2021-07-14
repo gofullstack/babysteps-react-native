@@ -23,13 +23,13 @@ import Colors from '../constants/Colors';
 
 const headerOptions = {
   headerStyle: {
-    height: 40,
+    height: 50,
     backgroundColor: Colors.headerBackground,
   },
   headerTintColor: Colors.headerTint,
   headerTitleStyle: {
     fontWeight: '900',
-    fontSize: 32,
+    fontSize: 20,
   },
 };
 

@@ -87,7 +87,7 @@ class ApiSyncData extends Component {
       });
     }
 
-    if (!uploadDatabaseSubmitted && !_.isEmpty(user.data)) {
+    if (!uploadDatabaseSubmitted && !isEmpty(user.data)) {
       if (user.data.id) {
         UploadJSONDatabase(user.data.id);
         this.setState({ uploadDatabaseSubmitted: true });
