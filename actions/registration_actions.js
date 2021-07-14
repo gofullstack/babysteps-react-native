@@ -112,7 +112,7 @@ export const fetchUser = () => {
         `SELECT * FROM users LIMIT 1;`,
         [],
         (_, response) => {
-          dispatch( Response(FETCH_USER_FULFILLED, response));
+          dispatch(Response(FETCH_USER_FULFILLED, response));
         },
         (_, error) => {
           dispatch(Response(FETCH_USER_REJECTED, error));
