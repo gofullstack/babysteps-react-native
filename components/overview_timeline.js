@@ -101,6 +101,7 @@ class OverviewTimeline extends Component {
     } = this.props.milestones;
 
     // leave verbose so it's easier to understand
+
     let baseDate = moment();
     let postBirth = false;
 
@@ -116,25 +117,47 @@ class OverviewTimeline extends Component {
       return ['during_pregnancy', 'birth', 'post_birth'].includes(choice.overview_timeline);
     });
 
-    // get attachment if exists
+    // add attributes
     for (const key in overviewTimelines) {
 
-      const item = {
-        ...overviewTimelines[key],
-        choice_id: null,
-        attachment_id: null,
-        filename: '',
-        content_type: '',
-        uri: '',
-      };
+      let item = overviewTimelines[key];
+      item.choice_id = item.id;
+
+      const question = _.find(questions.data, ['id', item.question_id]);
+      if (!_.isEmpty(question)) {
+
+        const section = _.find(sections.data, ['id', question.section_id]);
+
+        if (!_.isEmpty(section)) {
+          item = {
+            ...item,
+            task_id: section.task_id,
+            title: section.title,
+          };
+        }
+
+        const entry = _.find(calendar.data, ['task_id', section.task_id]);
+        if (!_.isEmpty(entry)) {
+          item = {
+            ...item,
+            milestone_trigger_id: entry.id,
+            notify_at: entry.notify_at,
+            available_start_at: entry.available_start_at,
+            available_end_at: entry.available_end_at,
+          };
+        }
+      } // ! isEmpty(question)
 
       const attachment = _.find(attachments.data, ['choice_id', item.id]);
       if (!_.isEmpty(attachment)) {
-        item.attachment_id = attachment.id;
-        item.filename = attachment.filename;
-        item.content_type = attachment.content_type;
-        item.uri = attachment.uri;
-      }
+        item = {
+          ...item,
+          filename: attachment.filename,
+          content_type: attachment.content_type,
+          uri: attachment.uri,
+        };
+      } // ! isEmpty(attachment)
+
       overviewTimelines[key] = item;
     }
 
@@ -163,33 +186,6 @@ class OverviewTimeline extends Component {
       return false;
     });
 
-    // add attributes
-    for (const key in overviewTimelines) {
-
-      let item = overviewTimelines[key];
-
-      const question = _.find(questions.data, ['id', item.question_id]);
-      if (_.isEmpty(question)) return;
-
-      const section = _.find(sections.data, ['id', question.section_id]);
-      const entry = _.find(calendar.data, ['task_id', section.task_id]);
-
-      if (_.isEmpty(section) || _.isEmpty(entry)) return;
-
-      item = {
-        ...item,
-        task_id: section.task_id,
-        choice_id: item.id,
-        title: section.title,
-        milestone_trigger_id: entry.id,
-        notify_at: entry.notify_at,
-        available_start_at: entry.available_start_at,
-        available_end_at: entry.available_end_at,
-      };
-
-      overviewTimelines[key] = item;
-    }
-
     // calculate weeks
     _.forEach(overviewTimelines, item => {
       const notify_at = moment(item.notify_at, moment.ISO_8601);
@@ -216,6 +212,7 @@ class OverviewTimeline extends Component {
         moment().isBefore(item.available_end_at)
       );
     });
+
     // if none, find current task
     if (currentIndexTimeline === -1) {
       currentIndexTimeline = _.findIndex(overviewTimelines, item => {

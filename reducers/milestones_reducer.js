@@ -820,10 +820,26 @@ const reducer = (state = initialState, action, data = []) => {
     case FETCH_MILESTONE_ANSWERS_FULFILLED: {
       let data = action.payload.rows['_array'];
       _.map(data, answer => {
-        if (answer.answer_boolean === 'true') {
+        if (answer.answer_boolean === 'true' || answer.answer_boolean === 1) {
           answer.answer_boolean = true;
         } else {
           answer.answer_boolean = false;
+        }
+        if (answer.api_id) {
+          answer.id = answer.api_id;
+          delete answer.api_id;
+        }
+        if (answer.user_api_id) {
+          answer.user_id = answer.user_api_id;
+          delete answer.user_api_id;
+        }
+        if (answer.respondent_api_id) {
+          answer.respondent_id = answer.respondent_api_id;
+          delete answer.respondent_api_id;
+        }
+        if (answer.subject_api_id) {
+          answer.subject_id = answer.subject_api_id;
+          delete answer.subject_api_id;
         }
       });
       return {
@@ -1106,6 +1122,16 @@ const reducer = (state = initialState, action, data = []) => {
     }
     case FETCH_MILESTONE_ATTACHMENTS_FULFILLED: {
       const data = action.payload.rows['_array'];
+      _.map(data, attachment => {
+        if (attachment.user_api_id) {
+          attachment.user_id = attachment.user_api_id;
+          delete attachment.user_api_id;
+        }
+        if (attachment.subject_api_id) {
+          attachment.subject_id = attachment.subject_api_id;
+          delete attachment.subject_api_id;
+        }
+      });
       return {
         ...state,
         attachments: {
