@@ -124,7 +124,7 @@ class SettingsScreen extends React.Component {
     const release = this.getRelease();
     const attachmentDir = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY  + '/'
     const fileNames = await FileSystem.readDirectoryAsync(attachmentDir);
-    let body = `<div>Release: ${release}</div>`;
+    let body = `Release: ${release}\n`;
     body += `Directory: ${CONSTANTS.ATTACHMENTS_DIRECTORY}\n`;
     body += `User ID: ${user.id}\n`;
     body += '________________________\n\n';
@@ -132,10 +132,10 @@ class SettingsScreen extends React.Component {
     for (const fileName of fileNames) {
       const fileInfo = await FileSystem.getInfoAsync(attachmentDir + fileName);
       if (fileInfo.exists) {
-        const shortFileName = fileName.substring(24, 100);
+        // const shortFileName = fileName.substring(24, 100);
         const timeStamp = moment(fileInfo.modificationTime * 1000).format('MM/DD/YYYY hh:MM');
         const fileSize = `${Math.ceil(fileInfo.size / 1000).toLocaleString()}K`;
-        body += `${shortFileName} - ${fileSize} - ${timeStamp}\n\n`;
+        body += `${fileName} - ${fileSize} - ${timeStamp}\n\n`;
       }
     }
 
@@ -303,6 +303,25 @@ class SettingsScreen extends React.Component {
     return build;
   };
 
+  renderAppinformation = () => {
+    const session = this.props.session;
+    const user = this.props.registration.user.data;
+    const manifest = Constants.manifest;
+    const build = this.getAppVersion();
+    const release = this.getRelease();
+    return (
+      <View>
+        <Text style={styles.sectionTitle}>BabySteps App Information:</Text>
+        <Text>
+          Version: {manifest.version}:{build}
+        </Text>
+        <Text>Notification Permission: {session.notifications_permission}</Text>
+        <Text>Release: {release}</Text>
+        {user && <Text>User ID: {user.id}</Text>}
+      </View>
+    );
+  }
+
   renderIRBinformation = () => {
     const respondent = this.props.registration.respondent.data;
     const consent = this.props.registration.consent.data;
@@ -330,23 +349,15 @@ class SettingsScreen extends React.Component {
   };
 
   render() {
-    const session = this.props.session;
-    const user = this.props.registration.user.data;
     const { uploadDatabaseSelected } = this.state;
-    const manifest = Constants.manifest;
-    const build = this.getAppVersion();
-    const release = this.getRelease();
-
     return (
       <SafeAreaView>
         <ScrollView style={styles.section}>
-          <Text style={styles.sectionTitle}>BabySteps App Information:</Text>
-          <Text>
-            Version: {manifest.version}:{build}
-          </Text>
-          <Text>Notification Permission: {session.notifications_permission}</Text>
-          <Text>Release: {release}</Text>
-          {user && <Text>User ID: {user.id}</Text>}
+
+          {this.renderAppinformation()}
+
+          {this.renderIRBinformation()}
+
           <TouchableOpacity
             style={styles.linkContainer}
             onPress={this.handleFAQPress}
@@ -417,8 +428,6 @@ class SettingsScreen extends React.Component {
               style={styles.linkIcon}
             />
           </TouchableOpacity>
-
-          {this.renderIRBinformation()}
 
         </ScrollView>
 
