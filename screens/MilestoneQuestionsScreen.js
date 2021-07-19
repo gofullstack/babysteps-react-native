@@ -299,7 +299,7 @@ class MilestoneQuestionsScreen extends Component {
     // sort with highest id first
     attachments = _.reverse(_.sortBy(attachments, 'id'));
     // then find first match (with highest id)
-    const oldAttachment = _.find(attachments, {choice_id: choice.id});
+    const oldAttachment = _.find(attachments, { choice_id: choice.id });
     // remove from collection
     attachments = _.reject(attachments, att => {
       if (_.isEmpty(att)) return true;
@@ -323,15 +323,13 @@ class MilestoneQuestionsScreen extends Component {
         title: attachment.title,
         width: attachment.width,
         height: attachment.height,
+        uri: null,
       };
 
       newAttachment.filename = attachment.uri.substring(
         attachment.uri.lastIndexOf('/') + 1,
         attachment.uri.length,
       );
-
-      const attachmentDir = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY;
-      newAttachment.uri = attachmentDir + '/' + newAttachment.filename;
 
       const fileType = attachment.uri.substring(
         attachment.uri.lastIndexOf('.') + 1,
@@ -362,11 +360,14 @@ class MilestoneQuestionsScreen extends Component {
         return;
       }
 
+      newAttachment.uri = CONSTANTS.ATTACHMENTS_DIRECTORY + '/' + newAttachment.filename;
+
       // move file from camera cache to app cache
-      await FileSystem.copyAsync({ from: attachment.uri, to: newAttachment.uri });
+      const newUri = FileSystem.documentDirectory + newAttachment.uri;
+      await FileSystem.copyAsync({ from: attachment.uri, to: newUri });
 
       // confirm file
-      resultFile = await FileSystem.getInfoAsync(newAttachment.uri, {
+      resultFile = await FileSystem.getInfoAsync(newUri, {
         size: true,
         md5: true,
       });

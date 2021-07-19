@@ -15,14 +15,15 @@ import {
   FormInput,
   Slider,
 } from 'react-native-elements';
+import * as FileSystem from 'expo-file-system';
 import * as Permissions from 'expo-permissions';
 import * as WebBrowser from 'expo-web-browser';
 import { Video } from 'expo-av';
 import * as ImagePicker from 'expo-image-picker';
-import DatePicker from './datePickerInput';
 
 import _ from 'lodash';
 
+import DatePicker from './datePickerInput';
 import AutoHeightImage from './auto_height_image';
 import registerForPermission, {
   renderNoPermissionsMessage,
@@ -417,7 +418,7 @@ export class RenderFile extends Component {
       let attachment = _.find(attachments, ['choice_id', choice.id]);
 
       if (attachment && attachment.uri) {
-        uri = attachment.uri;
+        uri = FileSystem.documentDirectory + attachment.uri;
         uriParts = uri.split('.');
         fileType = uriParts[uriParts.length - 1];
       }
@@ -500,7 +501,7 @@ export class RenderFile extends Component {
           <View style={styles.pickImageContainer}>
             {displayVideo && (
               <Video
-                source={{ uri: uri }}
+                source={{ uri }}
                 rate={1.0}
                 volume={1.0}
                 isMuted={false}
@@ -512,7 +513,7 @@ export class RenderFile extends Component {
               />
             )}
             {displayImage && (
-              <AutoHeightImage source={{ uri }} style={styles.image} width={previewWidth} />
+              <AutoHeightImage source={attachment} style={styles.image} width={previewWidth} />
             )}
             {displayAudio && (<Text>Recording Attached</Text>)}
             <Text style={styles.textError}>{this.state.imageError}</Text>

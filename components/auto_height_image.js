@@ -16,18 +16,19 @@ class AutoHeightImage extends Component {
   componentDidMount() {
     const { source, width } = this.props;
     if (width > 0 && source !== '') {
-      this.getImageSize(source.uri);
+      this.getImageSize(source);
     }
   }
 
   componentDidUpdate(prevProps) {
     const { source, width } = this.props;
     if (width !== prevProps.width || source !== prevProps.source) {
-      this.getImageSize(source.uri);
+      this.getImageSize(source);
     }
   }
 
-  getImageSize = async uri => {
+  getImageSize = async source => {
+    const uri = FileSystem.documentDirectory + source.uri;
     let resultFile = await FileSystem.getInfoAsync(uri);
     if (resultFile.exists) {
       Image.getSize(
@@ -48,11 +49,7 @@ class AutoHeightImage extends Component {
       xHeight = fixedSize;
       xWidth = fixedSize;
     }
-    let aspectRatio = xHeight / xWidth;
-    //if (Platform.OS === 'ios') {
-    // android and ios are returning width & height in reverse
-    aspectRatio = xWidth / xHeight;
-    //} //I commented out the above block as my tests on android (Samsung Galaxy S7 return in the same order as iOS.)
+    const aspectRatio = xHeight / xWidth;
     const width = this.props.width;
     const height = (width * aspectRatio) + 10;
     this.setState({ width, height });
@@ -61,12 +58,13 @@ class AutoHeightImage extends Component {
   render() {
     const { width, height } = this.state;
     const { source, style } = this.props;
+    const uri = FileSystem.documentDirectory + source.uri;
 
     return (
       <View style={{ flexGrow: 1 }}>
         <Image
-          key={source.uri}
-          source={source}
+          key={source.filename}
+          source={{ uri }}
           style={[style, { width, height }]}
         />
       </View>

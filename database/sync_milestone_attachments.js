@@ -6,14 +6,14 @@ import isEmpty from 'lodash/isEmpty';
 
 import { store } from '../store';
 
-import { getApiUrl, getAttachments } from './common';
+import { getApiUrl } from './common';
 
 const baseURL = getApiUrl();
 const apiToken = Constants.manifest.extra.apiToken;
 
 const executeApiCall = async (userID, subjectID, attachment) => {
   const url = `${baseURL}/answers/attachments`;
-  const uri = attachment.uri;
+  const uri = FileSystem.documentDirectory + attachment.uri;
 
   const headers = {
     'Content-Type': attachment.content_type,

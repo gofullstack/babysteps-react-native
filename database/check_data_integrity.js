@@ -303,14 +303,23 @@ class CheckDataIntegrity extends Component {
     for (const key in attachments) {
       let attachment = attachments[key];
 
-      if (!_.isEmpty(attachment) || attachment.choice_id) {
+      if (!_.isEmpty(attachment) && attachment.choice_id) {
         const answer = _.find(answers, { 'choice_id': attachment.choice_id });
         // drop duplicates or missing answer
 
         if (!_.isEmpty(answer) && attachment.choice_id !== prevChoiceID) {
 
           if (attachment.uri) {
-            let resultFile = await FileSystem.getInfoAsync(attachment.uri);
+            if (attachment.uri.substring(0, 5) === 'file:') {
+              const uri = CONSTANTS.ATTACHMENTS_DIRECTORY + '/' + attachment.filename;
+              attachment = {
+                ...attachment,
+                uri,
+              };
+              this.props.updateMilestoneAttachment(attachment);
+            }
+            const uri = FileSystem.documentDirectory + attachment.uri;
+            let resultFile = await FileSystem.getInfoAsync(uri);
             if (!resultFile.exists) {
               // file not found or otherwise defective
               console.log(`*** Attachment file not found or otherwise defective - choiceID: ${attachment.choice_id}`);

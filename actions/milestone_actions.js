@@ -579,7 +579,6 @@ export const apiSyncMilestoneAnswers = user_id => {
     dispatch(Pending(API_SYNC_MILESTONE_ANSWERS_PENDING));
     const baseURL = getApiUrl();
     const apiToken = Constants.manifest.extra.apiToken;
-    const fileUri = FileSystem.documentDirectory + CONSTANTS.ATTACHMENTS_DIRECTORY;
     const headers = { milestone_token: apiToken };
 
     return new Promise((resolve, reject) => {
@@ -597,11 +596,15 @@ export const apiSyncMilestoneAnswers = user_id => {
           const answers = response.data.answers;
           const attachments = response.data.attachments;
 
+          dispatch(Response(UPDATE_MILESTONE_ANSWERS_FULFILLED, answers));
+
           attachments.forEach(attachment => {
-            attachment.uri = `${fileUri}/${attachment.filename}`;
-            FileSystem.downloadAsync(attachment.url, attachment.uri)
+            attachment.uri = `${CONSTANTS.ATTACHMENTS_DIRECTORY}/${attachment.filename}`;
+            const uri = FileSystem.documentDirectory + attachment.uri;
+            FileSystem.downloadAsync(attachment.url, uri)
               .then(response => {
                 console.log(`*** Answer Attachment sync'd ${attachment.filename}`);
+                dispatch(Response(UPDATE_MILESTONE_ATTACHMENT_FULFILLED, attachment));
               })
               .catch(error => {
                 dispatch(Response(API_SYNC_MILESTONE_ANSWERS_REJECTED, error));
