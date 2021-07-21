@@ -14,7 +14,11 @@ const twoButtonWidth = (width / 2) - 30;
 
 class TourButtons extends Component {
 
-  _renderButtons = () => {
+  handleSubmit = registration_state => {
+    this.props.updateSession({ registration_state });
+  };
+
+  renderButtons = () => {
     if (this.props.currentIndex < 3) {
       return (
         <View style={styles.buttonContainer}>
@@ -35,9 +39,7 @@ class TourButtons extends Component {
           buttonStyle={styles.buttonOneStyle}
           titleStyle={styles.buttonTitleStyle}
           onPress={() => {
-            this.props.updateSession({
-              registration_state: States.REGISTERING_AS_NO_STUDY,
-            });
+            this.handleSubmit(States.REGISTERING_AS_NO_STUDY);
           }}
           title="No Thanks"
         />
@@ -46,11 +48,9 @@ class TourButtons extends Component {
           buttonStyle={styles.buttonTwoStyle}
           titleStyle={styles.buttonTitleStyle}
           onPress={() => {
-            this.props.updateSession({
-              // 20200730 skip eligibility
-              //registration_state: States.REGISTERING_ELIGIBILITY,
-              registration_state: States.REGISTERING_AS_ELIGIBLE,
-            });
+            // 20200730 skip eligibility
+            // States.REGISTERING_ELIGIBILITY,
+            this.handleSubmit(States.REGISTERING_AS_ELIGIBLE);
           }}
           title="Join Study"
         />
@@ -59,7 +59,7 @@ class TourButtons extends Component {
   };
 
   render() {
-    return <View style={styles.container}>{this._renderButtons()}</View>;
+    return <View style={styles.container}>{this.renderButtons()}</View>;
   } // render
 }
 

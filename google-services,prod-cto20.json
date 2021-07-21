@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "64886870613",
+    "project_id": "children-of-the-20s",
+    "storage_bucket": "children-of-the-20s.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:64886870613:android:e4e83574eb19bdbcbbbadc",
+        "android_client_info": {
+          "package_name": "com.gofullstack.childrenofthe20s"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "64886870613-dmmim6j7r2qsef9jil3k5co59bmbp66v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkQcO4ZYShck3PYcL0wctxBpLeawpW4CE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "64886870613-dmmim6j7r2qsef9jil3k5co59bmbp66v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

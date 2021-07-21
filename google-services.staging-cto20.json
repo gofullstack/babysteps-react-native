@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "390415049871",
+    "project_id": "children-of-the-20s-staging",
+    "storage_bucket": "children-of-the-20s-staging.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:390415049871:android:1db5cdf3ae67bb237cbcfa",
+        "android_client_info": {
+          "package_name": "com.gofullstack.childrenofthe20s.staging"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "390415049871-jlh55m82gctsj78sn6u2ep9fd4s10mog.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATefeswNeB89K7i4-BeWq3vY3SHUfyOHc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "390415049871-jlh55m82gctsj78sn6u2ep9fd4s10mog.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

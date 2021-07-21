@@ -13,7 +13,10 @@
       "baseUrl": "https://api.babystepsapp.net",
       "apiToken": "816fb58eb3ef6dc4dcf85a230b2049da33bac3b7a744d26f33ca3b89ae136d41",
       "sentryDSN": "https://193d4a8c3e6b4b3d974a3f4d1d6f598c@sentry.io/1204085",
-      "analyticsID": "UA-152636953-1"
+      "analyticsID": "UA-152636953-1",
+      "features": {
+        "registration": "full",
+      }
     },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -68,7 +71,7 @@
           "config": {
             "organization": "babysteps",
             "project": "babysteps-react-native",
-            "authToken": "44bb6f65629c4f69b182f8a4d908e3c0a6d2d04cf1614976a781a8b571814280"
+            "authToken": "c4ac5d6f2c244c8e9c2a5dd185b43f7e712892d2d8ee47d6ac4a7f76b6ba06b8"
           }
         }
       ]

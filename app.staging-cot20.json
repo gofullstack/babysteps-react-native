@@ -1,0 +1,80 @@
+{
+  "expo": {
+    "name": "Children of the 20s - Staging",
+    "description": "Pregnancy and Baby Milestones",
+    "slug": "children-of-the-20s-staging-react-native",
+    "privacy": "public",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "orientation": "portrait",
+    "extra": {
+      "release": "Staging",
+      "baseUrl": "https://children-20s.herokuapp.com/",
+      "apiToken": "816fb58eb3ef6dc4dcf85a230b2049da33bac3b7a744d26f33ca3b89ae136d41",
+      "sentryDSN": "https://4f0df4f4580347ac95526e3d29229d5f@o140946.ingest.sentry.io/5873115",
+      "analyticsID": "",
+      "features": {
+        "registration": "token",
+      }
+    },
+    "icon": "./assets/images/icon-cot20s.png",
+    "splash": {
+      "image": "./assets/images/splash-cot20s.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#dffaf4"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "./assets/**/*"
+    ],
+    "version": "0.1.0",
+    "ios": {
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gofullstack.childrenofthe20s.staging",
+      "requireFullScreen": true,
+      "associatedDomains": [
+        "webcredentials:babysteps-staging.icts.uiowa.edu",
+        "webcredentials:staging-api.babystepsapp.net"
+      ],
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to capture images of your baby for this study and the baby book feature.  For example, the study requires that you frequently take video of playing with your baby. The use of such images is defined in the Consent Agreement.",
+        "NSLocationAlwaysUsageDescription": "This app uses location to identify where your pictures or videos were taken. The use of such images is defined in the Consent Agreement.",
+        "NSPhotoLibraryUsageDescription": "This app uses your photo library for selecting images of your baby for this study and baby book. For example, the study requires that you frequently provide video of playing with your baby. The use of such images is defined in the Consent Agreement."
+      }
+    },
+    "android": {
+      "versionCode": 1,
+      "package": "com.gofullstack.childrenofthe20s.staging",
+      "googleServicesFile": "./google-services.staging-cto20.json",
+      "useNextNotificationsApi": true,
+      "permissions": [
+        "AUDIO_RECORDING",
+        "RECORD_AUDIO",
+        "CAMERA",
+        "CAMERA_ROLL",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "NOTIFICATIONS",
+        "VIBRATE",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "babysteps",
+            "project": "children-of-the-20s-staging-react-native",
+            "authToken": "c4ac5d6f2c244c8e9c2a5dd185b43f7e712892d2d8ee47d6ac4a7f76b6ba06b8"
+          }
+        }
+      ]
+    }
+  }
+}

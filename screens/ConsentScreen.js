@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import isEmpty from 'lodash/isEmpty';
-
 import { connect } from 'react-redux';
 import { updateSession } from '../actions/session_actions';
 
